@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- The Basics -->
+    <groupId>uk.ac.ic.doc</groupId>
+    <artifactId>SimpleColocalization</artifactId>
+    <version>0.0.1</version>
+    <dependencies>
+        <dependency>
+            <groupId>net.imagej</groupId>
+            <artifactId>imagej</artifactId>
+        </dependency>
+
+        <!-- Test scope dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <!-- Inherit from the SciJava base POM. -->
+    <parent>
+        <groupId>org.scijava</groupId>
+        <artifactId>pom-scijava</artifactId>
+        <version>27.0.1</version>
+        <relativePath/>
+    </parent>
+    <properties>
+        <package-name>simplecolocalization</package-name>
+        <main-class>simplecolocalization.GaussFiltering</main-class>
+        <license.licenseName>MIT</license.licenseName>
+        <license.copyrightOwners>Joon-Ho Son</license.copyrightOwners>
+    </properties>
+
+    <!-- Build Settings -->
+    <build>
+        <!-- Let Maven know that we're not using a 'java' directory. -->
+        <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>ktlint</id>
+                        <phase>verify</phase>
+                        <configuration>
+                            <target name="ktlint">
+                                <java taskname="ktlint" dir="${basedir}" fork="true" failonerror="true"
+                                      classname="com.pinterest.ktlint.Main" classpathref="maven.plugin.classpath">
+                                    <arg value="src/**/*.kt"/>
+                                </java>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>ktlint-format</id>
+                        <configuration>
+                            <target name="ktlint">
+                                <java taskname="ktlint" dir="${basedir}" fork="true" failonerror="true"
+                                      classname="com.pinterest.ktlint.Main" classpathref="maven.plugin.classpath">
+                                    <arg value="-F"/>
+                                    <arg value="src/**/*.kt"/>
+                                </java>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.pinterest</groupId>
+                        <artifactId>ktlint</artifactId>
+                        <version>0.34.2</version>
+                    </dependency>
+                    <!-- additional 3rd party ruleset(s) can be specified here -->
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- More Project Information -->
+    <name>Simple Colocalization</name>
+    <description>A ImageJ plugin that calculates cell colocalization.</description>
+    <!-- Little shoutout ;) -->
+    <url>https://sonj.me</url>
+    <inceptionYear>2019</inceptionYear>
+    <licenses>
+        <license>
+            <name>MIT</name>
+        </license>
+    </licenses>
+    <organization>
+        <name>Imperial College Software Engineering Group Project Group 11</name>
+    </organization>
+    <developers>
+        <developer>
+            <id>wburr10</id>
+            <name>William Burr</name>
+        </developer>
+        <developer>
+            <id>tiger-cross</id>
+            <name>Tiger Cross</name>
+        </developer>
+        <developer>
+            <id>rasnav99</id>
+            <name>Rasika Navarange</name>
+        </developer>
+        <developer>
+            <id>arjunsinghrana</id>
+            <name>Arjun Singh</name>
+        </developer>
+        <developer>
+            <id>sonjoonho</id>
+            <name>Joon-Ho Son</name>
+        </developer>
+        <developer>
+            <id>kz</id>
+            <name>Kelvin Zhang</name>
+        </developer>
+    </developers>
+    <!-- We have no contributors, but it is required by the parent POM. -->
+    <contributors>
+        <contributor>
+            <name>None</name>
+        </contributor>
+    </contributors>
+
+    <!-- Environment Settings -->
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/plug-in-baby/simple-colocalization/issues</url>
+    </issueManagement>
+    <ciManagement>
+        <system>Travis CI</system>
+        <url>https://travis-ci.org/plug-in-baby/simple-colocalization</url>
+    </ciManagement>
+    <!-- We have no mailing list, but it is required by the parent POM. -->
+    <mailingLists>
+        <mailingList>
+            <name>None</name>
+        </mailingList>
+    </mailingLists>
+    <scm>
+        <connection>scm:git:git//github.com/plug-in-baby/simple-colocalization</connection>
+        <developerConnection>scm:git:git//github.com/plug-in-baby/simple-colocalization</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/plug-in-baby/simple-colocalization</url>
+    </scm>
+    <repositories>
+        <repository>
+            <id>scijava.public</id>
+            <url>https://maven.scijava.org/content/groups/public</url>
+        </repository>
+    </repositories>
+
+</project>
