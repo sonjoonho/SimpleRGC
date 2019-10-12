@@ -4,14 +4,14 @@ import ij.ImagePlus
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.RankFilters
+import ij.process.ImageConverter
 import java.io.File
 import net.imagej.ImageJ
-import ij.process.ImageConverter
 import org.scijava.command.Command
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 
-//TODO (#5): Figure out what this value should be
+// TODO (#5): Figure out what this value should be
 const val LARGEST_CELL_DIAMETER = 30.0
 
 /**
@@ -38,13 +38,15 @@ class SimpleColocalization : Command {
 
         // Remove background
         val backgroundSubtracter = BackgroundSubtracter()
-        backgroundSubtracter.rollingBallBackground(image.channelProcessor,
+        backgroundSubtracter.rollingBallBackground(
+            image.channelProcessor,
             LARGEST_CELL_DIAMETER,
             false,
             false,
             false,
             false,
-            false)
+            false
+        )
 
         // Despeckle image
         val rankFilters = RankFilters()
