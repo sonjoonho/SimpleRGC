@@ -1,8 +1,12 @@
 package simplecolocalization
 
 import ij.ImagePlus
+import ij.plugin.filter.BackgroundSubtracter
+import ij.plugin.filter.EDM
+import ij.plugin.filter.RankFilters
 import java.io.File
 import net.imagej.ImageJ
+import ij.process.ImageConverter
 import org.scijava.command.Command
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
@@ -19,9 +23,37 @@ class SimpleColocalization : Command {
 
     override fun run() {
         val image = ImagePlus(imageFile.absolutePath)
+        preprocessImage(image)
+        watershedImage(image)
         image.show()
+    }
+
+    private fun preprocessImage(image: ImagePlus) {
+        // Convert to grayscale 8-bit
+        val imageConverter = ImageConverter(image)
+        imageConverter.convertToGray8()
+
+        // Remove background
+        val backgroundSubtracter = BackgroundSubtracter()
+        backgroundSubtracter.rollingBallBackground(image.channelProcessor,
+            30.0,
+            false,
+            false,
+            false,
+            false,
+            false)
+
+        // Despeckle image
+        val rankFilters = RankFilters()
+        rankFilters.rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
+
+        // Threshold image
         image.channelProcessor.autoThreshold()
-        image.show()
+    }
+
+    private fun watershedImage(image: ImagePlus) {
+        val edm = EDM()
+        edm.toWatershed(image.channelProcessor)
     }
 
     companion object {
