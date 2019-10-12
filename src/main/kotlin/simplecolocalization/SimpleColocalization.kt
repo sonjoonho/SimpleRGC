@@ -1,18 +1,27 @@
 package simplecolocalization
 
+import ij.ImagePlus
+import java.io.File
 import net.imagej.ImageJ
 import org.scijava.command.Command
+import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 
 /**
  * This provides basic scaffolding for an ImageJ plugin.
  *
  */
-@Plugin(type = Command::class, menuPath = "Plugins > Gauss Filtering")
+@Plugin(type = Command::class, menuPath = "Plugins > Simple Colocalization")
 class SimpleColocalization : Command {
 
+    @Parameter
+    private lateinit var imageFile: File
+
     override fun run() {
-        println("Hello world!")
+        val image = ImagePlus(imageFile.absolutePath)
+        image.show()
+        image.channelProcessor.autoThreshold()
+        image.show()
     }
 
     companion object {
@@ -31,6 +40,8 @@ class SimpleColocalization : Command {
             // create the ImageJ application context with all available services
             val ij = ImageJ()
             ij.ui().showUI()
+
+            ij.command().run(SimpleColocalization::class.java, true)
         }
     }
 }
