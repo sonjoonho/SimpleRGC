@@ -27,10 +27,13 @@ class SimpleColocalization : Command {
     override fun run() {
         val image = ImagePlus(imageFile.absolutePath)
         preprocessImage(image)
-        watershedImage(image)
+        segmentImage(image)
         image.show()
     }
 
+    /**
+     * Perform pre-processing on the image to remove background and set cells to white
+     */
     private fun preprocessImage(image: ImagePlus) {
         // Convert to grayscale 8-bit
         val imageConverter = ImageConverter(image)
@@ -56,7 +59,14 @@ class SimpleColocalization : Command {
         image.channelProcessor.autoThreshold()
     }
 
-    private fun watershedImage(image: ImagePlus) {
+    /**
+     * Segment the image into individual cells, overlaying outlines for cells in the image
+     *
+     * Uses ImageJ's Euclidean Distance Map plugin for performing the watershed algorithm.
+     * Used as a simple starting point that'd allow for cell counting.
+     */
+    private fun segmentImage(image: ImagePlus) {
+        // TODO (#7): Review and improve upon simple watershed
         val edm = EDM()
         edm.toWatershed(image.channelProcessor)
     }
