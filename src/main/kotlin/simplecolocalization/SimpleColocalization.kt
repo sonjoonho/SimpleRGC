@@ -11,6 +11,9 @@ import org.scijava.command.Command
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 
+//TODO (Issue 1): Figure out what this value should be
+const val LARGEST_CELL_DIAMETER = 30.0
+
 /**
  * This provides basic scaffolding for an ImageJ plugin.
  *
@@ -36,7 +39,7 @@ class SimpleColocalization : Command {
         // Remove background
         val backgroundSubtracter = BackgroundSubtracter()
         backgroundSubtracter.rollingBallBackground(image.channelProcessor,
-            30.0,
+            LARGEST_CELL_DIAMETER,
             false,
             false,
             false,
