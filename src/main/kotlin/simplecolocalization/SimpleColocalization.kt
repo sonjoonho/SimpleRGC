@@ -11,7 +11,7 @@ import org.scijava.command.Command
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 
-//TODO (Issue 1): Figure out what this value should be
+//TODO (#5): Figure out what this value should be
 const val LARGEST_CELL_DIAMETER = 30.0
 
 /**
