@@ -2,6 +2,7 @@ package simplecolocalization
 
 import ij.ImagePlus
 import ij.gui.PointRoi
+import ij.gui.Roi
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.GaussianBlur
@@ -152,7 +153,9 @@ class SimpleColocalization : Command {
         val image = ImagePlus(imageFile.absolutePath)
         preprocessImage(image)
         segmentImage(image)
-        markCells(originalImage, identifyCells(image))
+        val cells = identifyCells(image)
+        showCount(cells.size())
+        markCells(originalImage, cells)
         originalImage.show()
     }
 
@@ -161,21 +164,20 @@ class SimpleColocalization : Command {
      *
      * Uses ImageJ's Find Maxima plugin for identifying the center of cells
      */
-    private fun identifyCells(segmentedImage: ImagePlus): PointRoi {
+    private fun identifyCells(segmentedImage: ImagePlus): Roi {
         val maxFinder = MaximumFinder()
         val result = maxFinder.getMaxima(segmentedImage.channelProcessor,
             10.0,
             false,
             false)
-        showCount(result.npoints)
         return PointRoi(result.xpoints, result.ypoints, result.npoints)
     }
 
     /**
      * Mark the cell locations in the image
      */
-    private fun markCells(image: ImagePlus, pointRoi: PointRoi) {
-        image.roi = pointRoi
+    private fun markCells(image: ImagePlus, roi: Roi) {
+        image.roi = roi
     }
 
     companion object {
