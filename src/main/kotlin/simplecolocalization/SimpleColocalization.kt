@@ -97,8 +97,7 @@ class SimpleColocalization : Command {
     }
 
     /**
-     * Perform pre-processing on the image to remove background and set cells
-     * to white.
+     * Perform pre-processing on the image to remove background and set cells to white
      */
     private fun preprocessImage(image: ImagePlus) {
         // Convert to grayscale 8-bit
@@ -126,12 +125,9 @@ class SimpleColocalization : Command {
     }
 
     /**
-     * Segment the image into individual cells, overlaying outlines for cells
-     * in the image.
+     * Segment the image into individual cells, overlaying outlines for cells in the image
      *
-     * Uses ImageJ's Euclidean Distance Map plugin for performing the watershed
-     * algorithm.
-     *
+     * Uses ImageJ's Euclidean Distance Map plugin for performing the watershed algorithm.
      * Used as a simple starting point that'd allow for cell counting.
      */
     private fun segmentImage(image: ImagePlus) {
