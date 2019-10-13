@@ -14,7 +14,7 @@ export PATH="$IJ_PATH:$PATH"
 printf "Installing ImageJ\n"
 mkdir -p "$IJ_PATH"/
 cd "$HOME"/
-wget -q --no-check-certificate https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
+wget -q https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
 unzip -q fiji-linux64.zip
 
 # Install the package.
