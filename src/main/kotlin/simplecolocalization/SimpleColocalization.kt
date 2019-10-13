@@ -1,8 +1,11 @@
 package simplecolocalization
 
 import ij.ImagePlus
+import ij.gui.PointRoi
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
+import ij.plugin.filter.GaussianBlur
+import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.RankFilters
 import ij.process.ImageConverter
 import java.io.File
@@ -13,6 +16,12 @@ import org.scijava.plugin.Plugin
 
 // TODO (#5): Figure out what this value should be
 const val LARGEST_CELL_DIAMETER = 30.0
+
+// Defined in ImageJ docs: Despeckle is a median filter with radius 1.0
+const val DESPECKLE_RADIUS = 1.0
+
+// TODO: Justify this values or make them parameters
+const val GAUSSIAN_SIGMA = 3.0
 
 /**
  * This provides basic scaffolding for an ImageJ plugin.
@@ -25,6 +34,7 @@ class SimpleColocalization : Command {
     private lateinit var imageFile: File
 
     override fun run() {
+        val originalImage = ImagePlus(imageFile.absolutePath)
         val image = ImagePlus(imageFile.absolutePath)
         preprocessImage(image)
         segmentImage(image)
@@ -50,10 +60,16 @@ class SimpleColocalization : Command {
             false,
             false
         )
+        // Threshold image
+        image.channelProcessor.autoThreshold()
 
         // Despeckle image
         val rankFilters = RankFilters()
-        rankFilters.rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
+        rankFilters.rank(image.channelProcessor, DESPECKLE_RADIUS, RankFilters.MEDIAN)
+
+        // Apply Gaussian Blur to group larger speckles
+        val gaussianBlur = GaussianBlur()
+        gaussianBlur.blurGaussian(image.channelProcessor, GAUSSIAN_SIGMA)
 
         // Threshold image
         image.channelProcessor.autoThreshold()
