@@ -1,2 +1,22 @@
 language: java
 jdk: openjdk8
+sudo: false
+
+# We enable a virtual display to prevent ImageJ from running in headless mode
+dist: xenial
+services:
+  - xvfb
+
+cache:
+  directories:
+    - $HOME/.m2/
+
+# Skip the install stage
+install: true
+
+script:
+  - ./deploy.sh
+
+branches:
+  only:
+    - master
