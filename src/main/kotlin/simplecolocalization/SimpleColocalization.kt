@@ -5,6 +5,7 @@ import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.RankFilters
 import ij.process.ImageConverter
+import java.io.File
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -14,7 +15,6 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
-import java.io.File
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
