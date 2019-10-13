@@ -4,8 +4,11 @@ import ij.ImagePlus
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.RankFilters
+import ij.process.ByteProcessor
 import ij.process.ImageConverter
 import java.io.File
+import loci.formats.`in`.LIFReader
+import loci.formats.out.TiffWriter
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -138,7 +141,10 @@ class SimpleColocalization : Command {
 
     /** Runs after the parameters above are populated. */
     override fun run() {
-        val image = ImagePlus(imageFile.absolutePath)
+        val reader = LIFReader()
+        reader.setId(imageFile.absolutePath)
+        val image = ImagePlus("image", ByteProcessor(reader.sizeX, reader.sizeY, reader.openBytes(0)))
+        image.show()
         preprocessImage(image)
         segmentImage(image)
         image.show()
