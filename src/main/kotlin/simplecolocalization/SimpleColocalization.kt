@@ -77,7 +77,7 @@ class SimpleColocalization : Command {
      * TODO (#5): Figure out what this value should be.
      */
     @Parameter(
-        label = "Largest Cell Diameter (µm)",
+        label = "Largest Cell Diameter",
         min = "5.0",
         stepSize = "1.0",
         style = NumberWidget.SPINNER_STYLE,
