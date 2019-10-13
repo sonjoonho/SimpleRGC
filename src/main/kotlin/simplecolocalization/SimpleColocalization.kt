@@ -120,8 +120,8 @@ class SimpleColocalization : Command {
         // Threshold image
         image.channelProcessor.autoThreshold()
 
-        // Despeckle image
-        // Defined in ImageJ docs: Despeckle is a median filter with radius 1.0
+        // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
+        // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
         RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
 
         // Apply Gaussian Blur to group larger speckles
