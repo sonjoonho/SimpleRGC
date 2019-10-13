@@ -1,6 +1,10 @@
 package simplecolocalization
 
 import ij.ImagePlus
+import ij.plugin.filter.BackgroundSubtracter
+import ij.plugin.filter.EDM
+import ij.plugin.filter.RankFilters
+import ij.process.ImageConverter
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -57,7 +61,7 @@ class SimpleColocalization : Command {
         required = true,
         persist = false
     )
-    private var gaussianBlurSigma = 3.0F
+    private var gaussianBlurSigma = 3.0
 
     @Parameter(
         label = "Cell Identification Parameters:",
@@ -69,6 +73,8 @@ class SimpleColocalization : Command {
     /**
      * Used during the cell identification stage to reduce overlapping cells
      * being grouped into a single cell.
+     *
+     * TODO (#5): Figure out what this value should be.
      */
     @Parameter(
         label = "Largest Cell Diameter (µm)",
@@ -78,7 +84,7 @@ class SimpleColocalization : Command {
         required = true,
         persist = false
     )
-    private var largestCellDiameter = 30.0F
+    private var largestCellDiameter = 30.0
 
     /** Displays the resulting count as a results table. */
     fun showCount(count: Int) {
@@ -90,11 +96,56 @@ class SimpleColocalization : Command {
         uiService.show(table)
     }
 
+    /**
+     * Perform pre-processing on the image to remove background and set cells
+     * to white.
+     */
+    private fun preprocessImage(image: ImagePlus) {
+        // Convert to grayscale 8-bit
+        val imageConverter = ImageConverter(image)
+        imageConverter.convertToGray8()
+
+        // Remove background
+        val backgroundSubtracter = BackgroundSubtracter()
+        backgroundSubtracter.rollingBallBackground(
+            image.channelProcessor,
+            largestCellDiameter,
+            false,
+            false,
+            false,
+            false,
+            false
+        )
+
+        // Despeckle image
+        val rankFilters = RankFilters()
+        rankFilters.rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
+
+        // Threshold image
+        image.channelProcessor.autoThreshold()
+    }
+
+    /**
+     * Segment the image into individual cells, overlaying outlines for cells
+     * in the image.
+     *
+     * Uses ImageJ's Euclidean Distance Map plugin for performing the watershed
+     * algorithm.
+     *
+     * Used as a simple starting point that'd allow for cell counting.
+     */
+    private fun segmentImage(image: ImagePlus) {
+        // TODO (#7): Review and improve upon simple watershed
+        val edm = EDM()
+        edm.toWatershed(image.channelProcessor)
+    }
+
     /** Runs after the parameters above are populated. */
     override fun run() {
         val image = ImagePlus(imageFile.absolutePath)
+        preprocessImage(image)
+        segmentImage(image)
         image.show()
-        image.channelProcessor.autoThreshold()
         showCount(1)
     }
 
