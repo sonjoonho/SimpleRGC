@@ -11,17 +11,10 @@ cache:
   directories:
     - $HOME/.m2/
 
-stages:
-  - compile
-  - test
-  - name: deploy
-    if: branch = master
+script: mvn clean verify
 
-jobs:
-  include:
-    - stage: compile
-    - script: mvn compile
-    - stage: test
-    - script: mvn test
-    - stage: deploy
-    - script: ./deploy.sh
+deploy:
+  provider: script
+  script: ./deploy.sh
+  on:
+    branch: master
