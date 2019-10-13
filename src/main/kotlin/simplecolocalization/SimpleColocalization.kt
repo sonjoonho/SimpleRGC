@@ -34,11 +34,15 @@ class SimpleColocalization : Command {
     private lateinit var imageFile: File
 
     override fun run() {
+        // Image to be preserved until making marks on the image
         val originalImage = ImagePlus(imageFile.absolutePath)
+
+        // Image to pre-process and modify to identify cells
         val image = ImagePlus(imageFile.absolutePath)
         preprocessImage(image)
         segmentImage(image)
-        image.show()
+        markCells(originalImage, identifyCells(image))
+        originalImage.show()
     }
 
     /**
@@ -85,6 +89,28 @@ class SimpleColocalization : Command {
         // TODO (#7): Review and improve upon simple watershed
         val edm = EDM()
         edm.toWatershed(image.channelProcessor)
+    }
+
+    /**
+     * Identify the cells in the image, produce a PointRoi containing the points
+     *
+     * Uses ImageJ's Find Maxima plugin for identifying the center of cells
+     */
+    private fun identifyCells(segmentedImage: ImagePlus): PointRoi {
+        val maxFinder = MaximumFinder()
+        val result = maxFinder.getMaxima(segmentedImage.channelProcessor,
+            10.0,
+            false,
+            false)
+        print("Number of Cells: " + result.npoints)
+        return PointRoi(result.xpoints, result.ypoints, result.npoints)
+    }
+
+    /**
+     * Mark the cell locations in the image
+     */
+    private fun markCells(image: ImagePlus, pointRoi: PointRoi) {
+        image.roi = pointRoi
     }
 
     companion object {
