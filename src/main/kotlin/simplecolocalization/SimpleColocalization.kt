@@ -117,7 +117,8 @@ class SimpleColocalization : Command {
             false,
             false
         )
-        // Threshold image
+
+        // Threshold grayscale image, leaving black and white image
         image.channelProcessor.autoThreshold()
 
         // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
@@ -127,7 +128,7 @@ class SimpleColocalization : Command {
         // Apply Gaussian Blur to group larger speckles
         GaussianBlur().blurGaussian(image.channelProcessor, gaussianBlurSigma)
 
-        // Threshold image
+        // Threshold image to remove blur
         image.channelProcessor.autoThreshold()
     }
 
