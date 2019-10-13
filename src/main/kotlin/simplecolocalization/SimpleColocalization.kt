@@ -101,13 +101,13 @@ class SimpleColocalization : Command {
     }
 
     /**
-     * Perform pre-processing on the image to remove background and set cells to white
+     * Perform pre-processing on the image to remove background and set cells to white.
      */
     private fun preprocessImage(image: ImagePlus) {
-        // Convert to grayscale 8-bit
+        // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
 
-        // Remove background
+        // Remove background.
         BackgroundSubtracter().rollingBallBackground(
             image.channelProcessor,
             largestCellDiameter,
@@ -118,28 +118,28 @@ class SimpleColocalization : Command {
             false
         )
 
-        // Threshold grayscale image, leaving black and white image
+        // Threshold grayscale image, leaving black and white image.
         image.channelProcessor.autoThreshold()
 
         // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
         RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
 
-        // Apply Gaussian Blur to group larger speckles
+        // Apply Gaussian Blur to group larger speckles.
         GaussianBlur().blurGaussian(image.channelProcessor, gaussianBlurSigma)
 
-        // Threshold image to remove blur
+        // Threshold image to remove blur.
         image.channelProcessor.autoThreshold()
     }
 
     /**
-     * Segment the image into individual cells, overlaying outlines for cells in the image
+     * Segment the image into individual cells, overlaying outlines for cells in the image.
      *
      * Uses ImageJ's Euclidean Distance Map plugin for performing the watershed algorithm.
      * Used as a simple starting point that'd allow for cell counting.
      */
     private fun segmentImage(image: ImagePlus) {
-        // TODO (#7): Review and improve upon simple watershed
+        // TODO (#7): Review and improve upon simple watershed.
         EDM().toWatershed(image.channelProcessor)
     }
 
@@ -156,9 +156,9 @@ class SimpleColocalization : Command {
     }
 
     /**
-     * Identify the cells in the image, produce a PointRoi containing the points
+     * Identify the cells in the image, produce a PointRoi containing the points.
      *
-     * Uses ImageJ's Find Maxima plugin for identifying the center of cells
+     * Uses ImageJ's Find Maxima plugin for identifying the center of cells.
      */
     private fun identifyCells(segmentedImage: ImagePlus): Roi {
         val result = MaximumFinder().getMaxima(segmentedImage.channelProcessor,
@@ -169,7 +169,7 @@ class SimpleColocalization : Command {
     }
 
     /**
-     * Mark the cell locations in the image
+     * Mark the cell locations in the image.
      */
     private fun markCells(image: ImagePlus, roi: Roi) {
         image.roi = roi
