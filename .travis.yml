@@ -11,12 +11,17 @@ cache:
   directories:
     - $HOME/.m2/
 
-# Skip the install stage
-install: true
+stages:
+  - compile
+  - test
+  - name: deploy
+    if: branch = master
 
-script:
-  - ./deploy.sh
-
-branches:
-  only:
-    - master
+jobs:
+  include:
+    - stage: compile
+    - script: mvn compile
+    - stage: test
+    - script: mvn test
+    - stage: deploy
+    - script: ./deploy.sh
