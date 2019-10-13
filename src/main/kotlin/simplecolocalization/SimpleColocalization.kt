@@ -105,12 +105,10 @@ class SimpleColocalization : Command {
      */
     private fun preprocessImage(image: ImagePlus) {
         // Convert to grayscale 8-bit
-        val imageConverter = ImageConverter(image)
-        imageConverter.convertToGray8()
+        ImageConverter(image).convertToGray8()
 
         // Remove background
-        val backgroundSubtracter = BackgroundSubtracter()
-        backgroundSubtracter.rollingBallBackground(
+        BackgroundSubtracter().rollingBallBackground(
             image.channelProcessor,
             largestCellDiameter,
             false,
@@ -123,13 +121,11 @@ class SimpleColocalization : Command {
         image.channelProcessor.autoThreshold()
 
         // Despeckle image
-        val rankFilters = RankFilters()
         // Defined in ImageJ docs: Despeckle is a median filter with radius 1.0
-        rankFilters.rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
+        RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
 
         // Apply Gaussian Blur to group larger speckles
-        val gaussianBlur = GaussianBlur()
-        gaussianBlur.blurGaussian(image.channelProcessor, gaussianBlurSigma)
+        GaussianBlur().blurGaussian(image.channelProcessor, gaussianBlurSigma)
 
         // Threshold image
         image.channelProcessor.autoThreshold()
@@ -143,8 +139,7 @@ class SimpleColocalization : Command {
      */
     private fun segmentImage(image: ImagePlus) {
         // TODO (#7): Review and improve upon simple watershed
-        val edm = EDM()
-        edm.toWatershed(image.channelProcessor)
+        EDM().toWatershed(image.channelProcessor)
     }
 
     /** Runs after the parameters above are populated. */
@@ -165,8 +160,7 @@ class SimpleColocalization : Command {
      * Uses ImageJ's Find Maxima plugin for identifying the center of cells
      */
     private fun identifyCells(segmentedImage: ImagePlus): Roi {
-        val maxFinder = MaximumFinder()
-        val result = maxFinder.getMaxima(segmentedImage.channelProcessor,
+        val result = MaximumFinder().getMaxima(segmentedImage.channelProcessor,
             10.0,
             false,
             false)
