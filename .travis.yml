@@ -11,12 +11,10 @@ cache:
   directories:
     - $HOME/.m2/
 
-# Skip the install stage
-install: true
+script: mvn clean verify
 
-script:
-  - ./deploy.sh
-
-branches:
-  only:
-    - master
+deploy:
+  provider: script
+  script: ./deploy.sh
+  on:
+    branch: master
