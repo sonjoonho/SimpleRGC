@@ -3,11 +3,15 @@ package simplecolocalization
 import ij.ImagePlus
 import ij.gui.PointRoi
 import ij.gui.Roi
+import ij.measure.Measurements
+import ij.measure.ResultsTable
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.GaussianBlur
 import ij.plugin.filter.MaximumFinder
+import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
+import ij.plugin.frame.RoiManager
 import ij.process.ImageConverter
 import java.io.File
 import net.imagej.ImageJ
@@ -43,6 +47,9 @@ class SimpleColocalization : Command {
     /** File path of the input image. */
     @Parameter(label = "Input Image")
     private lateinit var imageFile: File
+
+    @Parameter
+    private lateinit var roiManager: RoiManager
 
     @Parameter(
         label = "Preprocessing Parameters:",
@@ -150,6 +157,10 @@ class SimpleColocalization : Command {
         preprocessImage(image)
         segmentImage(image)
         val cells = identifyCells(image)
+        val rois = roiManager.roisAsArray
+        for (roi in rois) {
+            roiManager.add(originalImage, roi, -1)
+        }
         showCount(cells.size())
         markCells(originalImage, cells)
         originalImage.show()
@@ -165,6 +176,9 @@ class SimpleColocalization : Command {
             10.0,
             false,
             false)
+        val roiTable = ResultsTable()
+        ParticleAnalyzer.setRoiManager(roiManager)
+        ParticleAnalyzer(ParticleAnalyzer.SHOW_NONE or ParticleAnalyzer.ADD_TO_MANAGER, Measurements.ALL_STATS, roiTable, 0.0, Double.MAX_VALUE).analyze(segmentedImage)
         return PointRoi(result.xpoints, result.ypoints, result.npoints)
     }
 
