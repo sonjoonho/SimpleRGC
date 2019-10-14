@@ -48,7 +48,7 @@
     </parent>
     <properties>
         <package-name>simplecolocalization</package-name>
-        <main-class>simplecolocalization.GaussFiltering</main-class>
+        <main-class>simplecolocalization.SimpleColocalization</main-class>
         <license.licenseName>MIT</license.licenseName>
         <license.copyrightOwners>Joon-Ho Son</license.copyrightOwners>
     </properties>

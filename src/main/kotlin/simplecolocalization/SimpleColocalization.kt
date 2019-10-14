@@ -1,8 +1,12 @@
 package simplecolocalization
 
 import ij.ImagePlus
+import ij.gui.PointRoi
+import ij.gui.Roi
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
+import ij.plugin.filter.GaussianBlur
+import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.RankFilters
 import ij.process.ByteProcessor
 import ij.process.ImageConverter
@@ -103,7 +107,7 @@ class SimpleColocalization : Command {
     private var largestCellDiameter = 30.0
 
     /** Displays the resulting count as a results table. */
-    fun showCount(count: Int) {
+    private fun showCount(count: Int) {
         val table = DefaultGenericTable()
         val countColumn = IntColumn()
         countColumn.add(count)
@@ -113,16 +117,14 @@ class SimpleColocalization : Command {
     }
 
     /**
-     * Perform pre-processing on the image to remove background and set cells to white
+     * Perform pre-processing on the image to remove background and set cells to white.
      */
     private fun preprocessImage(image: ImagePlus) {
-        // Convert to grayscale 8-bit
-        val imageConverter = ImageConverter(image)
-        imageConverter.convertToGray8()
+        // Convert to grayscale 8-bit.
+        ImageConverter(image).convertToGray8()
 
-        // Remove background
-        val backgroundSubtracter = BackgroundSubtracter()
-        backgroundSubtracter.rollingBallBackground(
+        // Remove background.
+        BackgroundSubtracter().rollingBallBackground(
             image.channelProcessor,
             largestCellDiameter,
             false,
@@ -132,24 +134,29 @@ class SimpleColocalization : Command {
             false
         )
 
-        // Despeckle image
-        val rankFilters = RankFilters()
-        rankFilters.rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
+        // Threshold grayscale image, leaving black and white image.
+        image.channelProcessor.autoThreshold()
 
-        // Threshold image
+        // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
+        // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
+        RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
+
+        // Apply Gaussian Blur to group larger speckles.
+        GaussianBlur().blurGaussian(image.channelProcessor, gaussianBlurSigma)
+
+        // Threshold image to remove blur.
         image.channelProcessor.autoThreshold()
     }
 
     /**
-     * Segment the image into individual cells, overlaying outlines for cells in the image
+     * Segment the image into individual cells, overlaying outlines for cells in the image.
      *
      * Uses ImageJ's Euclidean Distance Map plugin for performing the watershed algorithm.
      * Used as a simple starting point that'd allow for cell counting.
      */
     private fun segmentImage(image: ImagePlus) {
-        // TODO (#7): Review and improve upon simple watershed
-        val edm = EDM()
-        edm.toWatershed(image.channelProcessor)
+        // TODO (#7): Review and improve upon simple watershed.
+        EDM().toWatershed(image.channelProcessor)
     }
 
     /** Runs after the parameters above are populated. */
@@ -159,13 +166,36 @@ class SimpleColocalization : Command {
         val count = reader.seriesCount
         for (i in 0 until min(count, numSlices)) {
             reader.series = i
-            val image = ImagePlus("image", ByteProcessor(reader.sizeX, reader.sizeY, reader.openBytes(0)))
-            image.show()
+            val bytes = ByteProcessor(reader.sizeX, reader.sizeY, reader.openBytes(0))
+            val originalImage = ImagePlus("originalImage", bytes)
+            val image = ImagePlus("image", bytes)
             preprocessImage(image)
             segmentImage(image)
-            image.show()
-            showCount(1)
+            val cells = identifyCells(image)
+            showCount(cells.size())
+            markCells(originalImage, cells)
+            originalImage.show()
         }
+    }
+
+    /**
+     * Identify the cells in the image, produce a PointRoi containing the points.
+     *
+     * Uses ImageJ's Find Maxima plugin for identifying the center of cells.
+     */
+    private fun identifyCells(segmentedImage: ImagePlus): Roi {
+        val result = MaximumFinder().getMaxima(segmentedImage.channelProcessor,
+            10.0,
+            false,
+            false)
+        return PointRoi(result.xpoints, result.ypoints, result.npoints)
+    }
+
+    /**
+     * Mark the cell locations in the image.
+     */
+    private fun markCells(image: ImagePlus, roi: Roi) {
+        image.roi = roi
     }
 
     companion object {
