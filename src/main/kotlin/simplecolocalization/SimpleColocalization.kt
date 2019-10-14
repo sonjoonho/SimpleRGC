@@ -48,9 +48,6 @@ class SimpleColocalization : Command {
     @Parameter(label = "Input Image")
     private lateinit var imageFile: File
 
-    @Parameter
-    private lateinit var roiManager: RoiManager
-
     @Parameter(
         label = "Preprocessing Parameters:",
         visibility = ItemVisibility.MESSAGE,
@@ -156,14 +153,27 @@ class SimpleColocalization : Command {
         val image = ImagePlus(imageFile.absolutePath)
         preprocessImage(image)
         segmentImage(image)
+        selectCells(image, originalImage)
         val cells = identifyCells(image)
-        val rois = roiManager.roisAsArray
-        for (roi in rois) {
-            roiManager.add(originalImage, roi, -1)
-        }
-        showCount(cells.size())
         markCells(originalImage, cells)
+        showCount(cells.size())
         originalImage.show()
+    }
+
+    /**
+     * Select each cell identified in the segmented image in the original image.
+     */
+    private fun selectCells(segmentedImage: ImagePlus, originalImage: ImagePlus) {
+        ParticleAnalyzer.setRoiManager(RoiManager.getRoiManager())
+        ParticleAnalyzer(ParticleAnalyzer.SHOW_NONE or ParticleAnalyzer.ADD_TO_MANAGER,
+            Measurements.ALL_STATS,
+            ResultsTable(),
+            0.0,
+            Double.MAX_VALUE).analyze(segmentedImage)
+        val rois = RoiManager.getInstance().roisAsArray
+        for (roi in rois) {
+            roi.image = originalImage
+        }
     }
 
     /**
@@ -176,9 +186,6 @@ class SimpleColocalization : Command {
             10.0,
             false,
             false)
-        val roiTable = ResultsTable()
-        ParticleAnalyzer.setRoiManager(roiManager)
-        ParticleAnalyzer(ParticleAnalyzer.SHOW_NONE or ParticleAnalyzer.ADD_TO_MANAGER, Measurements.ALL_STATS, roiTable, 0.0, Double.MAX_VALUE).analyze(segmentedImage)
         return PointRoi(result.xpoints, result.ypoints, result.npoints)
     }
 
