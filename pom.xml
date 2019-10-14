@@ -23,9 +23,8 @@
             <artifactId>imagej-legacy</artifactId>
         </dependency>
         <dependency>
-            <groupId>loci</groupId>
-            <artifactId>bio-formats</artifactId>
-            <version>5.0.0-beta1</version>
+            <groupId>ome</groupId>
+            <artifactId>formats-gpl</artifactId>
         </dependency>
         <!-- Test scope dependencies -->
         <dependency>
