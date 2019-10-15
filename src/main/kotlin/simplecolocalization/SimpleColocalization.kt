@@ -7,7 +7,6 @@ import ij.measure.Measurements
 import ij.measure.ResultsTable
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
-import ij.plugin.filter.GaussianBlur
 import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
@@ -130,7 +129,7 @@ class SimpleColocalization : Command {
         RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
 
         // Apply Gaussian Blur to group larger speckles.
-        GaussianBlur().blurGaussian(image.channelProcessor, gaussianBlurSigma)
+        image.channelProcessor.blurGaussian(gaussianBlurSigma)
 
         // Threshold image to remove blur.
         image.channelProcessor.autoThreshold()
