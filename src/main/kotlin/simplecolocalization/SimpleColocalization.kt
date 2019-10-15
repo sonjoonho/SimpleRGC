@@ -1,7 +1,6 @@
 package simplecolocalization
 
 import ij.ImagePlus
-import ij.gui.PointRoi
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
@@ -152,47 +151,36 @@ class SimpleColocalization : Command {
         val image = ImagePlus(imageFile.absolutePath)
         preprocessImage(image)
         segmentImage(image)
-        selectCells(image, originalImage)
-        val cells = identifyCells(image)
+        val roiManager = RoiManager.getRoiManager()
+        val cells = identifyCells(roiManager, image)
         markCells(originalImage, cells)
-        showCount(cells.size())
+        showCount(cells.size)
         originalImage.show()
     }
 
     /**
      * Select each cell identified in the segmented image in the original image.
+     *
+     * We use [ParticleAnalyzer] instead of [MaximumFinder] as the former highlights the shape of the cell instead
+     * of just marking its centre.
      */
-    private fun selectCells(segmentedImage: ImagePlus, originalImage: ImagePlus) {
-        ParticleAnalyzer.setRoiManager(RoiManager.getRoiManager())
+    private fun identifyCells(roiManager: RoiManager, segmentedImage: ImagePlus) : Array<Roi> {
+        ParticleAnalyzer.setRoiManager(roiManager)
         ParticleAnalyzer(ParticleAnalyzer.SHOW_NONE or ParticleAnalyzer.ADD_TO_MANAGER,
             Measurements.ALL_STATS,
             ResultsTable(),
             0.0,
             Double.MAX_VALUE).analyze(segmentedImage)
-        val rois = RoiManager.getInstance().roisAsArray
-        for (roi in rois) {
-            roi.image = originalImage
-        }
-    }
-
-    /**
-     * Identify the cells in the image, produce a PointRoi containing the points.
-     *
-     * Uses ImageJ's Find Maxima plugin for identifying the center of cells.
-     */
-    private fun identifyCells(segmentedImage: ImagePlus): Roi {
-        val result = MaximumFinder().getMaxima(segmentedImage.channelProcessor,
-            10.0,
-            false,
-            false)
-        return PointRoi(result.xpoints, result.ypoints, result.npoints)
+        return roiManager.roisAsArray
     }
 
     /**
      * Mark the cell locations in the image.
      */
-    private fun markCells(image: ImagePlus, roi: Roi) {
-        image.roi = roi
+    private fun markCells(image: ImagePlus, rois: Array<Roi>) {
+        for (roi in rois) {
+            roi.image = image
+        }
     }
 
     companion object {
