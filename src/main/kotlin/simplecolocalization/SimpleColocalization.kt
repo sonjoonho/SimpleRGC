@@ -189,12 +189,12 @@ class SimpleColocalization : Command {
             }
         } else {
             // Try for all other image file types e.g. png, jpg etc.
-            try {
-                val originalImage = opener.openImage(absolutePath)
-                val image = opener.openImage(absolutePath)
-                processImage(originalImage, image)
-            } catch (e: Exception) {
+            val originalImage = opener.openImage(absolutePath)
+            val image = opener.openImage(absolutePath)
+            if (originalImage == null) {
                 MessageDialog(IJ.getInstance(), "Error", "Unsupported file type!")
+            } else {
+                processImage(originalImage, image)
             }
         }
     }
