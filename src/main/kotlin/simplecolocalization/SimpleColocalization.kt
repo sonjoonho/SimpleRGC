@@ -1,6 +1,8 @@
 package simplecolocalization
 
+import ij.IJ
 import ij.ImagePlus
+import ij.gui.MessageDialog
 import ij.gui.PointRoi
 import ij.gui.Roi
 import ij.io.Opener
@@ -162,6 +164,8 @@ class SimpleColocalization : Command {
 
     /** Runs after the parameters above are populated. */
     override fun run() {
+        val opener = Opener()
+        val fileInfo = Opener.getTiffFileInfo(inputFile.absolutePath)
         val extension = inputFile.extension
         if (extension == "lif") {
             val reader = LIFReader()
@@ -181,8 +185,6 @@ class SimpleColocalization : Command {
             }
         } else if (extension == "tiff" || extension == "tif") {
             println(inputFile.extension)
-            val opener = Opener()
-            val fileInfo = Opener.getTiffFileInfo(inputFile.absolutePath)
             println(fileInfo.size)
             println(fileInfo[0].nImages)
             if (fileInfo.size > 1) {
@@ -205,6 +207,19 @@ class SimpleColocalization : Command {
                 showCount(cells.size())
                 markCells(originalImage, cells)
                 originalImage.show()
+            }
+        } else {
+            try {
+                val originalImage = opener.openImage(inputFile.absolutePath)
+                val image = opener.openImage(inputFile.absolutePath)
+                preprocessImage(image)
+                segmentImage(image)
+                val cells = identifyCells(image)
+                showCount(cells.size())
+                markCells(originalImage, cells)
+                originalImage.show()
+            } catch (e: Exception) {
+                MessageDialog(IJ.getInstance(), "Error", "Unsupported file type!")
             }
         }
     }
