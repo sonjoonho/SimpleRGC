@@ -168,7 +168,7 @@ class SimpleColocalization : Command {
         val extension = inputFile.extension
         val opener = Opener()
         if (extension == "lif") {
-            // Read and iterate over lif series
+            // Read and iterate over lif series.
             val reader = LIFReader()
             reader.setId(absolutePath)
             val count = reader.seriesCount
@@ -180,7 +180,7 @@ class SimpleColocalization : Command {
                 processImage(originalImage, image)
             }
         } else if (extension == "tiff" || extension == "tif") {
-            // Iterate over tiff stack
+            // Iterate over tiff stack.
             val fileInfo = Opener.getTiffFileInfo(absolutePath)
             for (i in 1..fileInfo.size) {
                 val originalImage = opener.openTiff(absolutePath, i)
