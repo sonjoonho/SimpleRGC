@@ -11,7 +11,6 @@ import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
 import ij.plugin.frame.RoiManager
 import ij.process.ImageConverter
-import java.io.File
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -21,6 +20,7 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
+import java.io.File
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -164,13 +164,15 @@ class SimpleColocalization : Command {
      * We use [ParticleAnalyzer] instead of [MaximumFinder] as the former highlights the shape of the cell instead
      * of just marking its centre.
      */
-    private fun identifyCells(roiManager: RoiManager, segmentedImage: ImagePlus) : Array<Roi> {
+    private fun identifyCells(roiManager: RoiManager, segmentedImage: ImagePlus): Array<Roi> {
         ParticleAnalyzer.setRoiManager(roiManager)
-        ParticleAnalyzer(ParticleAnalyzer.SHOW_NONE or ParticleAnalyzer.ADD_TO_MANAGER,
+        ParticleAnalyzer(
+            ParticleAnalyzer.SHOW_NONE or ParticleAnalyzer.ADD_TO_MANAGER,
             Measurements.ALL_STATS,
             ResultsTable(),
             0.0,
-            Double.MAX_VALUE).analyze(segmentedImage)
+            Double.MAX_VALUE
+        ).analyze(segmentedImage)
         return roiManager.roisAsArray
     }
 
