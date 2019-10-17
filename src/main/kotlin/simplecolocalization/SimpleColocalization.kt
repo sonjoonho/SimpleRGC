@@ -3,6 +3,7 @@ package simplecolocalization
 import ij.ImagePlus
 import ij.gui.PointRoi
 import ij.gui.Roi
+import ij.io.Opener
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.GaussianBlur
@@ -44,8 +45,8 @@ class SimpleColocalization : Command {
     private lateinit var uiService: UIService
 
     /** File path of the input image. */
-    @Parameter(label = "Input LIF File")
-    private lateinit var LIFFile: File
+    @Parameter(label = "Input File")
+    private lateinit var inputFile: File
 
     @Parameter(
         label = "Preprocessing Parameters:",
@@ -161,20 +162,50 @@ class SimpleColocalization : Command {
 
     /** Runs after the parameters above are populated. */
     override fun run() {
-        val reader = LIFReader()
-        reader.setId(LIFFile.absolutePath)
-        val count = reader.seriesCount
-        for (i in 0 until min(count, numSlices)) {
-            reader.series = i
-            val bytes = ByteProcessor(reader.sizeX, reader.sizeY, reader.openBytes(0))
-            val originalImage = ImagePlus("originalImage", bytes)
-            val image = ImagePlus("image", bytes)
-            preprocessImage(image)
-            segmentImage(image)
-            val cells = identifyCells(image)
-            showCount(cells.size())
-            markCells(originalImage, cells)
-            originalImage.show()
+        val extension = inputFile.extension
+        if (extension == "lif") {
+            val reader = LIFReader()
+            reader.setId(inputFile.absolutePath)
+            val count = reader.seriesCount
+            for (i in 0 until min(count, numSlices)) {
+                reader.series = i
+                val bytes = ByteProcessor(reader.sizeX, reader.sizeY, reader.openBytes(0))
+                val originalImage = ImagePlus("originalImage", bytes)
+                val image = ImagePlus("image", bytes)
+                preprocessImage(image)
+                segmentImage(image)
+                val cells = identifyCells(image)
+                showCount(cells.size())
+                markCells(originalImage, cells)
+                originalImage.show()
+            }
+        } else if (extension == "tiff" || extension == "tif") {
+            println(inputFile.extension)
+            val opener = Opener()
+            val fileInfo = Opener.getTiffFileInfo(inputFile.absolutePath)
+            println(fileInfo.size)
+            println(fileInfo[0].nImages)
+            if (fileInfo.size > 1) {
+                for (i in 1..fileInfo.size) {
+                    val originalImage = opener.openTiff(inputFile.absolutePath, i)
+                    val image = opener.openTiff(inputFile.absolutePath, i)
+                    preprocessImage(image)
+                    segmentImage(image)
+                    val cells = identifyCells(image)
+                    showCount(cells.size())
+                    markCells(originalImage, cells)
+                    originalImage.show()
+                }
+            } else {
+                val originalImage = opener.openTiff(inputFile.absolutePath, 1)
+                val image = opener.openTiff(inputFile.absolutePath, 1)
+                preprocessImage(image)
+                segmentImage(image)
+                val cells = identifyCells(image)
+                showCount(cells.size())
+                markCells(originalImage, cells)
+                originalImage.show()
+            }
         }
     }
 
