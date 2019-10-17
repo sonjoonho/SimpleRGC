@@ -164,64 +164,48 @@ class SimpleColocalization : Command {
 
     /** Runs after the parameters above are populated. */
     override fun run() {
-        val opener = Opener()
-        val fileInfo = Opener.getTiffFileInfo(inputFile.absolutePath)
+        val absolutePath = inputFile.absolutePath
         val extension = inputFile.extension
+        val opener = Opener()
         if (extension == "lif") {
+            // Read and iterate over lif series
             val reader = LIFReader()
-            reader.setId(inputFile.absolutePath)
+            reader.setId(absolutePath)
             val count = reader.seriesCount
             for (i in 0 until min(count, numSlices)) {
                 reader.series = i
                 val bytes = ByteProcessor(reader.sizeX, reader.sizeY, reader.openBytes(0))
                 val originalImage = ImagePlus("originalImage", bytes)
                 val image = ImagePlus("image", bytes)
-                preprocessImage(image)
-                segmentImage(image)
-                val cells = identifyCells(image)
-                showCount(cells.size())
-                markCells(originalImage, cells)
-                originalImage.show()
+                processImage(originalImage, image)
             }
         } else if (extension == "tiff" || extension == "tif") {
-            println(inputFile.extension)
-            println(fileInfo.size)
-            println(fileInfo[0].nImages)
-            if (fileInfo.size > 1) {
-                for (i in 1..fileInfo.size) {
-                    val originalImage = opener.openTiff(inputFile.absolutePath, i)
-                    val image = opener.openTiff(inputFile.absolutePath, i)
-                    preprocessImage(image)
-                    segmentImage(image)
-                    val cells = identifyCells(image)
-                    showCount(cells.size())
-                    markCells(originalImage, cells)
-                    originalImage.show()
-                }
-            } else {
-                val originalImage = opener.openTiff(inputFile.absolutePath, 1)
-                val image = opener.openTiff(inputFile.absolutePath, 1)
-                preprocessImage(image)
-                segmentImage(image)
-                val cells = identifyCells(image)
-                showCount(cells.size())
-                markCells(originalImage, cells)
-                originalImage.show()
+            // Iterate over tiff stack
+            val fileInfo = Opener.getTiffFileInfo(absolutePath)
+            for (i in 1..fileInfo.size) {
+                val originalImage = opener.openTiff(absolutePath, i)
+                val image = opener.openTiff(absolutePath, i)
+                processImage(originalImage, image)
             }
         } else {
+            // Try for all other image file types e.g. png, jpg etc.
             try {
-                val originalImage = opener.openImage(inputFile.absolutePath)
-                val image = opener.openImage(inputFile.absolutePath)
-                preprocessImage(image)
-                segmentImage(image)
-                val cells = identifyCells(image)
-                showCount(cells.size())
-                markCells(originalImage, cells)
-                originalImage.show()
+                val originalImage = opener.openImage(absolutePath)
+                val image = opener.openImage(absolutePath)
+                processImage(originalImage, image)
             } catch (e: Exception) {
                 MessageDialog(IJ.getInstance(), "Error", "Unsupported file type!")
             }
         }
+    }
+
+    private fun processImage(originalImage: ImagePlus, image: ImagePlus) {
+        preprocessImage(image)
+        segmentImage(image)
+        val cells = identifyCells(image)
+        showCount(cells.size())
+        markCells(originalImage, cells)
+        originalImage.show()
     }
 
     /**
