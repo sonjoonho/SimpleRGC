@@ -154,6 +154,7 @@ class SimpleColocalization : Command {
         val roiManager = RoiManager.getRoiManager()
         val cells = identifyCells(roiManager, image)
         markCells(originalImage, cells)
+        analyseCells(originalImage, cells)
         showCount(cells.size)
         originalImage.show()
     }
@@ -183,6 +184,42 @@ class SimpleColocalization : Command {
         for (roi in rois) {
             roi.image = image
         }
+    }
+
+    data class Analysis(val area: Int, val mean: Int, val min: Int, val max: Int)
+
+    /**
+     * Analyses the RGB intensity of the cells.
+     */
+    private fun analyseCells(image: ImagePlus, cells: Array<Roi>) : Array<Analysis> {
+        // Save the initial slice so we can revert to it after cell analysis.
+        val initialSlice = image.currentSlice
+
+        val analyses = arrayListOf<Analysis>()
+        for (sliceIdx in 0..image.nSlices) {
+            image.setSliceWithoutUpdate(sliceIdx)
+
+            var area = 0
+            var sum = 0
+            var min = Integer.MAX_VALUE
+            var max = Integer.MIN_VALUE
+            for (cell in cells) {
+                cell.containedPoints.forEach { point ->
+                    val intensity = image.getPixel(point.x, point.y)
+                    area++
+                    sum += intensity[0]
+                    min = Integer.min(min, intensity[0])
+                    max = Integer.max(min, intensity[0])
+                }
+            }
+
+            analyses.add(Analysis(area, sum / area, min, max))
+
+            // Revert to the initial slice number.
+            image.setSliceWithoutUpdate(initialSlice)
+        }
+
+        return analyses.toTypedArray()
     }
 
     companion object {
