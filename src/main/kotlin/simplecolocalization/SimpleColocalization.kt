@@ -196,25 +196,23 @@ class SimpleColocalization : Command {
         val initialSlice = image.currentSlice
 
         val analyses = arrayListOf<Analysis>()
-        for (sliceIdx in 0..image.nSlices) {
+        for (sliceIdx in 0 until image.nSlices) {
             image.setSliceWithoutUpdate(sliceIdx)
-
-            var area = 0
-            var sum = 0
-            var min = Integer.MAX_VALUE
-            var max = Integer.MIN_VALUE
             for (cell in cells) {
-                cell.containedPoints.forEach { point ->
+                var area = 0
+                var sum = 0
+                var min = Integer.MAX_VALUE
+                var max = Integer.MIN_VALUE
+                val containedCells = cell.containedPoints
+                containedCells.forEach { point ->
                     val intensity = image.getPixel(point.x, point.y)
                     area++
                     sum += intensity[0]
                     min = Integer.min(min, intensity[0])
                     max = Integer.max(min, intensity[0])
                 }
+                analyses.add(Analysis(area, sum / area, min, max))
             }
-
-            analyses.add(Analysis(area, sum / area, min, max))
-
             // Revert to the initial slice number.
             image.setSliceWithoutUpdate(initialSlice)
         }
