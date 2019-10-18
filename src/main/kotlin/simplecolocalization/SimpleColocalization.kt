@@ -11,7 +11,6 @@ import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
 import ij.plugin.frame.RoiManager
 import ij.process.ImageConverter
-import java.io.File
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -21,6 +20,7 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
+import java.io.File
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -186,36 +186,42 @@ class SimpleColocalization : Command {
         }
     }
 
-    data class Analysis(val area: Int, val mean: Int, val min: Int, val max: Int)
+    data class CellAnalysis(val area: Int, val channels: List<ChannelAnalysis>)
+    data class ChannelAnalysis(val mean: Int, val min: Int, val max: Int)
 
     /**
      * Analyses the RGB intensity of the cells.
      */
-    private fun analyseCells(image: ImagePlus, cells: Array<Roi>) : Array<Analysis> {
-        // Save the initial slice so we can revert to it after cell analysis.
-        val initialSlice = image.currentSlice
+    private fun analyseCells(image: ImagePlus, cells: Array<Roi>): Array<CellAnalysis> {
+        // Convert to RGB so that we can get the r,g,b for each pixel
+        ImageConverter(image).convertToRGB()
 
-        val analyses = arrayListOf<Analysis>()
-        for (sliceIdx in 0 until image.nSlices) {
-            image.setSliceWithoutUpdate(sliceIdx)
-            for (cell in cells) {
-                var area = 0
-                var sum = 0
-                var min = Integer.MAX_VALUE
-                var max = Integer.MIN_VALUE
-                val containedCells = cell.containedPoints
-                containedCells.forEach { point ->
-                    val intensity = image.getPixel(point.x, point.y)
-                    area++
-                    sum += intensity[0]
-                    min = Integer.min(min, intensity[0])
-                    max = Integer.max(min, intensity[0])
+        // Image will have 3 channels as it is RGB following conversion
+        val nChannels = 3
+        val analyses = arrayListOf<CellAnalysis>()
+        for (cell in cells) {
+            var area = 0
+            val sums = MutableList(nChannels) { 0 }
+            val mins = MutableList(nChannels) { Integer.MAX_VALUE }
+            val maxs = MutableList(nChannels) { Integer.MIN_VALUE }
+            val containedCells = cell.containedPoints
+            containedCells.forEach { point ->
+                // pixelData is of the form [r, g, b, 0]
+                val pixelData = image.getPixel(point.x, point.y)
+                area++
+                for (channel in 0 until nChannels) {
+                    sums[channel] += pixelData[channel]
+                    mins[channel] = Integer.min(mins[channel], pixelData[channel])
+                    maxs[channel] = Integer.max(maxs[channel], pixelData[channel])
                 }
-                analyses.add(Analysis(area, sum / area, min, max))
             }
-            // Revert to the initial slice number.
-            image.setSliceWithoutUpdate(initialSlice)
+            val channels = mutableListOf<ChannelAnalysis>()
+            for (channel in 0 until nChannels) {
+                channels.add(ChannelAnalysis(sums[channel] / area, mins[channel], maxs[channel]))
+            }
+            analyses.add(CellAnalysis(area, channels))
         }
+        // Revert to the initial channel number.
 
         return analyses.toTypedArray()
     }
