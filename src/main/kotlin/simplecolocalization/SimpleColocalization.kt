@@ -202,7 +202,7 @@ class SimpleColocalization : Command {
         // Split the image into multiple grayscale images (one for each channel)
         val channelImages = ChannelSplitter.split(image)
         val numberOfChannels = channelImages.size
-        
+
         val analyses = arrayListOf<CellAnalysis>()
         for (cell in highlightedCells) {
             var area = 0
@@ -234,52 +234,51 @@ class SimpleColocalization : Command {
     private fun showRGBCellAnalysis(analyses: Array<CellAnalysis>) {
         val table = DefaultGenericTable()
 
+        // If there are no analyses then show an empty table
+        // We wish to access the first analysis later to inspect number of channels
+        // so we return to avoid an invalid deference
+        if (analyses.isEmpty()) {
+            uiService.show(table)
+            return
+        }
+        // Retrieve how many channels there are
+        val numberOfChannels = analyses[0].channels.size
         val areaColumn = IntColumn()
-        val redMeanColumn = IntColumn()
-        val redMinColumn = IntColumn()
-        val redMaxColumn = IntColumn()
-        val greenMeanColumn = IntColumn()
-        val greenMinColumn = IntColumn()
-        val greenMaxColumn = IntColumn()
-        val blueMeanColumn = IntColumn()
-        val blueMinColumn = IntColumn()
-        val blueMaxColumn = IntColumn()
 
-        analyses.forEachIndexed { index, channelAnalysis ->
-            areaColumn.add(channelAnalysis.area)
+        // TODO: Pass this in as argument to generalise this function
+        val channelNames = listOf("Red", "Green", "Blue")
 
-            redMeanColumn.add(channelAnalysis.channels[0].mean)
-            redMinColumn.add(channelAnalysis.channels[0].min)
-            redMaxColumn.add(channelAnalysis.channels[0].max)
-            greenMeanColumn.add(channelAnalysis.channels[1].mean)
-            greenMinColumn.add(channelAnalysis.channels[1].min)
-            greenMaxColumn.add(channelAnalysis.channels[1].max)
-            blueMeanColumn.add(channelAnalysis.channels[2].mean)
-            blueMinColumn.add(channelAnalysis.channels[2].min)
-            blueMaxColumn.add(channelAnalysis.channels[2].max)
+        val meanColumns = MutableList(numberOfChannels) { IntColumn() }
+        val maxColumns = MutableList(numberOfChannels) { IntColumn() }
+        val minColumns = MutableList(numberOfChannels) { IntColumn() }
+
+        // Construct column values using the channel analysis values
+        analyses.forEach { cellAnalysis ->
+            areaColumn.add(cellAnalysis.area)
+            cellAnalysis.channels.forEachIndexed { channelIndex, channel ->
+                meanColumns[channelIndex].add(channel.mean)
+                minColumns[channelIndex].add(channel.min)
+                maxColumns[channelIndex].add(channel.max)
+            }
         }
 
+        // Add all of the columns (Mean, Min, Max) for each channel
         table.add(areaColumn)
-        table.add(redMeanColumn)
-        table.add(redMinColumn)
-        table.add(redMaxColumn)
-        table.add(greenMeanColumn)
-        table.add(greenMinColumn)
-        table.add(greenMaxColumn)
-        table.add(blueMeanColumn)
-        table.add(blueMinColumn)
-        table.add(blueMaxColumn)
+        for (i in 0 until numberOfChannels) {
+            table.add(meanColumns[i])
+            table.add(minColumns[i])
+            table.add(maxColumns[i])
+        }
 
-        table.setColumnHeader(0, "Area")
-        table.setColumnHeader(1, "Red Mean")
-        table.setColumnHeader(2, "Red Min")
-        table.setColumnHeader(3, "Red Max")
-        table.setColumnHeader(4, "Green Mean")
-        table.setColumnHeader(5, "Green Min")
-        table.setColumnHeader(6, "Green Max")
-        table.setColumnHeader(7, "Blue Mean")
-        table.setColumnHeader(8, "Blue Min")
-        table.setColumnHeader(9, "Blue Max")
+        // Add all the column headers for each channel
+        var columnIndex = 0
+        table.setColumnHeader(columnIndex++, "Area")
+        for (i in 0 until numberOfChannels) {
+            val channelName = channelNames[i]
+            table.setColumnHeader(columnIndex++, "$channelName Mean")
+            table.setColumnHeader(columnIndex++, "$channelName Min")
+            table.setColumnHeader(columnIndex++, "$channelName Max")
+        }
 
         uiService.show(table)
     }
