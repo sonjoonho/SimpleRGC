@@ -10,6 +10,7 @@ import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.RankFilters
 import ij.process.ImageConverter
 import java.io.File
+import java.io.FileNotFoundException
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -113,6 +114,16 @@ class SimpleColocalization : Command {
         uiService.show(table)
     }
 
+    /** Displays aggregate results of stack as a results table. */
+    private fun showCounts(counts: List<Int>) {
+        val table = DefaultGenericTable()
+        val countColumn = IntColumn()
+        countColumn.addAll(counts)
+        table.add(countColumn)
+        table.setColumnHeader(0, "Count")
+        uiService.show(table)
+    }
+
     /**
      * Perform pre-processing on the image to remove background and set cells to white.
      */
@@ -156,29 +167,33 @@ class SimpleColocalization : Command {
         EDM().toWatershed(image.channelProcessor)
     }
 
-    /** Identify whether file contains multiple images */
-    private fun isStack(inputFile: File): Boolean {
-        return when {
-            inputFile.extension == "lif" -> true
-            inputFile.extension == "tiff" -> true
-            inputFile.extension == "tiff" -> true
-            else -> false
-        }
-    }
-
     /** Runs after the parameters above are populated. */
     override fun run() {
         val opener = ImageJOpener()
-        if (isStack(inputFile)) {
-            // Process multiple images.
-            opener.openStack(inputFile, numSlices)?.map { processImage(it) }
-        } else {
-            // Process single image.
-            processImage(opener.openSingleImage(inputFile)!!)
-        }
+        if (inputFile.exists()) {
+            if (ImageJOpener.isStack(inputFile)) {
+                // Process multiple images.
+                process(opener.openStack(inputFile, numSlices))
+            } else {
+                // Process single image.
+                process(opener.openSingleImage(inputFile))
+            }
+        } else throw FileNotFoundException("${inputFile.absolutePath} does not exist")
     }
 
-    private fun processImage(image: ImagePlus) {
+    /** Processes stack of multiple images. */
+    private fun process(images: List<ImagePlus>) {
+        val originalImages = images.map { it.duplicate() }
+        images.map { preprocessImage(it) }
+        images.map { segmentImage(it) }
+        val cellsList = images.map { identifyCells(it) }
+        showCounts(cellsList.map { it.size() })
+        (originalImages zip cellsList).map { markCells(it.first, it.second) }
+        originalImages.map { it.show() }
+    }
+
+    /** Processes single image. */
+    private fun process(image: ImagePlus) {
         val originalImage = image.duplicate()
         preprocessImage(image)
         segmentImage(image)
