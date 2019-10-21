@@ -4,6 +4,7 @@ import ij.ImagePlus
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
+import ij.plugin.ChannelSplitter
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
@@ -34,8 +35,6 @@ import java.io.File
  */
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Colocalization")
 class SimpleColocalization : Command {
-
-    private val numRgbChannels = 3
 
     /**
      * Entry point for UI operations, automatically handling both graphical and
@@ -162,8 +161,8 @@ class SimpleColocalization : Command {
         val analysis = analyseCells(originalImage, cells)
 
         showCount(cells.size)
-        showCellAnalysis(analysis)
-        originalImage.show()
+        showRGBCellAnalysis(analysis)
+        // originalImage.show()
     }
 
     /**
@@ -197,32 +196,31 @@ class SimpleColocalization : Command {
     data class ChannelAnalysis(val mean: Int, val min: Int, val max: Int)
 
     /**
-     * Analyses the RGB intensity of the cells.
+     * Analyses the channel intensity of the cells.
      */
     private fun analyseCells(image: ImagePlus, highlightedCells: Array<Roi>): Array<CellAnalysis> {
-        // Convert to RGB so that we can get the r,g,b for each pixel
-        ImageConverter(image).convertToRGB()
-
-        // Image will have 3 channels as it is RGB following conversion
+        // Split the image into multiple grayscale images (one for each channel)
+        val channelImages = ChannelSplitter.split(image)
+        val numberOfChannels = channelImages.size
+        
         val analyses = arrayListOf<CellAnalysis>()
         for (cell in highlightedCells) {
             var area = 0
-            val sums = MutableList(numRgbChannels) { 0 }
-            val mins = MutableList(numRgbChannels) { Integer.MAX_VALUE }
-            val maxs = MutableList(numRgbChannels) { Integer.MIN_VALUE }
+            val sums = MutableList(numberOfChannels) { 0 }
+            val mins = MutableList(numberOfChannels) { Integer.MAX_VALUE }
+            val maxs = MutableList(numberOfChannels) { Integer.MIN_VALUE }
             val containedCells = cell.containedPoints
             containedCells.forEach { point ->
-                // pixelData is of the form [r, g, b, 0]
-                val pixelData = image.getPixel(point.x, point.y)
                 area++
-                for (channel in 0 until numRgbChannels) {
-                    sums[channel] += pixelData[channel]
-                    mins[channel] = Integer.min(mins[channel], pixelData[channel])
-                    maxs[channel] = Integer.max(maxs[channel], pixelData[channel])
+                for (channel in 0 until numberOfChannels) {
+                    val pixelData = channelImages[channel].getPixel(point.x, point.y)
+                    sums[channel] += pixelData[0]
+                    mins[channel] = Integer.min(mins[channel], pixelData[0])
+                    maxs[channel] = Integer.max(maxs[channel], pixelData[0])
                 }
             }
             val channels = mutableListOf<ChannelAnalysis>()
-            for (channel in 0 until numRgbChannels) {
+            for (channel in 0 until numberOfChannels) {
                 channels.add(ChannelAnalysis(sums[channel] / area, mins[channel], maxs[channel]))
             }
             analyses.add(CellAnalysis(area, channels))
@@ -231,8 +229,9 @@ class SimpleColocalization : Command {
         return analyses.toTypedArray()
     }
 
-    /** Displays the resulting cell analysis as a results table. */
-    private fun showCellAnalysis(analyses: Array<CellAnalysis>) {
+    /** Displays the resulting cell analysis as a results table.
+     *  This function assumes there are 3 channels (RGB) */
+    private fun showRGBCellAnalysis(analyses: Array<CellAnalysis>) {
         val table = DefaultGenericTable()
 
         val areaColumn = IntColumn()
@@ -284,7 +283,6 @@ class SimpleColocalization : Command {
 
         uiService.show(table)
     }
-
 
     companion object {
         /**
