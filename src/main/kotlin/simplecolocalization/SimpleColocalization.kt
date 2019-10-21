@@ -161,7 +161,7 @@ class SimpleColocalization : Command {
         val analysis = analyseCells(originalImage, cells)
 
         showCount(cells.size)
-        showRGBCellAnalysis(analysis)
+        showCellAnalysis(analysis)
         // originalImage.show()
     }
 
@@ -193,7 +193,7 @@ class SimpleColocalization : Command {
     }
 
     data class CellAnalysis(val area: Int, val channels: List<ChannelAnalysis>)
-    data class ChannelAnalysis(val mean: Int, val min: Int, val max: Int)
+    data class ChannelAnalysis(val name: String, val mean: Int, val min: Int, val max: Int)
 
     /**
      * Analyses the channel intensity of the cells.
@@ -221,7 +221,7 @@ class SimpleColocalization : Command {
             }
             val channels = mutableListOf<ChannelAnalysis>()
             for (channel in 0 until numberOfChannels) {
-                channels.add(ChannelAnalysis(sums[channel] / area, mins[channel], maxs[channel]))
+                channels.add(ChannelAnalysis(channelImages[channel].title, sums[channel] / area, mins[channel], maxs[channel]))
             }
             analyses.add(CellAnalysis(area, channels))
         }
@@ -229,9 +229,8 @@ class SimpleColocalization : Command {
         return analyses.toTypedArray()
     }
 
-    /** Displays the resulting cell analysis as a results table.
-     *  This function assumes there are 3 channels (RGB) */
-    private fun showRGBCellAnalysis(analyses: Array<CellAnalysis>) {
+    /** Displays the resulting cell analysis as a results table. */
+    private fun showCellAnalysis(analyses: Array<CellAnalysis>) {
         val table = DefaultGenericTable()
 
         // If there are no analyses then show an empty table
@@ -243,10 +242,12 @@ class SimpleColocalization : Command {
         }
         // Retrieve how many channels there are
         val numberOfChannels = analyses[0].channels.size
+        // Retrieve the names of all the channels
+        val channelNames = mutableListOf<String>()
+        for (i in 0 until numberOfChannels) {
+            channelNames.add(analyses[0].channels[i].name.capitalize())
+        }
         val areaColumn = IntColumn()
-
-        // TODO: Pass this in as argument to generalise this function
-        val channelNames = listOf("Red", "Green", "Blue")
 
         val meanColumns = MutableList(numberOfChannels) { IntColumn() }
         val maxColumns = MutableList(numberOfChannels) { IntColumn() }
