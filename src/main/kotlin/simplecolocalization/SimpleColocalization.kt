@@ -252,12 +252,12 @@ class SimpleColocalization : Command {
             redMeanColumn.add(channelAnalysis.channels[0].mean)
             redMinColumn.add(channelAnalysis.channels[0].min)
             redMaxColumn.add(channelAnalysis.channels[0].max)
-            blueMeanColumn.add(channelAnalysis.channels[1].mean)
-            blueMinColumn.add(channelAnalysis.channels[1].min)
-            blueMaxColumn.add(channelAnalysis.channels[1].max)
-            greenMeanColumn.add(channelAnalysis.channels[2].mean)
-            greenMinColumn.add(channelAnalysis.channels[2].min)
-            greenMaxColumn.add(channelAnalysis.channels[2].max)
+            greenMeanColumn.add(channelAnalysis.channels[1].mean)
+            greenMinColumn.add(channelAnalysis.channels[1].min)
+            greenMaxColumn.add(channelAnalysis.channels[1].max)
+            blueMeanColumn.add(channelAnalysis.channels[2].mean)
+            blueMinColumn.add(channelAnalysis.channels[2].min)
+            blueMaxColumn.add(channelAnalysis.channels[2].max)
         }
 
         table.add(areaColumn)
