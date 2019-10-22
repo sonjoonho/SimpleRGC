@@ -1,6 +1,9 @@
 package simplecolocalization
 
+import ij.IJ
 import ij.ImagePlus
+import ij.WindowManager
+import ij.gui.MessageDialog
 import ij.gui.PointRoi
 import ij.gui.Roi
 import ij.plugin.filter.BackgroundSubtracter
@@ -9,8 +12,6 @@ import ij.plugin.filter.GaussianBlur
 import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.RankFilters
 import ij.process.ImageConverter
-import java.io.File
-import java.io.FileNotFoundException
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -41,29 +42,12 @@ class SimpleColocalization : Command {
     @Parameter
     private lateinit var uiService: UIService
 
-    /** File path of the input image. */
-    @Parameter(label = "Input File")
-    private lateinit var inputFile: File
-
     @Parameter(
         label = "Preprocessing Parameters:",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
     private lateinit var preprocessingParamsHeader: String
-
-    /**
-     * Number of slices of the LIF file to be processed.
-     */
-    @Parameter(
-        label = "No. of slices",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var numSlices = 1
 
     /**
      * Applied to the input image to reduce sensitivity of the thresholding
@@ -114,16 +98,6 @@ class SimpleColocalization : Command {
         uiService.show(table)
     }
 
-    /** Displays aggregate results of stack as a results table. */
-    private fun showCounts(counts: List<Int>) {
-        val table = DefaultGenericTable()
-        val countColumn = IntColumn()
-        countColumn.addAll(counts)
-        table.add(countColumn)
-        table.setColumnHeader(0, "Count")
-        uiService.show(table)
-    }
-
     /**
      * Perform pre-processing on the image to remove background and set cells to white.
      */
@@ -169,27 +143,12 @@ class SimpleColocalization : Command {
 
     /** Runs after the parameters above are populated. */
     override fun run() {
-        val opener = ImageJOpener()
-        if (inputFile.exists()) {
-            if (ImageJOpener.isStack(inputFile)) {
-                // Process multiple images.
-                process(opener.openStack(inputFile, numSlices))
-            } else {
-                // Process single image.
-                process(opener.openSingleImage(inputFile))
-            }
-        } else throw FileNotFoundException("${inputFile.absolutePath} does not exist")
-    }
-
-    /** Processes stack of multiple images. */
-    private fun process(images: List<ImagePlus>) {
-        val originalImages = images.map { it.duplicate() }
-        images.map { preprocessImage(it) }
-        images.map { segmentImage(it) }
-        val cellsList = images.map { identifyCells(it) }
-        showCounts(cellsList.map { it.size() })
-        (originalImages zip cellsList).map { markCells(it.first, it.second) }
-        originalImages.map { it.show() }
+        val image = WindowManager.getCurrentImage()
+        if (image != null) {
+            process(image)
+        } else {
+            MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+        }
     }
 
     /** Processes single image. */
