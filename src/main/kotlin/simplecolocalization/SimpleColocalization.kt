@@ -4,13 +4,15 @@ import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.MessageDialog
-import ij.gui.PointRoi
 import ij.gui.Roi
+import ij.measure.Measurements
+import ij.measure.ResultsTable
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
-import ij.plugin.filter.GaussianBlur
 import ij.plugin.filter.MaximumFinder
+import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
+import ij.plugin.frame.RoiManager
 import ij.process.ImageConverter
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
@@ -124,7 +126,7 @@ class SimpleColocalization : Command {
         RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
 
         // Apply Gaussian Blur to group larger speckles.
-        GaussianBlur().blurGaussian(image.channelProcessor, gaussianBlurSigma)
+        image.channelProcessor.blurGaussian(gaussianBlurSigma)
 
         // Threshold image to remove blur.
         image.channelProcessor.autoThreshold()
@@ -156,30 +158,38 @@ class SimpleColocalization : Command {
         val originalImage = image.duplicate()
         preprocessImage(image)
         segmentImage(image)
-        val cells = identifyCells(image)
-        showCount(cells.size())
+        val roiManager = RoiManager.getRoiManager()
+        val cells = identifyCells(roiManager, image)
         markCells(originalImage, cells)
+        showCount(cells.size)
         originalImage.show()
     }
 
     /**
-     * Identify the cells in the image, produce a PointRoi containing the points.
+     * Select each cell identified in the segmented image in the original image.
      *
-     * Uses ImageJ's Find Maxima plugin for identifying the center of cells.
+     * We use [ParticleAnalyzer] instead of [MaximumFinder] as the former highlights the shape of the cell instead
+     * of just marking its centre.
      */
-    private fun identifyCells(segmentedImage: ImagePlus): Roi {
-        val result = MaximumFinder().getMaxima(segmentedImage.channelProcessor,
-            10.0,
-            false,
-            false)
-        return PointRoi(result.xpoints, result.ypoints, result.npoints)
+    private fun identifyCells(roiManager: RoiManager, segmentedImage: ImagePlus): Array<Roi> {
+        ParticleAnalyzer.setRoiManager(roiManager)
+        ParticleAnalyzer(
+            ParticleAnalyzer.SHOW_NONE or ParticleAnalyzer.ADD_TO_MANAGER,
+            Measurements.ALL_STATS,
+            ResultsTable(),
+            0.0,
+            Double.MAX_VALUE
+        ).analyze(segmentedImage)
+        return roiManager.roisAsArray
     }
 
     /**
      * Mark the cell locations in the image.
      */
-    private fun markCells(image: ImagePlus, roi: Roi) {
-        image.roi = roi
+    private fun markCells(image: ImagePlus, rois: Array<Roi>) {
+        for (roi in rois) {
+            roi.image = image
+        }
     }
 
     companion object {
