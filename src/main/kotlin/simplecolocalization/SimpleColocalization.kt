@@ -70,6 +70,8 @@ class SimpleColocalization : Command {
     )
     private var gaussianBlurSigma = 3.0
 
+    private var meanGreenThreshold = 30.0
+
     @Parameter(
         label = "Cell Identification Parameters:",
         visibility = ItemVisibility.MESSAGE,
@@ -93,13 +95,23 @@ class SimpleColocalization : Command {
     )
     private var largestCellDiameter = 30.0
 
-    /** Displays the resulting count as a results table. */
-    private fun showCount(count: Int) {
+    /** Displays the resulting counts as a results table. */
+    private fun showCount(analyses: Array<CellAnalysis>) {
         val table = DefaultGenericTable()
-        val countColumn = IntColumn()
-        countColumn.add(count)
-        table.add(countColumn)
-        table.setColumnHeader(0, "Count")
+        val cellCountColumn = IntColumn()
+        val greenCountColumn = IntColumn()
+        cellCountColumn.add(analyses.size)
+        var greenCount = 0
+        analyses.forEach { cellAnalysis ->
+            if (cellAnalysis.channels[1].mean > meanGreenThreshold) {
+                greenCount++
+            }
+        }
+        greenCountColumn.add(greenCount)
+        table.add(cellCountColumn)
+        table.add(greenCountColumn)
+        table.setColumnHeader(0, "Red Cell Count")
+        table.setColumnHeader(1, "Green Cell Count")
         uiService.show(table)
     }
 
@@ -160,9 +172,10 @@ class SimpleColocalization : Command {
 
         val analysis = analyseCells(originalImage, cells)
 
-        showCount(cells.size)
-        showCellAnalysis(analysis)
-        // originalImage.show()
+        showCount(analysis)
+        showPerCellAnalysis(analysis)
+
+        originalImage.show()
     }
 
     /**
@@ -230,7 +243,7 @@ class SimpleColocalization : Command {
     }
 
     /** Displays the resulting cell analysis as a results table. */
-    private fun showCellAnalysis(analyses: Array<CellAnalysis>) {
+    private fun showPerCellAnalysis(analyses: Array<CellAnalysis>) {
         val table = DefaultGenericTable()
 
         // If there are no analyses then show an empty table
