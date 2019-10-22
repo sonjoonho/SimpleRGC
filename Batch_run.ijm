@@ -7,9 +7,6 @@
 // #@ bool (label = "Recurse through nested folders") recurse
 // #@ String (label = "File suffix", value = ".tif") suffix
 
-// See also Process_Folder.py for a version of this code
-// in the Python scripting language.
-
 // create dialogue for input
 
 input = getDirectory("Choose an Input Directory")
