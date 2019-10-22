@@ -2,9 +2,9 @@ package simplecolocalization
 
 import ij.IJ
 import ij.ImagePlus
+import ij.WindowManager
 import ij.gui.MessageDialog
 import ij.gui.Roi
-import ij.io.Opener
 import ij.measure.Measurements
 import ij.measure.ResultsTable
 import ij.plugin.filter.BackgroundSubtracter
@@ -13,11 +13,7 @@ import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
 import ij.plugin.frame.RoiManager
-import ij.process.ByteProcessor
 import ij.process.ImageConverter
-import java.io.File
-import java.lang.Integer.min
-import loci.formats.`in`.LIFReader
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -48,29 +44,12 @@ class SimpleColocalization : Command {
     @Parameter
     private lateinit var uiService: UIService
 
-    /** File path of the input image. */
-    @Parameter(label = "Input File")
-    private lateinit var inputFile: File
-
     @Parameter(
         label = "Preprocessing Parameters:",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
     private lateinit var preprocessingParamsHeader: String
-
-    /**
-     * Number of slices of the LIF file to be processed.
-     */
-    @Parameter(
-        label = "No. of slices",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var numSlices = 1
 
     /**
      * Applied to the input image to reduce sensitivity of the thresholding
@@ -166,42 +145,17 @@ class SimpleColocalization : Command {
 
     /** Runs after the parameters above are populated. */
     override fun run() {
-        val absolutePath = inputFile.absolutePath
-        val extension = inputFile.extension
-        val opener = Opener()
-        if (extension == "lif") {
-            // Read and iterate over lif series.
-            val reader = LIFReader()
-            reader.setId(absolutePath)
-            val count = reader.seriesCount
-            for (i in 0 until min(count, numSlices)) {
-                reader.series = i
-                val bytes = ByteProcessor(reader.sizeX, reader.sizeY, reader.openBytes(0))
-                val originalImage = ImagePlus("originalImage", bytes)
-                val image = ImagePlus("image", bytes)
-                processImage(originalImage, image)
-            }
-        } else if (extension == "tiff" || extension == "tif") {
-            // Iterate over tiff stack.
-            val fileInfo = Opener.getTiffFileInfo(absolutePath)
-            for (i in 1..fileInfo.size) {
-                val originalImage = opener.openTiff(absolutePath, i)
-                val image = opener.openTiff(absolutePath, i)
-                processImage(originalImage, image)
-            }
+        val image = WindowManager.getCurrentImage()
+        if (image != null) {
+            process(image)
         } else {
-            // Try for all other image file types e.g. png, jpg etc.
-            val originalImage = opener.openImage(absolutePath)
-            val image = opener.openImage(absolutePath)
-            if (originalImage == null) {
-                MessageDialog(IJ.getInstance(), "Error", "Unsupported file type!")
-            } else {
-                processImage(originalImage, image)
-            }
+            MessageDialog(IJ.getInstance(), "Error", "There is no file open")
         }
     }
 
-    private fun processImage(originalImage: ImagePlus, image: ImagePlus) {
+    /** Processes single image. */
+    private fun process(image: ImagePlus) {
+        val originalImage = image.duplicate()
         preprocessImage(image)
         segmentImage(image)
         val roiManager = RoiManager.getRoiManager()
