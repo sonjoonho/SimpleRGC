@@ -12,6 +12,7 @@ import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
 import ij.plugin.frame.RoiManager
 import ij.process.ImageConverter
+import java.io.File
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -21,7 +22,6 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
-import java.io.File
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -234,7 +234,14 @@ class SimpleColocalization : Command {
             }
             val channels = mutableListOf<ChannelAnalysis>()
             for (channel in 0 until numberOfChannels) {
-                channels.add(ChannelAnalysis(channelImages[channel].title, sums[channel] / area, mins[channel], maxs[channel]))
+                channels.add(
+                    ChannelAnalysis(
+                        channelImages[channel].title,
+                        sums[channel] / area,
+                        mins[channel],
+                        maxs[channel]
+                    )
+                )
             }
             analyses.add(CellAnalysis(area, channels))
         }
