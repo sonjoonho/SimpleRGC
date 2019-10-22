@@ -7,6 +7,7 @@ import ij.gui.Roi
 import ij.io.Opener
 import ij.measure.Measurements
 import ij.measure.ResultsTable
+import ij.plugin.ChannelSplitter
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
@@ -51,6 +52,23 @@ class SimpleColocalization : Command {
     /** File path of the input image. */
     @Parameter(label = "Input File")
     private lateinit var inputFile: File
+
+    /**
+     * An image can have multiple channels. This plugin can segment with all of
+     * the channels enabled, or alternatively on a single channel.
+     *
+     * ImageJ does not have a way to get a list of channels available at the
+     * parameter initialization stage, hence we ask users to input the channel
+     * number, with 0 being "all channels".
+     */
+    @Parameter(
+        label = "Channel To Segment On (0 for all channels):",
+        min = "0",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    private var channelSelected = 0
 
     @Parameter(
         label = "Preprocessing Parameters:",
@@ -202,10 +220,28 @@ class SimpleColocalization : Command {
     }
 
     private fun processImage(originalImage: ImagePlus, image: ImagePlus) {
-        preprocessImage(image)
-        segmentImage(image)
+        var subjectImage = image
+
+        // Handle channel selection
+        if (channelSelected > 0) {
+            val imagesByChannel = ChannelSplitter.split(image)
+
+            // Ensure that the channel selected exists.
+            if (channelSelected - 1 > imagesByChannel.size) {
+                MessageDialog(
+                    IJ.getInstance(),
+                    "Error", "Channel selected does not exist. There are channels %d available.".format(imagesByChannel.size)
+                )
+                return
+            }
+
+            subjectImage = imagesByChannel[channelSelected - 1]
+        }
+
+        preprocessImage(subjectImage)
+        segmentImage(subjectImage)
         val roiManager = RoiManager.getRoiManager()
-        val cells = identifyCells(roiManager, image)
+        val cells = identifyCells(roiManager, subjectImage)
         markCells(originalImage, cells)
         showCount(cells.size)
         originalImage.show()
