@@ -14,6 +14,8 @@ import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
 import ij.plugin.frame.RoiManager
 import ij.process.ImageConverter
+import java.io.File
+import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -202,7 +204,12 @@ class SimpleColocalization : Command {
         @JvmStatic
         fun main(args: Array<String>) {
             val ij = ImageJ()
-            ij.ui().showUI()
+            ij.launch()
+
+            val file: File = ij.ui().chooseFile(null, "open")
+            val dataset: Dataset = ij.scifio().datasetIO().open(file.path)
+
+            ij.ui().show(dataset)
             ij.command().run(SimpleColocalization::class.java, true)
         }
     }
