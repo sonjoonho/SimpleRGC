@@ -148,13 +148,15 @@ class SimpleColocalization : Command {
 
     /** Runs after the parameters above are populated. */
     override fun run() {
-        val image = WindowManager.getCurrentImage()
+        var image = WindowManager.getCurrentImage()
         if (image != null) {
-            // Flatten slices of the image. This step should probably be done during the preprocessing step - however
-            // this operation is not done in-place but creates a new image, which makes this hard.
-            val flatImage = ZProjector.run(image, "max")
+            if (image.nSlices > 1) {
+                // Flatten slices of the image. This step should probably be done during the preprocessing step - however
+                // this operation is not done in-place but creates a new image, which makes this hard.
+                image = ZProjector.run(image, "max")
+            }
 
-            process(flatImage)
+            process(image)
         } else {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
         }
