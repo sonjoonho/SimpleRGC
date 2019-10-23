@@ -7,6 +7,7 @@ import ij.gui.MessageDialog
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
+import ij.plugin.ZProjector
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
@@ -149,7 +150,11 @@ class SimpleColocalization : Command {
     override fun run() {
         val image = WindowManager.getCurrentImage()
         if (image != null) {
-            process(image)
+            // Flatten slices of the image. This step should probably be done during the preprocessing step - however
+            // this operation is not done in-place but creates a new image, which makes this hard.
+            val flatImage = ZProjector.run(image, "max")
+
+            process(flatImage)
         } else {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
         }
