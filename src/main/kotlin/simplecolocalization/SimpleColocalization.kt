@@ -226,6 +226,7 @@ class SimpleColocalization : Command {
             containedCells.forEach { point ->
                 area++
                 for (channel in 0 until numberOfChannels) {
+                    // pixelData is of the form [value, 0, 0, 0] because ImageJ
                     val pixelData = channelImages[channel].getPixel(point.x, point.y)
                     sums[channel] += pixelData[0]
                     mins[channel] = Integer.min(mins[channel], pixelData[0])
