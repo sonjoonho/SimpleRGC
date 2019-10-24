@@ -8,6 +8,7 @@ import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
 import ij.plugin.ChannelSplitter
+import ij.plugin.ZProjector
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
@@ -15,6 +16,8 @@ import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
 import ij.plugin.frame.RoiManager
 import ij.process.ImageConverter
+import java.io.File
+import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -160,8 +163,14 @@ class SimpleColocalization : Command {
 
     /** Runs after the parameters above are populated. */
     override fun run() {
-        val image = WindowManager.getCurrentImage()
+        var image = WindowManager.getCurrentImage()
         if (image != null) {
+            if (image.nSlices > 1) {
+                // Flatten slices of the image. This step should probably be done during the preprocessing step - however
+                // this operation is not done in-place but creates a new image, which makes this hard.
+                image = ZProjector.run(image, "max")
+            }
+
             process(image)
         } else {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
@@ -327,7 +336,12 @@ class SimpleColocalization : Command {
         @JvmStatic
         fun main(args: Array<String>) {
             val ij = ImageJ()
-            ij.ui().showUI()
+            ij.launch()
+
+            val file: File = ij.ui().chooseFile(null, "open")
+            val dataset: Dataset = ij.scifio().datasetIO().open(file.path)
+
+            ij.ui().show(dataset)
             ij.command().run(SimpleColocalization::class.java, true)
         }
     }
