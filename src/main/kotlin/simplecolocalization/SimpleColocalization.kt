@@ -7,8 +7,8 @@ import ij.gui.MessageDialog
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
-import ij.plugin.ZProjector
 import ij.plugin.ChannelSplitter
+import ij.plugin.ZProjector
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
