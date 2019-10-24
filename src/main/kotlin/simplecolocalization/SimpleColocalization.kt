@@ -7,6 +7,7 @@ import ij.gui.MessageDialog
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
+import ij.plugin.ChannelSplitter
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
@@ -67,6 +68,8 @@ class SimpleColocalization : Command {
     )
     private var gaussianBlurSigma = 3.0
 
+    private var meanGreenThreshold = 30.0
+
     @Parameter(
         label = "Cell Identification Parameters:",
         visibility = ItemVisibility.MESSAGE,
@@ -90,13 +93,25 @@ class SimpleColocalization : Command {
     )
     private var largestCellDiameter = 30.0
 
-    /** Displays the resulting count as a results table. */
-    private fun showCount(count: Int) {
+    /**
+     * Displays the resulting counts as a results table.
+     */
+    private fun showCount(analyses: Array<CellAnalysis>) {
         val table = DefaultGenericTable()
-        val countColumn = IntColumn()
-        countColumn.add(count)
-        table.add(countColumn)
-        table.setColumnHeader(0, "Count")
+        val cellCountColumn = IntColumn()
+        val greenCountColumn = IntColumn()
+        cellCountColumn.add(analyses.size)
+        var greenCount = 0
+        analyses.forEach { cellAnalysis ->
+            if (cellAnalysis.channels[1].mean > meanGreenThreshold) {
+                greenCount++
+            }
+        }
+        greenCountColumn.add(greenCount)
+        table.add(cellCountColumn)
+        table.add(greenCountColumn)
+        table.setColumnHeader(0, "Red Cell Count")
+        table.setColumnHeader(1, "Green Cell Count")
         uiService.show(table)
     }
 
@@ -156,12 +171,19 @@ class SimpleColocalization : Command {
     /** Processes single image. */
     private fun process(image: ImagePlus) {
         val originalImage = image.duplicate()
+
         preprocessImage(image)
         segmentImage(image)
+
         val roiManager = RoiManager.getRoiManager()
         val cells = identifyCells(roiManager, image)
         markCells(originalImage, cells)
-        showCount(cells.size)
+
+        val analysis = analyseCells(originalImage, cells)
+
+        showCount(analysis)
+        showPerCellAnalysis(analysis)
+
         originalImage.show()
     }
 
@@ -190,6 +212,109 @@ class SimpleColocalization : Command {
         for (roi in rois) {
             roi.image = image
         }
+    }
+
+    data class CellAnalysis(val area: Int, val channels: List<ChannelAnalysis>)
+    data class ChannelAnalysis(val name: String, val mean: Int, val min: Int, val max: Int)
+
+    /**
+     * Analyses the channel intensity of the cells.
+     */
+    private fun analyseCells(image: ImagePlus, highlightedCells: Array<Roi>): Array<CellAnalysis> {
+        // Split the image into multiple grayscale images (one for each channel).
+        val channelImages = ChannelSplitter.split(image)
+        val numberOfChannels = channelImages.size
+
+        val analyses = arrayListOf<CellAnalysis>()
+        for (cell in highlightedCells) {
+            var area = 0
+            val sums = MutableList(numberOfChannels) { 0 }
+            val mins = MutableList(numberOfChannels) { Integer.MAX_VALUE }
+            val maxs = MutableList(numberOfChannels) { Integer.MIN_VALUE }
+            val containedCells = cell.containedPoints
+            containedCells.forEach { point ->
+                area++
+                for (channel in 0 until numberOfChannels) {
+                    // pixelData is of the form [value, 0, 0, 0] because ImageJ.
+                    val pixelData = channelImages[channel].getPixel(point.x, point.y)
+                    sums[channel] += pixelData[0]
+                    mins[channel] = Integer.min(mins[channel], pixelData[0])
+                    maxs[channel] = Integer.max(maxs[channel], pixelData[0])
+                }
+            }
+            val channels = mutableListOf<ChannelAnalysis>()
+            for (channel in 0 until numberOfChannels) {
+                channels.add(
+                    ChannelAnalysis(
+                        channelImages[channel].title,
+                        sums[channel] / area,
+                        mins[channel],
+                        maxs[channel]
+                    )
+                )
+            }
+            analyses.add(CellAnalysis(area, channels))
+        }
+
+        return analyses.toTypedArray()
+    }
+
+    /**
+     * Displays the resulting cell analysis as a results table.
+     */
+    private fun showPerCellAnalysis(analyses: Array<CellAnalysis>) {
+        val table = DefaultGenericTable()
+
+        // If there are no analyses then show an empty table.
+        // We wish to access the first analysis later to inspect number of channels
+        // so we return to avoid an invalid deference.
+        if (analyses.isEmpty()) {
+            uiService.show(table)
+            return
+        }
+        val numberOfChannels = analyses[0].channels.size
+
+        // Retrieve the names of all the channels.
+        val channelNames = mutableListOf<String>()
+        for (i in 0 until numberOfChannels) {
+            channelNames.add(analyses[0].channels[i].name.capitalize())
+        }
+
+        val areaColumn = IntColumn()
+
+        val meanColumns = MutableList(numberOfChannels) { IntColumn() }
+        val maxColumns = MutableList(numberOfChannels) { IntColumn() }
+        val minColumns = MutableList(numberOfChannels) { IntColumn() }
+
+        // Construct column values using the channel analysis values.
+        analyses.forEach { cellAnalysis ->
+            areaColumn.add(cellAnalysis.area)
+            cellAnalysis.channels.forEachIndexed { channelIndex, channel ->
+                meanColumns[channelIndex].add(channel.mean)
+                minColumns[channelIndex].add(channel.min)
+                maxColumns[channelIndex].add(channel.max)
+            }
+        }
+
+        // Add all of the columns (Mean, Min, Max) for each channel.
+        table.add(areaColumn)
+        for (i in 0 until numberOfChannels) {
+            table.add(meanColumns[i])
+            table.add(minColumns[i])
+            table.add(maxColumns[i])
+        }
+
+        // Add all the column headers for each channel.
+        var columnIndex = 0
+        table.setColumnHeader(columnIndex++, "Area")
+        for (i in 0 until numberOfChannels) {
+            val channelName = channelNames[i]
+            table.setColumnHeader(columnIndex++, "$channelName Mean")
+            table.setColumnHeader(columnIndex++, "$channelName Min")
+            table.setColumnHeader(columnIndex++, "$channelName Max")
+        }
+
+        uiService.show(table)
     }
 
     companion object {
