@@ -214,7 +214,7 @@ class SimpleColocalization : Command {
      * Analyses the channel intensity of the cells.
      */
     private fun analyseCells(image: ImagePlus, highlightedCells: Array<Roi>): Array<CellAnalysis> {
-        // Split the image into multiple grayscale images (one for each channel)
+        // Split the image into multiple grayscale images (one for each channel).
         val channelImages = ChannelSplitter.split(image)
         val numberOfChannels = channelImages.size
 
@@ -228,7 +228,7 @@ class SimpleColocalization : Command {
             containedCells.forEach { point ->
                 area++
                 for (channel in 0 until numberOfChannels) {
-                    // pixelData is of the form [value, 0, 0, 0] because ImageJ
+                    // pixelData is of the form [value, 0, 0, 0] because ImageJ.
                     val pixelData = channelImages[channel].getPixel(point.x, point.y)
                     sums[channel] += pixelData[0]
                     mins[channel] = Integer.min(mins[channel], pixelData[0])
@@ -258,16 +258,16 @@ class SimpleColocalization : Command {
     private fun showPerCellAnalysis(analyses: Array<CellAnalysis>) {
         val table = DefaultGenericTable()
 
-        // If there are no analyses then show an empty table
+        // If there are no analyses then show an empty table.
         // We wish to access the first analysis later to inspect number of channels
-        // so we return to avoid an invalid deference
+        // so we return to avoid an invalid deference.
         if (analyses.isEmpty()) {
             uiService.show(table)
             return
         }
         val numberOfChannels = analyses[0].channels.size
 
-        // Retrieve the names of all the channels
+        // Retrieve the names of all the channels.
         val channelNames = mutableListOf<String>()
         for (i in 0 until numberOfChannels) {
             channelNames.add(analyses[0].channels[i].name.capitalize())
@@ -279,7 +279,7 @@ class SimpleColocalization : Command {
         val maxColumns = MutableList(numberOfChannels) { IntColumn() }
         val minColumns = MutableList(numberOfChannels) { IntColumn() }
 
-        // Construct column values using the channel analysis values
+        // Construct column values using the channel analysis values.
         analyses.forEach { cellAnalysis ->
             areaColumn.add(cellAnalysis.area)
             cellAnalysis.channels.forEachIndexed { channelIndex, channel ->
@@ -289,7 +289,7 @@ class SimpleColocalization : Command {
             }
         }
 
-        // Add all of the columns (Mean, Min, Max) for each channel
+        // Add all of the columns (Mean, Min, Max) for each channel.
         table.add(areaColumn)
         for (i in 0 until numberOfChannels) {
             table.add(meanColumns[i])
@@ -297,7 +297,7 @@ class SimpleColocalization : Command {
             table.add(maxColumns[i])
         }
 
-        // Add all the column headers for each channel
+        // Add all the column headers for each channel.
         var columnIndex = 0
         table.setColumnHeader(columnIndex++, "Area")
         for (i in 0 until numberOfChannels) {
