@@ -261,13 +261,14 @@ class SimpleColocalization : Command {
             uiService.show(table)
             return
         }
-        // Retrieve how many channels there are
         val numberOfChannels = analyses[0].channels.size
+
         // Retrieve the names of all the channels
         val channelNames = mutableListOf<String>()
         for (i in 0 until numberOfChannels) {
             channelNames.add(analyses[0].channels[i].name.capitalize())
         }
+
         val areaColumn = IntColumn()
 
         val meanColumns = MutableList(numberOfChannels) { IntColumn() }
