@@ -22,6 +22,10 @@
             <groupId>net.imagej</groupId>
             <artifactId>imagej-legacy</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ome</groupId>
+            <artifactId>formats-gpl</artifactId>
+        </dependency>
         <!-- Test scope dependencies -->
         <dependency>
             <groupId>junit</groupId>

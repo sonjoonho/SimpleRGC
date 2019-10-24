@@ -1,6 +1,9 @@
 package simplecolocalization
 
+import ij.IJ
 import ij.ImagePlus
+import ij.WindowManager
+import ij.gui.MessageDialog
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
@@ -12,7 +15,6 @@ import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
 import ij.plugin.frame.RoiManager
 import ij.process.ImageConverter
-import java.io.File
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -42,10 +44,6 @@ class SimpleColocalization : Command {
      */
     @Parameter
     private lateinit var uiService: UIService
-
-    /** File path of the input image. */
-    @Parameter(label = "Input Image")
-    private lateinit var imageFile: File
 
     @Parameter(
         label = "Preprocessing Parameters:",
@@ -162,8 +160,17 @@ class SimpleColocalization : Command {
 
     /** Runs after the parameters above are populated. */
     override fun run() {
-        val originalImage = ImagePlus(imageFile.absolutePath)
-        val image = ImagePlus(imageFile.absolutePath)
+        val image = WindowManager.getCurrentImage()
+        if (image != null) {
+            process(image)
+        } else {
+            MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+        }
+    }
+
+    /** Processes single image. */
+    private fun process(image: ImagePlus) {
+        val originalImage = image.duplicate()
 
         preprocessImage(image)
         segmentImage(image)
