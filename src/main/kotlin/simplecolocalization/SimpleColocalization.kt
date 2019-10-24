@@ -95,7 +95,9 @@ class SimpleColocalization : Command {
     )
     private var largestCellDiameter = 30.0
 
-    /** Displays the resulting counts as a results table. */
+    /**
+     * Displays the resulting counts as a results table.
+     */
     private fun showCount(analyses: Array<CellAnalysis>) {
         val table = DefaultGenericTable()
         val cellCountColumn = IntColumn()
@@ -250,7 +252,9 @@ class SimpleColocalization : Command {
         return analyses.toTypedArray()
     }
 
-    /** Displays the resulting cell analysis as a results table. */
+    /**
+     * Displays the resulting cell analysis as a results table.
+     */
     private fun showPerCellAnalysis(analyses: Array<CellAnalysis>) {
         val table = DefaultGenericTable()
 
