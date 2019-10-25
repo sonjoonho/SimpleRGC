@@ -96,7 +96,7 @@ class SimpleColocalization : Command {
     /**
      * Displays the resulting counts as a results table.
      */
-    private fun showCount(analyses: Array<CellAnalysis>) {
+    private fun showCount(analyses: Array<CellSegmentationService.CellAnalysis>) {
         val table = DefaultGenericTable()
         val cellCountColumn = IntColumn()
         val greenCountColumn = IntColumn()
@@ -133,7 +133,10 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     private fun process(image: ImagePlus) {
+        // We need to create a copy of the image since we want to show the results on the original image, but
+        // preprocessing is done in-place which changes the image.
         val originalImage = image.duplicate()
+        originalImage.title = "${image.title} - segmented"
 
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
@@ -150,13 +153,10 @@ class SimpleColocalization : Command {
         originalImage.show()
     }
 
-    data class CellAnalysis(val area: Int, val channels: List<ChannelAnalysis>)
-    data class ChannelAnalysis(val name: String, val mean: Int, val min: Int, val max: Int)
-
     /**
      * Displays the resulting cell analysis as a results table.
      */
-    private fun showPerCellAnalysis(analyses: Array<CellAnalysis>) {
+    private fun showPerCellAnalysis(analyses: Array<CellSegmentationService.CellAnalysis>) {
         val table = DefaultGenericTable()
 
         // If there are no analyses then show an empty table.

@@ -20,6 +20,9 @@ import org.scijava.service.Service
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
 
+    data class CellAnalysis(val area: Int, val channels: List<ChannelAnalysis>)
+    data class ChannelAnalysis(val name: String, val mean: Int, val min: Int, val max: Int)
+
     /**
      * Perform pre-processing on the image to remove background and set cells to white.
      */
@@ -93,12 +96,12 @@ class CellSegmentationService : AbstractService(), ImageJService {
     /**
      * Analyses the channel intensity of the cells.
      */
-    fun analyseCells(image: ImagePlus, highlightedCells: Array<Roi>): Array<SimpleColocalization.CellAnalysis> {
+    fun analyseCells(image: ImagePlus, highlightedCells: Array<Roi>): Array<CellAnalysis> {
         // Split the image into multiple grayscale images (one for each channel).
         val channelImages = ChannelSplitter.split(image)
         val numberOfChannels = channelImages.size
 
-        val analyses = arrayListOf<SimpleColocalization.CellAnalysis>()
+        val analyses = arrayListOf<CellAnalysis>()
         for (cell in highlightedCells) {
             var area = 0
             val sums = MutableList(numberOfChannels) { 0 }
@@ -115,10 +118,10 @@ class CellSegmentationService : AbstractService(), ImageJService {
                     maxs[channel] = Integer.max(maxs[channel], pixelData[0])
                 }
             }
-            val channels = mutableListOf<SimpleColocalization.ChannelAnalysis>()
+            val channels = mutableListOf<ChannelAnalysis>()
             for (channel in 0 until numberOfChannels) {
                 channels.add(
-                    SimpleColocalization.ChannelAnalysis(
+                    ChannelAnalysis(
                         channelImages[channel].title,
                         sums[channel] / area,
                         mins[channel],
@@ -126,7 +129,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
                     )
                 )
             }
-            analyses.add(SimpleColocalization.CellAnalysis(area, channels))
+            analyses.add(CellAnalysis(area, channels))
         }
 
         return analyses.toTypedArray()
