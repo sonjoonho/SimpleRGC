@@ -1,10 +1,9 @@
-package simplecolocalization
+package simplecolocalization.services
 
 import ij.ImagePlus
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
-import ij.plugin.ChannelSplitter
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
@@ -23,9 +22,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
     data class CellAnalysis(val area: Int, val channels: List<ChannelAnalysis>)
     data class ChannelAnalysis(val name: String, val mean: Int, val min: Int, val max: Int)
 
-    /**
-     * Perform pre-processing on the image to remove background and set cells to white.
-     */
+    /** Perform pre-processing on the image to remove background and set cells to white. */
     fun preprocessImage(image: ImagePlus, largestCellDiameter: Double, gaussianBlurSigma: Double) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
@@ -84,54 +81,10 @@ class CellSegmentationService : AbstractService(), ImageJService {
         return roiManager.roisAsArray
     }
 
-    /**
-     * Mark the cell locations in the image.
-     */
+    /** Mark the cell locations in the image. */
     fun markCells(image: ImagePlus, rois: Array<Roi>) {
         for (roi in rois) {
             roi.image = image
         }
-    }
-
-    /**
-     * Analyses the channel intensity of the cells.
-     */
-    fun analyseCells(image: ImagePlus, highlightedCells: Array<Roi>): Array<CellAnalysis> {
-        // Split the image into multiple grayscale images (one for each channel).
-        val channelImages = ChannelSplitter.split(image)
-        val numberOfChannels = channelImages.size
-
-        val analyses = arrayListOf<CellAnalysis>()
-        for (cell in highlightedCells) {
-            var area = 0
-            val sums = MutableList(numberOfChannels) { 0 }
-            val mins = MutableList(numberOfChannels) { Integer.MAX_VALUE }
-            val maxs = MutableList(numberOfChannels) { Integer.MIN_VALUE }
-            val containedCells = cell.containedPoints
-            containedCells.forEach { point ->
-                area++
-                for (channel in 0 until numberOfChannels) {
-                    // pixelData is of the form [value, 0, 0, 0] because ImageJ.
-                    val pixelData = channelImages[channel].getPixel(point.x, point.y)
-                    sums[channel] += pixelData[0]
-                    mins[channel] = Integer.min(mins[channel], pixelData[0])
-                    maxs[channel] = Integer.max(maxs[channel], pixelData[0])
-                }
-            }
-            val channels = mutableListOf<ChannelAnalysis>()
-            for (channel in 0 until numberOfChannels) {
-                channels.add(
-                    ChannelAnalysis(
-                        channelImages[channel].title,
-                        sums[channel] / area,
-                        mins[channel],
-                        maxs[channel]
-                    )
-                )
-            }
-            analyses.add(CellAnalysis(area, channels))
-        }
-
-        return analyses.toTypedArray()
     }
 }
