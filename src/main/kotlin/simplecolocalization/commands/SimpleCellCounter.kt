@@ -6,7 +6,6 @@ import ij.WindowManager
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
-import java.io.File
 import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
@@ -17,6 +16,7 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellSegmentationService
+import java.io.File
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -33,9 +33,6 @@ class SimpleCellCounter : Command {
 
     @Parameter
     private lateinit var logService: LogService
-
-    @Parameter
-    private lateinit var cellSegmentationService: CellSegmentationService
 
     /**
      * Entry point for UI operations, automatically handling both graphical and
@@ -113,6 +110,8 @@ class SimpleCellCounter : Command {
         val originalImage = image.duplicate()
         originalImage.title = "${image.title} - segmented"
 
+        val cellSegmentationService = CellSegmentationService()
+
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
@@ -135,8 +134,6 @@ class SimpleCellCounter : Command {
         @JvmStatic
         fun main(args: Array<String>) {
             val ij = ImageJ()
-
-            ij.context().inject(CellSegmentationService())
 
             ij.launch()
 
