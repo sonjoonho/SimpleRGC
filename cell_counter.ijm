@@ -5,7 +5,7 @@ waitForUser("draw your RECTANGULAR ONLY area of interest and hit ok");
 run("Clear Outside");
 run("Duplicate...", "");
 setRGBWeights(1, 0, 0);
-8-run("8-bit");
+run("8-bit");
 // Here goes the code of what you want to get from the red channel.
 setAutoThreshold("Moments dark");
 setOption("BlackBackground", false);
