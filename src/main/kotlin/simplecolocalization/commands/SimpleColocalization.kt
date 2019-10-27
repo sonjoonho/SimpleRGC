@@ -6,6 +6,7 @@ import ij.WindowManager
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
+import java.io.File
 import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
@@ -19,7 +20,6 @@ import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
-import java.io.File
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {

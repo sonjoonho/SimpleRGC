@@ -6,6 +6,7 @@ import ij.WindowManager
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
+import java.io.File
 import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
@@ -17,7 +18,6 @@ import org.scijava.ui.UIService
 import org.scijava.widget.ChoiceWidget
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellSegmentationService
-import java.io.File
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -60,7 +60,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var subtractBackground : Boolean = false
+    private var subtractBackground: Boolean = false
 
     /**
      * Used during the cell identification stage to reduce overlapping cells
@@ -88,7 +88,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var thresholdChoice : String = "Global"
+    private var thresholdChoice: String = "Global"
 
     /**
      * Decide on Thresholding Algorithm.
@@ -100,7 +100,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var thresholdAlgo : String = "Otsu"
+    private var thresholdAlgo: String = "Otsu"
 
     /**
      * Decide on local Threshold radius.
@@ -113,7 +113,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var localThresholdRadius = 30.0
+    private var localThresholdRadius = 30
 
     /**
      *  Decide whether we want to try and despeckle the image.
@@ -123,7 +123,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var despeckle : Boolean = true
+    private var despeckle: Boolean = true
 
     /**
      * Select filter radius for median filter when despeckling.
@@ -146,7 +146,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var gaussianBlur : Boolean = true
+    private var gaussianBlur: Boolean = true
 
     /**
      * Applied to the input image to reduce sensitivity of the thresholding
