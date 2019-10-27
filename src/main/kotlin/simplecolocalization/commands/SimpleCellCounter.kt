@@ -14,6 +14,7 @@ import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
+import org.scijava.widget.ChoiceWidget
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellSegmentationService
 import java.io.File
@@ -41,6 +42,9 @@ class SimpleCellCounter : Command {
     @Parameter
     private lateinit var uiService: UIService
 
+    /***
+     * Following Parameters allow the user to tune the plugin.
+     */
     @Parameter(
         label = "Preprocessing Parameters:",
         visibility = ItemVisibility.MESSAGE,
@@ -49,27 +53,14 @@ class SimpleCellCounter : Command {
     private lateinit var preprocessingParamsHeader: String
 
     /**
-     * Applied to the input image to reduce sensitivity of the thresholding
-     * algorithm. Higher value means more blur.
+     *  Decide whether we want to subtract the background or not.
      */
     @Parameter(
-        label = "Gaussian Blur Sigma (Radius)",
-        description = "Reduces sensitivity to cell edges by blurring the " +
-            "overall image. Higher is less sensitive.",
-        min = "0.0",
-        stepSize = "1.0",
-        style = NumberWidget.SPINNER_STYLE,
+        label = "Subtract Background?",
         required = true,
         persist = false
     )
-    private var gaussianBlurSigma = 3.0
-
-    @Parameter(
-        label = "Cell Identification Parameters:",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var identificationParamsHeader: String
+    private var subtractBackground : Boolean = false
 
     /**
      * Used during the cell identification stage to reduce overlapping cells
@@ -86,6 +77,92 @@ class SimpleCellCounter : Command {
         persist = false
     )
     private var largestCellDiameter = 30.0
+
+    /**
+     * Decide on global/local Threshold.
+     */
+    @Parameter(
+        label = "Threshold type",
+        style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
+        choices = [ "Global", "Local" ],
+        required = true,
+        persist = false
+    )
+    private var thresholdChoice : String = "Global"
+
+    /**
+     * Decide on Thresholding Algorithm.
+     */
+    @Parameter(
+        label = "Threshold Algorithm",
+        style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
+        choices = [ "Otsu's", "Bernsen's", "Niblack's"],
+        required = true,
+        persist = false
+    )
+    private var thresholdAlgo : String = "Otsu"
+
+    /**
+     * Decide on local Threshold radius.
+     */
+    @Parameter(
+        label = "Local Threshold Radius",
+        min = "0.0",
+        stepSize = "1.0",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var localThresholdRadius = 3.0
+
+    /**
+     *  Decide whether we want to try and despeckle the image.
+     */
+    @Parameter(
+        label = "Despeckle?",
+        required = true,
+        persist = false
+    )
+    private var despeckle : Boolean = true
+
+    /**
+     * Select filter radius for median filter when despeckling.
+     */
+    @Parameter(
+        label = "Despeckle Radius",
+        min = "0.0",
+        stepSize = "0.5",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var despeckleRadius = 1.0
+
+    /**
+     *  Decide whether we want to apply Gaussian Blur.
+     */
+    @Parameter(
+        label = "Gaussian Blur?",
+        required = true,
+        persist = false
+    )
+    private var gaussianBlur : Boolean = true
+
+    /**
+     * Applied to the input image to reduce sensitivity of the thresholding
+     * algorithm. Higher value means more blur.
+     */
+    @Parameter(
+        label = "Gaussian Blur Sigma (Radius)",
+        description = "Reduces sensitivity to cell edges by blurring the " +
+            "overall image. Higher is less sensitive.",
+        min = "0.0",
+        stepSize = "1.0",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var gaussianBlurSigma = 3.0
 
     /** Runs after the parameters above are populated. */
     override fun run() {
