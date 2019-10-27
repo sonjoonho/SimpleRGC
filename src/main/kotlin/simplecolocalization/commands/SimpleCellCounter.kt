@@ -6,6 +6,7 @@ import ij.WindowManager
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
+import java.io.File
 import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
@@ -17,7 +18,6 @@ import org.scijava.ui.UIService
 import org.scijava.widget.ChoiceWidget
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellSegmentationService
-import java.io.File
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -113,7 +113,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var localThresholdRadius = 30.0
+    private var localThresholdRadius = 30
 
     /**
      *  Decide whether we want to try and despeckle the image.
