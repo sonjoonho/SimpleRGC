@@ -113,7 +113,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var localThresholdRadius = 3.0
+    private var localThresholdRadius = 30.0
 
     /**
      *  Decide whether we want to try and despeckle the image.
@@ -189,7 +189,9 @@ class SimpleCellCounter : Command {
 
         val cellSegmentationService = CellSegmentationService()
 
-        cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
+        cellSegmentationService.preprocessImage(image, subtractBackground, largestCellDiameter,
+                                                thresholdChoice, thresholdAlgo, localThresholdRadius,
+                                                despeckle, despeckleRadius, gaussianBlur, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
         val roiManager = RoiManager.getRoiManager()
