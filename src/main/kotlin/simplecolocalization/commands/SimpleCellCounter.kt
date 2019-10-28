@@ -60,7 +60,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var subtractBackground : Boolean = false
+    private var subtractBackground = false
 
     /**
      * Used during the cell identification stage to reduce overlapping cells
@@ -88,7 +88,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var thresholdChoice : String = "Global"
+    private var thresholdChoice = "Global"
 
     /**
      * Decide on Thresholding Algorithm.
@@ -100,7 +100,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var thresholdAlgo : String = "Otsu"
+    private var thresholdAlgo = "Otsu"
 
     /**
      * Decide on local Threshold radius.
@@ -123,7 +123,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var despeckle : Boolean = true
+    private var despeckle = true
 
     /**
      * Select filter radius for median filter when despeckling.
@@ -146,7 +146,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var gaussianBlur : Boolean = true
+    private var gaussianBlur = true
 
     /**
      * Applied to the input image to reduce sensitivity of the thresholding
