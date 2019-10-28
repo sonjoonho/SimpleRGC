@@ -4,10 +4,11 @@ import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.MessageDialog
+import ij.gui.Roi
+import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
 import java.io.File
-import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -39,6 +40,30 @@ class SimpleColocalization : Command {
      */
     @Parameter
     private lateinit var uiService: UIService
+
+    /**
+     * Specify the channel for the target cell
+     */
+    @Parameter(
+        label = "Target Cell Channel:",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    private var targetChannel = 1
+
+    /**
+     * Specify the channel for the virus
+     */
+    @Parameter(
+        label = "Virus Channel:",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    private var virusChannel = 2
 
     @Parameter(
         label = "Preprocessing Parameters:",
