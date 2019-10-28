@@ -1,4 +1,4 @@
-package simplecolocalization
+package simplecolocalization.commands
 
 import ij.IJ
 import ij.ImagePlus
@@ -18,18 +18,10 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
+import simplecolocalization.services.CellColocalizationService
+import simplecolocalization.services.CellSegmentationService
 
-/**
- * Segments and counts cells which are almost circular in shape which are likely
- * to overlap.
- *
- * When this plugin is started in a graphical context (as opposed to the command
- * line), a dialog box is opened with the script parameters below as input.
- *
- * [run] contains the main pipeline, which runs only after the script parameters
- * are populated.
- */
-@Plugin(type = Command::class, menuPath = "Plugins > Simple Colocalization")
+@Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
 
     @Parameter
@@ -37,6 +29,9 @@ class SimpleColocalization : Command {
 
     @Parameter
     private lateinit var cellSegmentationService: CellSegmentationService
+
+    @Parameter
+    private lateinit var cellColocalizationService: CellColocalizationService
 
     /**
      * Entry point for UI operations, automatically handling both graphical and
@@ -93,29 +88,6 @@ class SimpleColocalization : Command {
     )
     private var largestCellDiameter = 30.0
 
-    /**
-     * Displays the resulting counts as a results table.
-     */
-    private fun showCount(analyses: Array<CellSegmentationService.CellAnalysis>) {
-        val table = DefaultGenericTable()
-        val cellCountColumn = IntColumn()
-        val greenCountColumn = IntColumn()
-        cellCountColumn.add(analyses.size)
-        var greenCount = 0
-        analyses.forEach { cellAnalysis ->
-            if (cellAnalysis.channels[1].mean > meanGreenThreshold) {
-                greenCount++
-            }
-        }
-        greenCountColumn.add(greenCount)
-        table.add(cellCountColumn)
-        table.add(greenCountColumn)
-        table.setColumnHeader(0, "Red Cell Count")
-        table.setColumnHeader(1, "Green Cell Count")
-        uiService.show(table)
-    }
-
-    /** Runs after the parameters above are populated. */
     override fun run() {
         var image = WindowManager.getCurrentImage()
         if (image != null) {
@@ -133,6 +105,8 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     private fun process(image: ImagePlus) {
+        // TODO(sonjoonho): Remove duplication in this code fragment.
+
         // We need to create a copy of the image since we want to show the results on the original image, but
         // preprocessing is done in-place which changes the image.
         val originalImage = image.duplicate()
@@ -145,12 +119,31 @@ class SimpleColocalization : Command {
         val cells = cellSegmentationService.identifyCells(roiManager, image)
         cellSegmentationService.markCells(originalImage, cells)
 
-        val analysis = cellSegmentationService.analyseCells(originalImage, cells)
+        val analysis = cellColocalizationService.analyseCells(originalImage, cells)
 
         showCount(analysis)
         showPerCellAnalysis(analysis)
 
         originalImage.show()
+    }
+
+    /**
+     * Displays the resulting counts as a results table.
+     */
+    private fun showCount(analyses: Array<CellSegmentationService.CellAnalysis>) {
+        val table = DefaultGenericTable()
+        val cellCountColumn = IntColumn()
+        val greenCountColumn = IntColumn()
+        cellCountColumn.add(analyses.size)
+
+        // TODO(sonjoonho): Document magic numbers.
+        val greenCount = cellColocalizationService.countChannel(analyses, 1, meanGreenThreshold)
+        greenCountColumn.add(greenCount)
+        table.add(cellCountColumn)
+        table.add(greenCountColumn)
+        table.setColumnHeader(0, "Red Cell Count")
+        table.setColumnHeader(1, "Green Cell Count")
+        uiService.show(table)
     }
 
     /**
@@ -221,6 +214,10 @@ class SimpleColocalization : Command {
         @JvmStatic
         fun main(args: Array<String>) {
             val ij = ImageJ()
+
+            ij.context().inject(CellSegmentationService())
+            ij.context().inject(CellColocalizationService())
+
             ij.launch()
 
             val file: File = ij.ui().chooseFile(null, "open")
