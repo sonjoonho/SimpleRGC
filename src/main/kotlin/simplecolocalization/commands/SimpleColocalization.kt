@@ -165,10 +165,16 @@ class SimpleColocalization : Command {
         analyseColocalisation(targetCells, virusCells)
     }
 
+    /**
+     * Analyse the colocalisation between targetCells and virusCells
+     */
     private fun analyseColocalisation(targetCells: Array<Roi>, virusCells: Array<Roi>) {
         // TODO(kelvin): // Implement this method
     }
 
+    /**
+     * Extract an array of cells (as ROIs) from the specified image
+     */
     private fun extractCells(image: ImagePlus): Array<Roi> {
         // Process the target image.
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
