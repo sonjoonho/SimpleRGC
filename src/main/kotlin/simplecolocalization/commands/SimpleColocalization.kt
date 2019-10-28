@@ -137,19 +137,48 @@ class SimpleColocalization : Command {
         val originalImage = image.duplicate()
         originalImage.title = "${image.title} - segmented"
 
+        val channelImages = ChannelSplitter.split(image)
+        if ((targetChannel < 1) or (targetChannel > channelImages.size)) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Error", "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
+            )
+            return
+        }
+
+        if ((virusChannel < 1) or (virusChannel > channelImages.size)) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Error", "Virus channel selected does not exist. There are %d channels available.".format(channelImages.size)
+            )
+            return
+        }
+
+        val targetImage = channelImages[targetChannel - 1]
+        targetImage.show()
+        val virusImage = channelImages[virusChannel - 1]
+        virusImage.show()
+
+        val targetCells = extractCells(targetImage)
+        val virusCells = extractCells(virusImage)
+
+        analyseColocalisation(targetCells, virusCells)
+    }
+
+    private fun analyseColocalisation(targetCells: Array<Roi>, virusCells: Array<Roi>) {
+        // TODO(kelvin): // Implement this method
+    }
+
+    private fun extractCells(image: ImagePlus): Array<Roi> {
+        // Process the target image.
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
-        val roiManager = RoiManager.getRoiManager()
+        // Create a unique ROI manager but don't display it.
+        // This allows us to retrieve only the ROIs corresponding to this image
+        val roiManager = RoiManager(true)
         val cells = cellSegmentationService.identifyCells(roiManager, image)
-        cellSegmentationService.markCells(originalImage, cells)
-
-        val analysis = cellColocalizationService.analyseCells(originalImage, cells)
-
-        showCount(analysis)
-        showPerCellAnalysis(analysis)
-
-        originalImage.show()
+        return cells
     }
 
     /**
@@ -246,9 +275,8 @@ class SimpleColocalization : Command {
             ij.launch()
 
             val file: File = ij.ui().chooseFile(null, "open")
-            val dataset: Dataset = ij.scifio().datasetIO().open(file.path)
-
-            ij.ui().show(dataset)
+            val imp = IJ.openImage(file.path)
+            imp.show()
             ij.command().run(SimpleColocalization::class.java, true)
         }
     }
