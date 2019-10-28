@@ -84,7 +84,7 @@ class SimpleCellCounter : Command {
     @Parameter(
         label = "Threshold type",
         style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
-        choices = [ "Global", "Local" ],
+        choices = ["Global", "Local"],
         required = true,
         persist = false
     )
@@ -96,7 +96,7 @@ class SimpleCellCounter : Command {
     @Parameter(
         label = "Threshold Algorithm",
         style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
-        choices = [ "Otsu's", "Bernsen's", "Niblack's"],
+        choices = ["Otsu's", "Bernsen's", "Niblack's"],
         required = true,
         persist = false
     )
@@ -189,9 +189,11 @@ class SimpleCellCounter : Command {
 
         val cellSegmentationService = CellSegmentationService()
 
-        cellSegmentationService.preprocessImage(image, subtractBackground, largestCellDiameter,
-                                                thresholdChoice, thresholdAlgo, localThresholdRadius,
-                                                despeckle, despeckleRadius, gaussianBlur, gaussianBlurSigma)
+        cellSegmentationService.preprocessImage(
+            image, subtractBackground, largestCellDiameter,
+            thresholdChoice, thresholdAlgo, localThresholdRadius,
+            despeckle, despeckleRadius, gaussianBlur, gaussianBlurSigma
+        )
         cellSegmentationService.segmentImage(image)
 
         val roiManager = RoiManager.getRoiManager()

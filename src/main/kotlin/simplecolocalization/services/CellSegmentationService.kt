@@ -87,7 +87,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
                     "Otsu's" -> return
                     "Bernsen's" -> return
                     "Niblack's" -> return
-                    else ->  throw InvalidArgumentException("Threshold Algorithm selected")
+                    else -> throw InvalidArgumentException("Threshold Algorithm selected") as Throwable
                 }
             }
             "Local" -> {
