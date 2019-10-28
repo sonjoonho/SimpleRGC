@@ -60,7 +60,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var subtractBackground = false
+    private var shouldSubtractBackground = false
 
     /**
      * Used during the cell identification stage to reduce overlapping cells
@@ -88,7 +88,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var thresholdChoice = "Global"
+    private var thresholdLocality = "Global"
 
     /**
      * Decide on Thresholding Algorithm.
@@ -123,7 +123,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var despeckle = true
+    private var shouldDespeckle = true
 
     /**
      * Select filter radius for median filter when despeckling.
@@ -146,7 +146,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var gaussianBlur = true
+    private var shouldGaussianBlur = true
 
     /**
      * Applied to the input image to reduce sensitivity of the thresholding
@@ -190,9 +190,9 @@ class SimpleCellCounter : Command {
         val cellSegmentationService = CellSegmentationService()
 
         cellSegmentationService.preprocessImage(
-            image, subtractBackground, largestCellDiameter,
-            thresholdChoice, thresholdAlgo, localThresholdRadius,
-            despeckle, despeckleRadius, gaussianBlur, gaussianBlurSigma
+            image, shouldSubtractBackground, largestCellDiameter,
+            thresholdLocality, thresholdAlgo, localThresholdRadius,
+            shouldDespeckle, despeckleRadius, shouldGaussianBlur, gaussianBlurSigma
         )
         cellSegmentationService.segmentImage(image)
 

@@ -35,20 +35,20 @@ class CellSegmentationService : AbstractService(), ImageJService {
     /** Perform pre-processing on the image to remove background and set cells to white. */
     fun preprocessImage(
         image: ImagePlus,
-        subtractBackground: Boolean,
+        shouldSubtractBackground: Boolean,
         largestCellDiameter: Double,
-        thresholdChoice: String,
+        thresholdLocality: String,
         thresholdAlgo: String,
         localThresholdRadius: Double,
-        despeckle: Boolean,
+        shouldDespeckle: Boolean,
         despeckleRadius: Double,
-        gaussianBlur: Boolean,
+        shouldGaussianBlur: Boolean,
         gaussianBlurSigma: Double
     ) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
 
-        if (subtractBackground) {
+        if (shouldSubtractBackground) {
             // Remove background.
             BackgroundSubtracter().rollingBallBackground(
                 image.channelProcessor,
@@ -62,21 +62,21 @@ class CellSegmentationService : AbstractService(), ImageJService {
         }
 
         // Threshold grayscale image, leaving black and white image.
-        thresholdImage(image, thresholdChoice, thresholdAlgo, localThresholdRadius)
+        thresholdImage(image, thresholdLocality, thresholdAlgo, localThresholdRadius)
 
-        if (despeckle) {
+        if (shouldDespeckle) {
             // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
             // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
             RankFilters().rank(image.channelProcessor, despeckleRadius, RankFilters.MEDIAN)
         }
 
-        if (gaussianBlur) {
+        if (shouldGaussianBlur) {
             // Apply Gaussian Blur to group larger speckles.
             image.channelProcessor.blurGaussian(gaussianBlurSigma)
         }
 
         // Threshold image again to remove blur.
-        thresholdImage(image, thresholdChoice, thresholdAlgo, localThresholdRadius)
+        thresholdImage(image, thresholdLocality, thresholdAlgo, localThresholdRadius)
     }
 
     fun thresholdImage(image: ImagePlus, thresholdChoice: String, thresholdAlgo: String, localThresholdRadius: Double) {
@@ -87,7 +87,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
                     "Otsu's" -> return
                     "Bernsen's" -> return
                     "Niblack's" -> return
-                    else -> throw InvalidArgumentException("Threshold Algorithm selected") as Throwable
+                    else -> throw InvalidArgumentException("Threshold Algorithm selected")
                 }
             }
             "Local" -> {
