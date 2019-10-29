@@ -12,32 +12,32 @@ class NaiveColocalizerTest : FreeSpec({
                 0f,
                 listOf(PositionedCell(hashSetOf(Pair(0f, 0f), Pair(0f, 1f), Pair(1f, 0f), Pair(1f, 1f)))),
                 listOf(PositionedCell(hashSetOf(Pair(0f, 0f)))),
-                listOf(PositionedCell(hashSetOf(Pair(0f, 0f))))
+                TransductionAnalysis(listOf(PositionedCell(hashSetOf(Pair(0f, 0f)))), listOf())
             ),
             row(
                 "one threshold matches no cells",
                 1f,
                 listOf(PositionedCell(hashSetOf(Pair(0f, 0f), Pair(0f, 1f), Pair(1f, 0f), Pair(1f, 1f)))),
                 listOf(PositionedCell(hashSetOf(Pair(0f, 0f)))),
-                listOf()
+                TransductionAnalysis(listOf(), listOf(PositionedCell(hashSetOf(Pair(0f, 0f)))))
             ),
             row(
                 "transduced cell overlaps multiple target cells",
                 0.2f,
                 listOf(PositionedCell(hashSetOf(Pair(0f, 0f))), PositionedCell(hashSetOf(Pair(0f, 1f))), PositionedCell(hashSetOf(Pair(1f, 0f))), PositionedCell(hashSetOf(Pair(1f, 1f)))),
                 listOf(PositionedCell(hashSetOf(Pair(0f, 0f), Pair(0f, 1f), Pair(1f, 0f), Pair(1f, 1f)))),
-                listOf(PositionedCell(hashSetOf(Pair(0f, 0f), Pair(0f, 1f), Pair(1f, 0f), Pair(1f, 1f))))
+                TransductionAnalysis(listOf(PositionedCell(hashSetOf(Pair(0f, 0f), Pair(0f, 1f), Pair(1f, 0f), Pair(1f, 1f)))), listOf())
             ),
             row(
                 "transduced cell does not overlap any target cells",
                 0f,
                 listOf(PositionedCell(hashSetOf(Pair(0f, 0f))), PositionedCell(hashSetOf(Pair(0f, 1f))), PositionedCell(hashSetOf(Pair(1f, 0f))), PositionedCell(hashSetOf(Pair(1f, 1f)))),
                 listOf(PositionedCell(hashSetOf(Pair(2f, 2f)))),
-                listOf()
+                TransductionAnalysis(listOf(), listOf(PositionedCell(hashSetOf(Pair(2f, 2f)))))
             )
-        ).map { (description: String, threshold: Float, target: List<PositionedCell>, transduced: List<PositionedCell>, expected: List<PositionedCell>) ->
+        ).map { (description: String, threshold: Float, target: List<PositionedCell>, transduced: List<PositionedCell>, expected: TransductionAnalysis) ->
             description {
-                NaiveColocalizer(threshold).analyseTargeting(target, transduced) shouldBe expected
+                NaiveColocalizer(threshold).analyseTransduction(target, transduced) shouldBe expected
             }
         }
     }
