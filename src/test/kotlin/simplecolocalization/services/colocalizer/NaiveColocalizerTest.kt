@@ -20,6 +20,20 @@ class NaiveColocalizerTest : FreeSpec({
                 listOf(PositionedCell(hashSetOf(Pair(0f, 0f), Pair(0f, 1f), Pair(1f, 0f), Pair(1f, 1f)))),
                 listOf(PositionedCell(hashSetOf(Pair(0f, 0f)))),
                 listOf()
+            ),
+            row(
+                "transduced cell overlaps multiple target cells",
+                0.2f,
+                listOf(PositionedCell(hashSetOf(Pair(0f, 0f))), PositionedCell(hashSetOf(Pair(0f, 1f))), PositionedCell(hashSetOf(Pair(1f, 0f))), PositionedCell(hashSetOf(Pair(1f, 1f)))),
+                listOf(PositionedCell(hashSetOf(Pair(0f, 0f), Pair(0f, 1f), Pair(1f, 0f), Pair(1f, 1f)))),
+                listOf(PositionedCell(hashSetOf(Pair(0f, 0f), Pair(0f, 1f), Pair(1f, 0f), Pair(1f, 1f))))
+            ),
+            row(
+                "transduced cell does not overlap any target cells",
+                0f,
+                listOf(PositionedCell(hashSetOf(Pair(0f, 0f))), PositionedCell(hashSetOf(Pair(0f, 1f))), PositionedCell(hashSetOf(Pair(1f, 0f))), PositionedCell(hashSetOf(Pair(1f, 1f)))),
+                listOf(PositionedCell(hashSetOf(Pair(2f, 2f)))),
+                listOf()
             )
         ).map { (description: String, threshold: Float, target: List<PositionedCell>, transduced: List<PositionedCell>, expected: List<PositionedCell>) ->
             description {
