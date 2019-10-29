@@ -32,23 +32,11 @@
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
-        <!-- Needed to fix IntelliJ running tests -->
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-commons</artifactId>
-            <version>1.4.0</version>
-        </dependency>
         <dependency>
             <groupId>io.kotlintest</groupId>
             <artifactId>kotlintest-runner-junit5</artifactId>
             <version>3.3.2</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.platform</groupId>
-                    <artifactId>junit-platform-commons</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
     <!-- Inherit from the SciJava base POM. -->
@@ -63,6 +51,9 @@
         <license.licenseName>MIT</license.licenseName>
         <license.copyrightOwners>Joon-Ho Son</license.copyrightOwners>
         <kotlin.version>1.3.50</kotlin.version>
+        <allowedDuplicateClasses>
+            org.junit.platform.commons.annotation.*
+        </allowedDuplicateClasses>
     </properties>
 
     <!-- Build Settings -->
