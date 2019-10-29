@@ -42,7 +42,9 @@ class SimpleColocalization : Command {
     private lateinit var uiService: UIService
 
     /**
-     * Specify the channel for the target cell
+     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
+     * the channels available at the parameter initiation stage.
+     * By default this is 1 (red) channel.
      */
     @Parameter(
         label = "Target Cell Channel:",
@@ -54,16 +56,17 @@ class SimpleColocalization : Command {
     private var targetChannel = 1
 
     /**
-     * Specify the channel for the virus
+     * Specify the channel for the transduced cells.
+     * By default this is the 2 (green) channel.
      */
     @Parameter(
-        label = "Virus Channel:",
+        label = "Transduced Cell Channel:",
         min = "1",
         stepSize = "1",
         required = true,
         persist = false
     )
-    private var virusChannel = 2
+    private var transducedChannel = 2
 
     @Parameter(
         label = "Preprocessing Parameters:",
@@ -146,29 +149,29 @@ class SimpleColocalization : Command {
             return
         }
 
-        if ((virusChannel < 1) or (virusChannel > channelImages.size)) {
+        if ((transducedChannel < 1) or (transducedChannel > channelImages.size)) {
             MessageDialog(
                 IJ.getInstance(),
-                "Error", "Virus channel selected does not exist. There are %d channels available.".format(channelImages.size)
+                "Error", "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
             )
             return
         }
 
         val targetImage = channelImages[targetChannel - 1]
         targetImage.show()
-        val virusImage = channelImages[virusChannel - 1]
-        virusImage.show()
+        val transducedImage = channelImages[transducedChannel - 1]
+        transducedImage.show()
 
         val targetCells = extractCells(targetImage)
-        val virusCells = extractCells(virusImage)
+        val transducedCells = extractCells(transducedImage)
 
-        analyseColocalisation(targetCells, virusCells)
+        analyseColocalisation(targetCells, transducedCells)
     }
 
     /**
      * Analyse the colocalisation between targetCells and virusCells
      */
-    private fun analyseColocalisation(targetCells: Array<Roi>, virusCells: Array<Roi>) {
+    private fun analyseColocalisation(targetCells: Array<Roi>, transducedCells: Array<Roi>) {
         // TODO(kelvin): // Implement this method
     }
 
