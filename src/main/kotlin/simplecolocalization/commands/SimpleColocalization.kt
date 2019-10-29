@@ -141,7 +141,7 @@ class SimpleColocalization : Command {
         originalImage.title = "${image.title} - segmented"
 
         val channelImages = ChannelSplitter.split(image)
-        if ((targetChannel < 1) or (targetChannel > channelImages.size)) {
+        if (targetChannel < 1 || targetChannel > channelImages.size) {
             MessageDialog(
                 IJ.getInstance(),
                 "Error", "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
@@ -149,7 +149,7 @@ class SimpleColocalization : Command {
             return
         }
 
-        if ((transducedChannel < 1) or (transducedChannel > channelImages.size)) {
+        if (transducedChannel < 1 || transducedChannel > channelImages.size) {
             MessageDialog(
                 IJ.getInstance(),
                 "Error", "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
