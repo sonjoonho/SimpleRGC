@@ -18,7 +18,7 @@ class NaiveColocalizer(private val threshold: Float = 0.5f) : Colocalizer {
      */
     override fun analyseTargeting(targetCells: List<PositionedCell>, transducedCells: List<PositionedCell>): List<PositionedCell> {
         return transducedCells.filter { transducedCell ->
-            targetCells.any{targetCell ->
+            targetCells.any { targetCell ->
                 val overlap = (transducedCell.points intersect targetCell.points).size.toFloat()
                 val total = (transducedCell.points union targetCell.points).size.toFloat()
                 (overlap / total) > threshold

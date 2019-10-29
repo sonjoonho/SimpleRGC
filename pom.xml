@@ -28,11 +28,6 @@
         </dependency>
         <!-- Test scope dependencies -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
@@ -42,6 +37,12 @@
             <artifactId>kotlintest-runner-junit5</artifactId>
             <version>3.3.2</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.platform</groupId>
+                    <artifactId>junit-platform-commons</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     <!-- Inherit from the SciJava base POM. -->
