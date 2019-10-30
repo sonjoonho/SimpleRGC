@@ -3,7 +3,8 @@ package simplecolocalization.services.colocalizer
 /**
  * Uses a naive method of colocalization: checking to see if there is greater
  * than a specified percentage [threshold] of overlap. Lower threshold is
- * better.
+ * means fewer pixels need to coincide between layers for cells to be decided
+ * as overlapping.
  */
 class NaiveColocalizer(private val threshold: Float = 0.5f) : Colocalizer {
 
