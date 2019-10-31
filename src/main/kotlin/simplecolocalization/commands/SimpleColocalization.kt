@@ -4,7 +4,6 @@ import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.MessageDialog
-import ij.gui.Roi
 import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
@@ -21,6 +20,8 @@ import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.colocalizer.NaiveColocalizer
+import simplecolocalization.services.colocalizer.PositionedCell
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -165,20 +166,16 @@ class SimpleColocalization : Command {
         val targetCells = extractCells(targetImage)
         val transducedCells = extractCells(transducedImage)
 
-        analyseColocalisation(targetCells, transducedCells)
+        val analysis = NaiveColocalizer().analyseTransduction(targetCells, transducedCells)
+        print(analysis)
     }
 
-    /**
-     * Analyse the colocalisation between targetCells and virusCells
-     */
-    private fun analyseColocalisation(targetCells: Array<Roi>, transducedCells: Array<Roi>) {
-        // TODO(kelvin): // Implement this method
-    }
+
 
     /**
      * Extract an array of cells (as ROIs) from the specified image
      */
-    private fun extractCells(image: ImagePlus): Array<Roi> {
+    private fun extractCells(image: ImagePlus): List<PositionedCell> {
         // Process the target image.
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
@@ -187,7 +184,7 @@ class SimpleColocalization : Command {
         // This allows us to retrieve only the ROIs corresponding to this image
         val roiManager = RoiManager(true)
         val cells = cellSegmentationService.identifyCells(roiManager, image)
-        return cells
+        return cells.map { roi -> PositionedCell.fromRoi(roi) }
     }
 
     /**
