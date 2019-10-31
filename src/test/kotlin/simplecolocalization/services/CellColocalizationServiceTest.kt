@@ -1,11 +1,10 @@
 package simplecolocalization.services
 
-import kotlin.test.assertEquals
-import org.junit.Test
+import io.kotlintest.shouldBe
+import io.kotlintest.specs.StringSpec
 
-class CellColocalizationServiceTest {
-    @Test
-    fun countsCellsCorrectly() {
+class CellColocalizationServiceTest : StringSpec({
+    "counts cells correctly" {
         val cellColocalizationService = CellColocalizationService()
         val analyses = arrayOf(
             CellSegmentationService.CellAnalysis(
@@ -42,6 +41,6 @@ class CellColocalizationServiceTest {
             )
         )
 
-        assertEquals(2, cellColocalizationService.countChannel(analyses, 1, 30.0))
+        cellColocalizationService.countChannel(analyses, 1, 30.0) shouldBe 2
     }
-}
+})

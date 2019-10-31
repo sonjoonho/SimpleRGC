@@ -28,19 +28,14 @@
         </dependency>
         <!-- Test scope dependencies -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test-junit</artifactId>
-            <version>${kotlin.version}</version>
+            <groupId>io.kotlintest</groupId>
+            <artifactId>kotlintest-runner-junit5</artifactId>
+            <version>3.3.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -56,6 +51,9 @@
         <license.licenseName>MIT</license.licenseName>
         <license.copyrightOwners>Joon-Ho Son</license.copyrightOwners>
         <kotlin.version>1.3.50</kotlin.version>
+        <allowedDuplicateClasses>
+            org.junit.platform.commons.annotation.*
+        </allowedDuplicateClasses>
     </properties>
 
     <!-- Build Settings -->
@@ -132,6 +130,11 @@
                 <configuration>
                     <jvmTarget>1.8</jvmTarget>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
             </plugin>
         </plugins>
     </build>
