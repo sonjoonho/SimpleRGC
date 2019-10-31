@@ -98,6 +98,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
     }
 
     fun otsu(image: ImagePlus, radius: Int) {
+        ImageConverter(image).convertToGray8()
         val width = image.width
         val height = image.height
         var position: Int
@@ -171,6 +172,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
     }
 
     fun bernsen(image: ImagePlus, radius: Int, contrastThreshold: Double) {
+        ImageConverter(image).convertToGray8()
         val imageProcessor = image.processor
         val rankFilters = RankFilters()
 
@@ -203,6 +205,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
     }
 
     fun niblack(image: ImagePlus, radius: Int, kValue: Double, cValue: Double) {
+        ImageConverter(image).convertToGray8()
         val imageProcessor = image.processor
 
         val rankFilters = RankFilters()
