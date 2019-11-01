@@ -6,7 +6,7 @@
 
 This repository contains the source code for **SimpleColocalization** - an ImageJ plugin that provides tools for cell counting, segmentation, and percentage colocalization calculation. 
 
-It was originally developed in collaboration with scientists at Cambridge Neuroscience for the third year software engineering project at Imperial College London.
+It was originally developed in collaboration with scientists at [Cambridge Neuroscience](https://www.neuroscience.cam.ac.uk/) for the third year software engineering project at Imperial College London.
 
 ## Installation and Usage
 
@@ -21,7 +21,7 @@ Alternatively, the `.jar` can be compiled using Maven and installed in the `jars
  
 After installing, the plugin can be found in the ImageJ menu under `Plugins > Simple Cells`.
 
-At this point, you might ask "why is it under 'Simple Cells' if the plugin is called 'SimpleColocalization`?". I'm not sure.
+At this point, you might ask "why is it under 'Simple Cells' if the plugin is called 'SimpleColocalization'?". I'm not sure.
 
 ## Details
 
