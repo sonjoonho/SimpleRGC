@@ -6,7 +6,7 @@ package simplecolocalization.services.colocalizer
  * means fewer pixels need to coincide between layers for cells to be decided
  * as overlapping.
  */
-class NaiveColocalizer(private val threshold: Float = 0.5f) : Colocalizer {
+open class NaiveColocalizer(private val threshold: Float = 0.5f) : Colocalizer {
 
     init {
         require(threshold in 0.0..1.0) { "Overlap threshold must be between 0 and 1" }
