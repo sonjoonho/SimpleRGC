@@ -7,7 +7,6 @@ import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
-import java.io.File
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -20,8 +19,9 @@ import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
-import simplecolocalization.services.colocalizer.NaiveColocalizer
+import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
+import java.io.File
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -163,10 +163,12 @@ class SimpleColocalization : Command {
         val transducedImage = channelImages[transducedChannel - 1]
         transducedImage.show()
 
+        print("Starting extraction")
         val targetCells = extractCells(targetImage)
         val transducedCells = extractCells(transducedImage)
 
-        val analysis = NaiveColocalizer().analyseTransduction(targetCells, transducedCells)
+        print("Starting analysis")
+        val analysis = BucketedNaiveColocalizer(targetImage.width, targetImage.height).analyseTransduction(targetCells, transducedCells)
         print(analysis)
     }
 

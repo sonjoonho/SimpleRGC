@@ -49,19 +49,18 @@ class BucketedNaiveColocalizer(val width: Int, val height: Int, threshold: Float
         return TransductionAnalysis(overlapping.toList(), disjoint.toList())
     }
 
-    private fun surroundingBucketsForPoint(bucketLength: Int, point: Pair<Int, Int>): HashSet<Pair<Int, Int>> {
-        val buckets = hashSetOf(point)
+    private fun surroundingBucketsForPoint(bucketLength: Int, point: Pair<Int, Int>): Set<Pair<Int, Int>> {
+        val buckets = HashSet<Pair<Int, Int>>()
         for (x in -1..1) {
             for (y in -1..1) {
                 buckets.add(Pair(point.first + x, point.second + y))
             }
         }
-        buckets.filter { p -> p.first >= 0 && p.second >= 0 && p.first < ceil(width / bucketLength.toDouble()).toInt() && p.second < ceil(height / bucketLength.toDouble()).toInt() }
-        return buckets
+        return buckets.filter { p -> p.first >= 0 && p.second >= 0 && p.first < (width / bucketLength.toDouble()).toInt() && p.second < (height / bucketLength.toDouble()).toInt() }.toSet()
     }
 
     private fun bucketForPoint(bucketLength: Int, point: Pair<Int, Int>): Pair<Int, Int> {
-        return Pair(ceil(point.first / bucketLength.toDouble()).toInt(), ceil(point.second / bucketLength.toDouble()).toInt())
+        return Pair((point.first / bucketLength.toDouble()).toInt(), (point.second / bucketLength.toDouble()).toInt())
     }
 
     /**
@@ -71,7 +70,9 @@ class BucketedNaiveColocalizer(val width: Int, val height: Int, threshold: Float
      * pixels within a cell as its "diameter" (i.e., line length if all the
      * points were laid out in a line).
      */
-    private fun inferBucketLengthFromCells(cells: List<PositionedCell>): Int =
-        cells.map { cell -> Math.min(cell.points.size * BUCKET_SCALE_FACTOR, Math.min(width, height)) }.max()
-            ?: Math.min(width, height)
+    private fun inferBucketLengthFromCells(cells: List<PositionedCell>): Int {
+        // return cells.map { cell -> Math.min(cell.points.size * BUCKET_SCALE_FACTOR, Math.min(width, height)) }.max()
+        //     ?: Math.min(width, height)
+        return 50
+    }
 }
