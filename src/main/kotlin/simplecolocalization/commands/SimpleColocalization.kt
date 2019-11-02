@@ -168,7 +168,7 @@ class SimpleColocalization : Command {
         val transducedCells = extractCells(transducedImage)
 
         print("Starting analysis")
-        val analysis = BucketedNaiveColocalizer(targetImage.width, targetImage.height).analyseTransduction(targetCells, transducedCells)
+        val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height).analyseTransduction(targetCells, transducedCells)
         print(analysis)
     }
 

@@ -1,15 +1,13 @@
 package simplecolocalization.services.colocalizer
 
 import kotlin.math.ceil
+import kotlin.math.min
 
 /**
  * Runs [NaiveColocalizer], splitting up the positioned cells into buckets and
  * performing naive colocalization on buckets in order to improve performance.
  */
-class BucketedNaiveColocalizer(val width: Int, val height: Int, threshold: Float = 0.5f) : NaiveColocalizer(threshold) {
-    companion object {
-        const val BUCKET_SCALE_FACTOR = 5
-    }
+class BucketedNaiveColocalizer(val bucketLength: Int, val width: Int, val height: Int, threshold: Float = 0.5f) : NaiveColocalizer(threshold) {
 
     /**
      * Returns a list of transduced cells which overlap target cells and a
@@ -18,9 +16,9 @@ class BucketedNaiveColocalizer(val width: Int, val height: Int, threshold: Float
      * cells is greater than the threshold.
      */
     override fun analyseTransduction(targetCells: List<PositionedCell>, transducedCells: List<PositionedCell>): TransductionAnalysis {
-        // 1. Infer the square bucket size, which corresponds to the diameter
-        //    of a cell, bucketLength.
-        val bucketLength = inferBucketLengthFromCells(listOf(targetCells, transducedCells).flatten())
+        // 1. Infer the square bucket size, which should be around the size of
+        //    a typical cell in pixels.
+        val bucketLength = min(this.bucketLength, min(width, height))
 
         // 2. Split up target cells into buckets, where the key of a bucket is
         //    Pair<a, b>, where the top-left coordinates of the bucket are
@@ -61,18 +59,5 @@ class BucketedNaiveColocalizer(val width: Int, val height: Int, threshold: Float
 
     private fun bucketForPoint(bucketLength: Int, point: Pair<Int, Int>): Pair<Int, Int> {
         return Pair((point.first / bucketLength.toDouble()).toInt(), (point.second / bucketLength.toDouble()).toInt())
-    }
-
-    /**
-     * Finding the diameter of a [PositionedCell] given a set of coordinates
-     * would be computationally heavy and coordinates being contiguous is not
-     * guaranteed, hence we take the heuristic of using taking the number of
-     * pixels within a cell as its "diameter" (i.e., line length if all the
-     * points were laid out in a line).
-     */
-    private fun inferBucketLengthFromCells(cells: List<PositionedCell>): Int {
-        // return cells.map { cell -> Math.min(cell.points.size * BUCKET_SCALE_FACTOR, Math.min(width, height)) }.max()
-        //     ?: Math.min(width, height)
-        return 50
     }
 }
