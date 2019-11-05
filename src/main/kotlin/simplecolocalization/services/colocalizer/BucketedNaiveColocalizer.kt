@@ -30,15 +30,14 @@ class BucketedNaiveColocalizer(val bucketLength: Int, val width: Int, val height
             }
         }
 
-        targetCells.forEach { cell -> cell.points.forEach { point -> buckets[bucketForPoint(bucketLength, point)]!!.add(cell) } }
+        targetCells.forEach { cell -> cell.points.forEach { point -> buckets[bucketForPoint(point)]!!.add(cell) } }
 
         // 3. For every single transduced cell bucket, construct a list of target
         //    cells in the surrounding buckets, and perform transduction
         //    analysis.
-        val transductionAnalyses = transducedCells.map { cell ->
-            val surroundingBuckets = cell.points.toHashSet().flatMap { p -> surroundingBucketsForPoint(bucketLength, p) }
-            val surroundingTargetCells = surroundingBuckets.flatMap { b -> buckets[b]!!.toList() }.toSet().toList()
-            super.analyseTransduction(surroundingTargetCells, listOf(cell))
+        val transductionAnalyses = transducedCells.map { transducedCell ->
+            val surroundingTargetCells = transducedCell.points.toHashSet().flatMap { p -> surroundingBucketsForBucket(bucketForPoint(p)) }.flatMap { b -> buckets[b]!! }.toList()
+            super.analyseTransduction(surroundingTargetCells, listOf(transducedCell))
         }
 
         // 4. Reconcile the transduction results.
@@ -47,17 +46,17 @@ class BucketedNaiveColocalizer(val bucketLength: Int, val width: Int, val height
         return TransductionAnalysis(overlapping.toList(), disjoint.toList())
     }
 
-    private fun surroundingBucketsForPoint(bucketLength: Int, point: Pair<Int, Int>): Set<Pair<Int, Int>> {
+    private fun surroundingBucketsForBucket(bucket: Pair<Int, Int>): Set<Pair<Int, Int>> {
         val buckets = HashSet<Pair<Int, Int>>()
         for (x in -1..1) {
             for (y in -1..1) {
-                buckets.add(Pair(point.first + x, point.second + y))
+                buckets.add(Pair(bucket.first + x, bucket.second + y))
             }
         }
         return buckets.filter { p -> p.first >= 0 && p.second >= 0 && p.first < (width / bucketLength.toDouble()).toInt() && p.second < (height / bucketLength.toDouble()).toInt() }.toSet()
     }
 
-    private fun bucketForPoint(bucketLength: Int, point: Pair<Int, Int>): Pair<Int, Int> {
+    private fun bucketForPoint(point: Pair<Int, Int>): Pair<Int, Int> {
         return Pair((point.first / bucketLength.toDouble()).toInt(), (point.second / bucketLength.toDouble()).toInt())
     }
 }
