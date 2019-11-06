@@ -25,9 +25,8 @@ class BucketedNaiveColocalizer(var bucketLength: Int, val imageWidth: Int, val i
      * cells is greater than the threshold.
      */
     override fun analyseTransduction(targetCells: List<PositionedCell>, transducedCells: List<PositionedCell>): TransductionAnalysis {
-        // 2. Split up target cells into buckets, where the key of a bucket is
-        //    Pair<a, b>, where the top-left coordinates of the bucket are
-        //    (a * bucketLength, b * bucketLength).
+        // Split up target cells into buckets, where the key of a bucket is Pair<a, b>, where the top-left coordinates
+        // of the bucket are (a * bucketLength, b * bucketLength).
         val buckets = HashMap<Bucket, MutableSet<PositionedCell>>()
         for (x in 0 until numBucketsForWidth()) {
             for (y in 0 until numBucketsForHeight()) {
@@ -37,16 +36,21 @@ class BucketedNaiveColocalizer(var bucketLength: Int, val imageWidth: Int, val i
 
         targetCells.forEach { cell -> cell.points.forEach { point -> buckets[bucketForPoint(point)]!!.add(cell) } }
 
-        // 3. For every single transduced cell bucket, construct a list of target
-        //    cells in the surrounding buckets, and perform transduction
-        //    analysis.
+        // For every single transduced cell bucket, construct a list of target cells in the surrounding buckets and
+        // perform transduction analysis.
         val transductionAnalyses = transducedCells.map { transducedCell ->
-            val surroundingBuckets = transducedCell.points.toHashSet().flatMap { p -> surroundingBucketsForBucket(bucketForPoint(p)) }
-            val surroundingTargetCells = surroundingBuckets.flatMap { b -> buckets[b]!!.toList() }.toSet().toList()
+            // A transduced cell may contain points which span multiple buckets. As a result, we find the buckets
+            // surrounding the bucket each point belongs to and remove duplicates (implicitly by using a HashSet).
+            val surroundingBuckets = transducedCell.points.toHashSet().flatMap { p -> surroundingBucketsForBucket(bucketForPoint(p)) }.toSet()
+
+            // Retrieve a list of target cells belonging to the surrounding buckets, then implicitly removing duplicates
+            // by casting to a Set, then finally casting to the required List type for analyseTransduction.
+            val surroundingTargetCells = surroundingBuckets.flatMap { b -> buckets[b]!! }.toSet().toList()
+
             super.analyseTransduction(surroundingTargetCells, listOf(transducedCell))
         }
 
-        // 4. Reconcile the transduction results.
+        // Reconcile the transduction results.
         val overlapping = transductionAnalyses.flatMap { analysis -> analysis.overlapping }.toHashSet()
         val disjoint = transductionAnalyses.flatMap { analysis -> analysis.disjoint }.toHashSet() subtract overlapping
         return TransductionAnalysis(overlapping.toList(), disjoint.toList())
