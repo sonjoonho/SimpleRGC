@@ -2,7 +2,7 @@ package simplecolocalization.services.colocalizer
 
 import simplecolocalization.services.cellcomparator.CellComparator
 
-open class NaiveColocalizer(private val cellComparator: CellComparator) :
+open class NaiveColocalizer(cellComparator: CellComparator) :
     Colocalizer(cellComparator) {
 
     /**
@@ -16,7 +16,7 @@ open class NaiveColocalizer(private val cellComparator: CellComparator) :
         transducedCells: List<PositionedCell>
     ): TransductionAnalysis {
         val overlap = transducedCells.filter { transducedCell ->
-            targetCells.any { cellComparator.cellsOverlap(transducedCell, it) }
+            targetCells.any { cellsOverlap(transducedCell, it) }
         }
 
         return TransductionAnalysis(overlap, transducedCells.minus(overlap))
