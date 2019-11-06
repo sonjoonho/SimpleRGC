@@ -1,5 +1,6 @@
 package simplecolocalization.services.colocalizer
 
+import simplecolocalization.services.cellcomparator.CellComparator
 import kotlin.math.ceil
 import kotlin.math.min
 
@@ -7,7 +8,7 @@ import kotlin.math.min
  * Runs [NaiveColocalizer], splitting up the positioned cells into buckets and
  * performing naive colocalization on buckets in order to improve performance.
  */
-class BucketedNaiveColocalizer(val bucketLength: Int, val width: Int, val height: Int, threshold: Float = 0.5f) : NaiveColocalizer(threshold) {
+class BucketedNaiveColocalizer(val bucketLength: Int, val width: Int, val height: Int, cellComparator: CellComparator) : NaiveColocalizer(cellComparator) {
 
     /**
      * Returns a list of transduced cells which overlap target cells and a

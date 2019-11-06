@@ -19,6 +19,7 @@ import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
 import java.io.File
@@ -168,7 +169,9 @@ class SimpleColocalization : Command {
         val transducedCells = extractCells(transducedImage)
 
         print("Starting analysis")
-        val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height).analyseTransduction(targetCells, transducedCells)
+        //TODO (willburr): Fix magic number
+        val cellComparator = PixelCellComparator(0.5f)
+        val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
         print(analysis)
     }
 
