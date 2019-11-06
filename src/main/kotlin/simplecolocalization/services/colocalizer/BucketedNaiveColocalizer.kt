@@ -41,7 +41,8 @@ class BucketedNaiveColocalizer(var bucketLength: Int, val imageWidth: Int, val i
         //    cells in the surrounding buckets, and perform transduction
         //    analysis.
         val transductionAnalyses = transducedCells.map { transducedCell ->
-            val surroundingTargetCells = transducedCell.points.toHashSet().flatMap { p -> surroundingBucketsForBucket(bucketForPoint(p)) }.flatMap { b -> buckets[b]!! }.toList()
+            val surroundingBuckets = transducedCell.points.toHashSet().flatMap { p -> surroundingBucketsForBucket(bucketForPoint(p)) }
+            val surroundingTargetCells = surroundingBuckets.flatMap { b -> buckets[b]!!.toList() }.toSet().toList()
             super.analyseTransduction(surroundingTargetCells, listOf(transducedCell))
         }
 
