@@ -7,7 +7,16 @@ import kotlin.math.min
  * Runs [NaiveColocalizer], splitting up the positioned cells into buckets and
  * performing naive colocalization on buckets in order to improve performance.
  */
-class BucketedNaiveColocalizer(val bucketLength: Int, val width: Int, val height: Int, threshold: Float = 0.5f) : NaiveColocalizer(threshold) {
+class BucketedNaiveColocalizer(var bucketLength: Int, val imageWidth: Int, val imageHeight: Int, threshold: Float = 0.5f) : NaiveColocalizer(threshold) {
+
+    init {
+        bucketLength = min(this.bucketLength, min(imageWidth, imageHeight))
+    }
+
+    /**
+     * A bucket is represented by coordinates describing its top-left corner.
+     */
+    private data class Bucket(val x: Int, val y: Int)
 
     /**
      * Returns a list of transduced cells which overlap target cells and a
@@ -16,17 +25,13 @@ class BucketedNaiveColocalizer(val bucketLength: Int, val width: Int, val height
      * cells is greater than the threshold.
      */
     override fun analyseTransduction(targetCells: List<PositionedCell>, transducedCells: List<PositionedCell>): TransductionAnalysis {
-        // 1. Infer the square bucket size, which should be around the size of
-        //    a typical cell in pixels.
-        val bucketLength = min(this.bucketLength, min(width, height))
-
         // 2. Split up target cells into buckets, where the key of a bucket is
         //    Pair<a, b>, where the top-left coordinates of the bucket are
         //    (a * bucketLength, b * bucketLength).
-        val buckets = HashMap<Pair<Int, Int>, MutableSet<PositionedCell>>()
-        for (x in 0 until ceil(width / bucketLength.toDouble()).toInt()) {
-            for (y in 0 until ceil(height / bucketLength.toDouble()).toInt()) {
-                buckets[Pair(x, y)] = hashSetOf()
+        val buckets = HashMap<Bucket, MutableSet<PositionedCell>>()
+        for (x in 0 until numBucketsForWidth()) {
+            for (y in 0 until numBucketsForHeight()) {
+                buckets[Bucket(x, y)] = hashSetOf()
             }
         }
 
@@ -46,17 +51,25 @@ class BucketedNaiveColocalizer(val bucketLength: Int, val width: Int, val height
         return TransductionAnalysis(overlapping.toList(), disjoint.toList())
     }
 
-    private fun surroundingBucketsForBucket(bucket: Pair<Int, Int>): Set<Pair<Int, Int>> {
-        val buckets = HashSet<Pair<Int, Int>>()
+    private fun surroundingBucketsForBucket(bucket: Bucket): Set<Bucket> {
+        val buckets = HashSet<Bucket>()
         for (x in -1..1) {
             for (y in -1..1) {
-                buckets.add(Pair(bucket.first + x, bucket.second + y))
+                buckets.add(Bucket(bucket.x + x, bucket.y + y))
             }
         }
-        return buckets.filter { p -> p.first >= 0 && p.second >= 0 && p.first < (width / bucketLength.toDouble()).toInt() && p.second < (height / bucketLength.toDouble()).toInt() }.toSet()
+        return buckets.filter { p -> p.x >= 0 && p.y >= 0 && p.x < numBucketsForWidth() && p.y < numBucketsForHeight()}.toSet()
     }
 
-    private fun bucketForPoint(point: Pair<Int, Int>): Pair<Int, Int> {
-        return Pair((point.first / bucketLength.toDouble()).toInt(), (point.second / bucketLength.toDouble()).toInt())
+    private fun numBucketsForWidth() : Int {
+        return ceil(imageWidth / bucketLength.toDouble()).toInt()
+    }
+
+    private fun numBucketsForHeight() : Int {
+        return ceil(imageHeight / bucketLength.toDouble()).toInt()
+    }
+
+    private fun bucketForPoint(point: Pair<Int, Int>): Bucket {
+        return Bucket((point.first / bucketLength.toDouble()).toInt(), (point.second / bucketLength.toDouble()).toInt())
     }
 }
