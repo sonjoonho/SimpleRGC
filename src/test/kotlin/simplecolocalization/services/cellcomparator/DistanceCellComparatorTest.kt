@@ -1,9 +1,8 @@
 package simplecolocalization.services.cellcomparator
-import simplecolocalization.services.colocalizer.PositionedCell
-
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FreeSpec
 import io.kotlintest.tables.row
+import simplecolocalization.services.colocalizer.PositionedCell
 
 class DistanceCellComparatorTest : FreeSpec({
     "Analyse Distance-based Cell Comparisons" - {

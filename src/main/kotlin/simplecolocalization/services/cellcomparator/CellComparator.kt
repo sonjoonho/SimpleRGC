@@ -8,5 +8,5 @@ import simplecolocalization.services.colocalizer.PositionedCell
  */
 
 interface CellComparator {
-    fun cellsOverlap(firstCell: PositionedCell, secondCell: PositionedCell) : Boolean
+    fun cellsOverlap(firstCell: PositionedCell, secondCell: PositionedCell): Boolean
 }

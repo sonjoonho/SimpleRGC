@@ -1,10 +1,8 @@
 package simplecolocalization.services.cellcomparator
-import simplecolocalization.services.colocalizer.PositionedCell
-import simplecolocalization.services.colocalizer.TransductionAnalysis
-
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FreeSpec
 import io.kotlintest.tables.row
+import simplecolocalization.services.colocalizer.PositionedCell
 
 class PixelCellComparatorTest : FreeSpec({
     "Analyse Pixel-based Cell Comparisons" - {

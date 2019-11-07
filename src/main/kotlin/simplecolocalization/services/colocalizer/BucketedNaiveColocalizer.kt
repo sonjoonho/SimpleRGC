@@ -1,8 +1,8 @@
 package simplecolocalization.services.colocalizer
 
-import simplecolocalization.services.cellcomparator.CellComparator
 import kotlin.math.ceil
 import kotlin.math.min
+import simplecolocalization.services.cellcomparator.CellComparator
 
 /**
  * Runs [NaiveColocalizer], splitting up the positioned cells into buckets and
@@ -64,14 +64,14 @@ class BucketedNaiveColocalizer(var bucketLength: Int, val imageWidth: Int, val i
                 buckets.add(Bucket(bucket.x + x, bucket.y + y))
             }
         }
-        return buckets.filter { p -> p.x >= 0 && p.y >= 0 && p.x < numBucketsForWidth() && p.y < numBucketsForHeight()}.toSet()
+        return buckets.filter { p -> p.x >= 0 && p.y >= 0 && p.x < numBucketsForWidth() && p.y < numBucketsForHeight() }.toSet()
     }
 
-    private fun numBucketsForWidth() : Int {
+    private fun numBucketsForWidth(): Int {
         return ceil(imageWidth / bucketLength.toDouble()).toInt()
     }
 
-    private fun numBucketsForHeight() : Int {
+    private fun numBucketsForHeight(): Int {
         return ceil(imageHeight / bucketLength.toDouble()).toInt()
     }
 

@@ -1,8 +1,8 @@
 package simplecolocalization.services.cellcomparator
 
-import simplecolocalization.services.colocalizer.PositionedCell
 import kotlin.math.pow
 import kotlin.math.sqrt
+import simplecolocalization.services.colocalizer.PositionedCell
 
 class DistanceCellComparator(private val distance: Float) : CellComparator {
 
