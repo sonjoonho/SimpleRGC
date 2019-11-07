@@ -108,7 +108,7 @@ class SimpleCellCounter : Command {
     @Parameter(
         label = "Global Thresholding Algorithm",
         style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
-        choices = [GlobalThresholdAlgos.OTSU, GlobalThresholdAlgos.SHANBHAG, GlobalThresholdAlgos.SHANBHAG],
+        choices = [GlobalThresholdAlgos.OTSU, GlobalThresholdAlgos.MOMENTS, GlobalThresholdAlgos.SHANBHAG],
         required = true,
         persist = false
     )
