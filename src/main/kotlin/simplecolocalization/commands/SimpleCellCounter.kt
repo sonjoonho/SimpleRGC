@@ -3,6 +3,7 @@ package simplecolocalization.commands
 import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
+import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
@@ -60,7 +61,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var shouldSubtractBackground = false
+    private var shouldSubtractBackground = true
 
     /**
      * Used during the cell identification stage to reduce overlapping cells
@@ -78,29 +79,58 @@ class SimpleCellCounter : Command {
     )
     private var largestCellDiameter = 30.0
 
+    object ThresholdTypes {
+        const val GLOBAL = "Global"
+        const val LOCAL = "Local"
+    }
+
     /**
      * Decide on global/local Threshold.
      */
     @Parameter(
         label = "Threshold type",
         style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
-        choices = ["Global", "Local"],
+        choices = [ThresholdTypes.GLOBAL, ThresholdTypes.LOCAL],
         required = true,
         persist = false
     )
-    private var thresholdLocality = "Global"
+    private var thresholdLocality = ThresholdTypes.GLOBAL
+
+    object GlobalThresholdAlgos {
+        const val OTSU = "Otsu"
+        const val MOMENTS = "Moments"
+        const val SHANBHAG = "Shanbhag"
+    }
 
     /**
      * Decide on Thresholding Algorithm.
      */
     @Parameter(
-        label = "Threshold Algorithm",
+        label = "Global Thresholding Algorithm",
         style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
-        choices = ["Otsu's", "Bernsen's", "Niblack's"],
+        choices = [GlobalThresholdAlgos.OTSU, GlobalThresholdAlgos.SHANBHAG, GlobalThresholdAlgos.SHANBHAG],
         required = true,
         persist = false
     )
-    private var thresholdAlgo = "Otsu"
+    private var globalThresholdAlgo = GlobalThresholdAlgos.OTSU
+
+    object LocalThresholdAlgos {
+        const val OTSU = "Otsu"
+        const val BERNSEN = "Bernsen"
+        const val NIBLACK = "Niblack"
+    }
+
+    /**
+     * Decide on Thresholding Algorithm.
+     */
+    @Parameter(
+        label = "Local Thresholding Algorithm",
+        style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
+        choices = [LocalThresholdAlgos.OTSU, LocalThresholdAlgos.BERNSEN, LocalThresholdAlgos.NIBLACK],
+        required = true,
+        persist = false
+    )
+    private var localThresholdAlgo = LocalThresholdAlgos.OTSU
 
     /**
      * Decide on local Threshold radius.
@@ -190,19 +220,25 @@ class SimpleCellCounter : Command {
         val cellSegmentationService = CellSegmentationService()
 
         cellSegmentationService.preprocessImage(
-            image, shouldSubtractBackground, largestCellDiameter,
-            thresholdLocality, thresholdAlgo, localThresholdRadius,
-            shouldDespeckle, despeckleRadius, shouldGaussianBlur, gaussianBlurSigma
+            image, largestCellDiameter, gaussianBlurSigma, shouldSubtractBackground,
+            thresholdLocality, globalThresholdAlgo, localThresholdAlgo, localThresholdRadius,
+            shouldDespeckle, despeckleRadius, shouldGaussianBlur
         )
         cellSegmentationService.segmentImage(image)
 
         val roiManager = RoiManager.getRoiManager()
         val cells = cellSegmentationService.identifyCells(roiManager, image)
-        cellSegmentationService.markCells(originalImage, cells)
-
-        // TODO(sonjoonho): Show total cell count here.
+        // roiManager.runCommand("Delete")
+        // Line for selecrion of cells (Doesn't do much)
+        // cellSegmentationService.markCells(originalImage, cells)
 
         originalImage.show()
+
+        val cellCount = cells.size
+
+        var countDialog = GenericDialog("Cell count")
+        countDialog.addMessage("The cell counter counted " + cellCount + " cells.")
+        countDialog.showDialog()
     }
 
     companion object {
