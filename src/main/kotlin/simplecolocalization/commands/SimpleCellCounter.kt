@@ -139,11 +139,10 @@ class SimpleCellCounter : Command {
 
         val roiManager = RoiManager.getRoiManager()
         val cells = cellSegmentationService.identifyCells(roiManager, image)
-        // roiManager.runCommand("Delete")
-        // Line for selecrion of cells (Doesn't do much)
-        // cellSegmentationService.markCells(originalImage, cells)
 
-        originalImage.show()
+        roiManager.reset()
+        roiManager.close()
+        image.hide()
 
         val cellCount = cells.size
 
