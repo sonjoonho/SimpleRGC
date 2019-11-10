@@ -8,6 +8,18 @@ import ij.gui.Roi
  */
 class PositionedCell(val points: Set<Pair<Int, Int>>) {
 
+    val center: Pair<Double, Double>
+
+    init {
+        var xSum = 0.0
+        var ySum = 0.0
+        points.forEach { point ->
+            xSum += point.first
+            ySum += point.second
+        }
+        center = Pair(xSum / points.size, ySum / points.size)
+    }
+
     companion object {
         fun fromRoi(roi: Roi): PositionedCell {
             return PositionedCell(roi.containedPoints.map { point ->

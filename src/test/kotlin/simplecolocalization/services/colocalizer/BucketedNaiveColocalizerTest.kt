@@ -3,6 +3,7 @@ package simplecolocalization.services.colocalizer
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FreeSpec
 import io.kotlintest.tables.row
+import simplecolocalization.services.cellcomparator.PixelCellComparator
 
 class BucketedNaiveColocalizerTest : FreeSpec() {
     init {
@@ -17,7 +18,7 @@ class BucketedNaiveColocalizerTest : FreeSpec() {
                 )
             ).map { (description: String, threshold: Float, target: List<PositionedCell>, transduced: List<PositionedCell>, expected: TransductionAnalysis) ->
                 description {
-                    BucketedNaiveColocalizer(2, 8, 8, threshold).analyseTransduction(target, transduced) shouldBe expected
+                    BucketedNaiveColocalizer(2, 8, 8, PixelCellComparator(threshold)).analyseTransduction(target, transduced) shouldBe expected
                 }
             }
         }
