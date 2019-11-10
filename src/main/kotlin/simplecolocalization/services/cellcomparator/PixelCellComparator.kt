@@ -2,6 +2,10 @@ package simplecolocalization.services.cellcomparator
 
 import simplecolocalization.services.colocalizer.PositionedCell
 
+/**
+ * Determines whether two cells overlap using the percentage overlap of pixels.
+ * If the proportion is larger than the threshold then cells are considered overlapping.
+ */
 class PixelCellComparator(val threshold: Float) : CellComparator {
 
     init {
