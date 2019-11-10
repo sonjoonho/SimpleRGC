@@ -16,6 +16,7 @@ import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
+import simplecolocalization.commands.PreprocessingParameters
 import simplecolocalization.commands.SimpleCellCounter
 import simplecolocalization.utils.bernsen
 import simplecolocalization.utils.niblack
@@ -42,25 +43,16 @@ class CellSegmentationService : AbstractService(), ImageJService {
     /** Perform pre-processing on the image to remove background and set cells to white. */
     fun preprocessImage(
         image: ImagePlus,
-        largestCellDiameter: Double,
-        gaussianBlurSigma: Double,
-        shouldSubtractBackground: Boolean = true,
-        thresholdLocality: String = SimpleCellCounter.ThresholdTypes.GLOBAL,
-        globalThresholdAlgo: String = SimpleCellCounter.GlobalThresholdAlgos.OTSU,
-        localThresholdAlgo: String = SimpleCellCounter.LocalThresholdAlgos.OTSU,
-        localThresholdRadius: Int = 15,
-        shouldDespeckle: Boolean = true,
-        despeckleRadius: Double = 1.0,
-        shouldGaussianBlur: Boolean = true
+        params: PreprocessingParameters
     ) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
 
-        if (shouldSubtractBackground) {
+        if (params.shouldSubtractBackground) {
             // Remove background.
             BackgroundSubtracter().rollingBallBackground(
                 image.channelProcessor,
-                largestCellDiameter,
+                params.largestCellDiameter,
                 false,
                 false,
                 false,
@@ -70,21 +62,21 @@ class CellSegmentationService : AbstractService(), ImageJService {
         }
 
         // Threshold grayscale image, leaving black and white image.
-        thresholdImage(image, thresholdLocality, globalThresholdAlgo, localThresholdAlgo, localThresholdRadius)
+        thresholdImage(image, params.thresholdLocality, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
 
-        if (shouldDespeckle) {
+        if (params.shouldDespeckle) {
             // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
             // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
-            RankFilters().rank(image.channelProcessor, despeckleRadius, RankFilters.MEDIAN)
+            RankFilters().rank(image.channelProcessor, params.despeckleRadius, RankFilters.MEDIAN)
         }
 
-        if (shouldGaussianBlur) {
+        if (params.shouldGaussianBlur) {
             // Apply Gaussian Blur to group larger speckles.
-            image.channelProcessor.blurGaussian(gaussianBlurSigma)
+            image.channelProcessor.blurGaussian(params.gaussianBlurSigma)
         }
 
         // Threshold image again to remove blur.
-        thresholdImage(image, SimpleCellCounter.ThresholdTypes.GLOBAL, globalThresholdAlgo, localThresholdAlgo, localThresholdRadius)
+        thresholdImage(image, SimpleCellCounter.ThresholdTypes.GLOBAL, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
     }
 
     fun thresholdImage(image: ImagePlus, thresholdChoice: String, globalThresholdAlgo: String, localThresholdAlgo: String, localThresholdRadius: Int) {
