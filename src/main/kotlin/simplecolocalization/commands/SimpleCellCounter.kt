@@ -16,8 +16,7 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import simplecolocalization.services.CellSegmentationService
-
-
+import kotlin.math.roundToInt
 
 data class PreprocessingParameters(
     val shouldSubtractBackground: Boolean = true,
@@ -55,156 +54,22 @@ class SimpleCellCounter : Command {
     @Parameter
     private lateinit var uiService: UIService
 
-    // /***
-    //  * Following Parameters allow the user to tune the plugin.
-    //  */
-    // @Parameter(
-    //     label = "Preprocessing Parameters:",
-    //     visibility = ItemVisibility.MESSAGE,
-    //     required = false
-    // )
-    // private lateinit var preprocessingParamsHeader: String
-    //
-    // /**
-    //  *  Decide whether we want to subtract the background or not.
-    //  */
-    // @Parameter(
-    //     label = "Subtract Background?",
-    //     required = true,
-    //     persist = false
-    // )
-    // private var shouldSubtractBackground = true
-    //
-    // /**
-    //  * Used during the cell identification stage to reduce overlapping cells
-    //  * being grouped into a single cell.
-    //  *
-    //  * TODO(#5): Figure out what this value should be.
-    //  */
-    // @Parameter(
-    //     label = "Largest Cell Diameter",
-    //     min = "5.0",
-    //     stepSize = "1.0",
-    //     style = NumberWidget.SPINNER_STYLE,
-    //     required = true,
-    //     persist = false
-    // )
-    // private var largestCellDiameter = 30.0
-    //
     object ThresholdTypes {
         const val GLOBAL = "Global"
         const val LOCAL = "Local"
     }
-    //
-    // /**
-    //  * Decide on global/local Threshold.
-    //  */
-    // @Parameter(
-    //     label = "Threshold type",
-    //     style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
-    //     choices = [ThresholdTypes.GLOBAL, ThresholdTypes.LOCAL],
-    //     required = true,
-    //     persist = false
-    // )
-    // private var thresholdLocality = ThresholdTypes.GLOBAL
-    //
+
     object GlobalThresholdAlgos {
         const val OTSU = "Otsu"
         const val MOMENTS = "Moments"
         const val SHANBHAG = "Shanbhag"
     }
-    //
-    // /**
-    //  * Decide on Thresholding Algorithm.
-    //  */
-    // @Parameter(
-    //     label = "Global Thresholding Algorithm",
-    //     style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
-    //     choices = [GlobalThresholdAlgos.OTSU, GlobalThresholdAlgos.MOMENTS, GlobalThresholdAlgos.SHANBHAG],
-    //     required = true,
-    //     persist = false
-    // )
-    // private var globalThresholdAlgo = GlobalThresholdAlgos.OTSU
-    //
+
     object LocalThresholdAlgos {
         const val OTSU = "Otsu"
         const val BERNSEN = "Bernsen"
         const val NIBLACK = "Niblack"
     }
-    //
-    // /**
-    //  * Decide on Thresholding Algorithm.
-    //  */
-    // @Parameter(
-    //     label = "Local Thresholding Algorithm",
-    //     style = ChoiceWidget.RADIO_BUTTON_HORIZONTAL_STYLE,
-    //     choices = [LocalThresholdAlgos.OTSU, LocalThresholdAlgos.BERNSEN, LocalThresholdAlgos.NIBLACK],
-    //     required = true,
-    //     persist = false
-    // )
-    // private var localThresholdAlgo = LocalThresholdAlgos.OTSU
-    //
-    // /**
-    //  * Decide on local Threshold radius.
-    //  */
-    // @Parameter(
-    //     label = "Local Threshold Radius",
-    //     min = "0.0",
-    //     stepSize = "1.0",
-    //     style = NumberWidget.SPINNER_STYLE,
-    //     required = true,
-    //     persist = false
-    // )
-    // private var localThresholdRadius = 30
-    //
-    // /**
-    //  *  Decide whether we want to try and despeckle the image.
-    //  */
-    // @Parameter(
-    //     label = "Despeckle?",
-    //     required = true,
-    //     persist = false
-    // )
-    // private var shouldDespeckle = true
-    //
-    // /**
-    //  * Select filter radius for median filter when despeckling.
-    //  */
-    // @Parameter(
-    //     label = "Despeckle Radius",
-    //     min = "0.0",
-    //     stepSize = "0.5",
-    //     style = NumberWidget.SPINNER_STYLE,
-    //     required = true,
-    //     persist = false
-    // )
-    // private var despeckleRadius = 1.0
-    //
-    // /**
-    //  *  Decide whether we want to apply Gaussian Blur.
-    //  */
-    // @Parameter(
-    //     label = "Gaussian Blur?",
-    //     required = true,
-    //     persist = false
-    // )
-    // private var shouldGaussianBlur = true
-    //
-    // /**
-    //  * Applied to the input image to reduce sensitivity of the thresholding
-    //  * algorithm. Higher value means more blur.
-    //  */
-    // @Parameter(
-    //     label = "Gaussian Blur Sigma (Radius)",
-    //     description = "Reduces sensitivity to cell edges by blurring the " +
-    //         "overall image. Higher is less sensitive.",
-    //     min = "0.0",
-    //     stepSize = "1.0",
-    //     style = NumberWidget.SPINNER_STYLE,
-    //     required = true,
-    //     persist = false
-    // )
-    // private var gaussianBlurSigma = 3.0
 
     @Parameter(
         label = "Tune Parameters?",
@@ -230,22 +95,32 @@ class SimpleCellCounter : Command {
     }
 
     private fun tuneParameters() : PreprocessingParameters {
-        var params = PreprocessingParameters()
+        var defaultParams = PreprocessingParameters()
+        // TODO: (Tiger) refactor into separate functions, renderDialog, getParamsfromDialog
         val paramsDialog = GenericDialog("Tune Parameters")
-        paramsDialog.addCheckbox("Subtract Background?", params.shouldSubtractBackground)
-        paramsDialog.addNumericField("Largest Cell Diameter", params.largestCellDiameter, 3)
-        paramsDialog.addChoice("Threshold Locality", arrayOf(ThresholdTypes.GLOBAL, ThresholdTypes.LOCAL), params.thresholdLocality)
-        paramsDialog.addChoice("Global Thresholding Algorithm", arrayOf(GlobalThresholdAlgos.OTSU, GlobalThresholdAlgos.MOMENTS, GlobalThresholdAlgos.SHANBHAG), params.globalThresholdAlgo)
-        paramsDialog.addChoice("Local Thresholding Algorithm", arrayOf(LocalThresholdAlgos.OTSU, LocalThresholdAlgos.BERNSEN, LocalThresholdAlgos.NIBLACK), params.localThresholdAlgo)
-        paramsDialog.addNumericField("Local Threshold radius", params.localThresholdRadius.toDouble(), 3)
-        paramsDialog.addCheckbox("Despeckle?", params.shouldDespeckle)
-        paramsDialog.addNumericField("Despeckle Radius", params.despeckleRadius, 3)
-        paramsDialog.addCheckbox("Gaussian Blur?", params.shouldGaussianBlur)
-        paramsDialog.addNumericField("Gaussian Blur Sigma", params.gaussianBlurSigma, 3)
+        paramsDialog.addCheckbox("Subtract Background?", defaultParams.shouldSubtractBackground)
+        paramsDialog.addNumericField("Largest Cell Diameter", defaultParams.largestCellDiameter, 0)
+        paramsDialog.addChoice("Threshold Locality", arrayOf(ThresholdTypes.GLOBAL, ThresholdTypes.LOCAL), defaultParams.thresholdLocality)
+        paramsDialog.addChoice("Global Thresholding Algorithm", arrayOf(GlobalThresholdAlgos.OTSU, GlobalThresholdAlgos.MOMENTS, GlobalThresholdAlgos.SHANBHAG), defaultParams.globalThresholdAlgo)
+        paramsDialog.addChoice("Local Thresholding Algorithm", arrayOf(LocalThresholdAlgos.OTSU, LocalThresholdAlgos.BERNSEN, LocalThresholdAlgos.NIBLACK), defaultParams.localThresholdAlgo)
+        paramsDialog.addNumericField("Local Threshold radius", defaultParams.localThresholdRadius.toDouble(), 0)
+        paramsDialog.addCheckbox("Despeckle?", defaultParams.shouldDespeckle)
+        paramsDialog.addNumericField("Despeckle Radius", defaultParams.despeckleRadius, 0)
+        paramsDialog.addCheckbox("Gaussian Blur?", defaultParams.shouldGaussianBlur)
+        paramsDialog.addNumericField("Gaussian Blur Sigma", defaultParams.gaussianBlurSigma, 0)
         paramsDialog.showDialog()
-        if (paramsDialog.wasCanceled()) return params;
-        // TODO: (Tiger) Set parameters based on dialog values
-        return params
+        if (paramsDialog.wasCanceled()) return defaultParams
+        val shouldSubtractBackground = paramsDialog.nextBoolean
+        val largestCellDiameter = paramsDialog.nextNumber
+        val thresholdLocality = paramsDialog.nextChoice
+        val globalThresholdAlgo = paramsDialog.nextChoice
+        val localThresholdAlgo = paramsDialog.nextChoice
+        val localThresholdRadius = paramsDialog.nextNumber.roundToInt()
+        val shouldDespeckle = paramsDialog.nextBoolean
+        val despeckleRadius = paramsDialog.nextNumber
+        val shouldGaussianBlur = paramsDialog.nextBoolean
+        val gaussianBlurSigma = paramsDialog.nextNumber
+        return PreprocessingParameters(shouldSubtractBackground, largestCellDiameter, thresholdLocality, globalThresholdAlgo, localThresholdAlgo, localThresholdRadius, shouldDespeckle, despeckleRadius, shouldGaussianBlur, gaussianBlurSigma)
     }
 
     /** Processes single image. */
