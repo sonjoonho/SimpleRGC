@@ -23,6 +23,7 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
+import simplecolocalization.services.colocalizer.TransductionAnalysis
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -93,8 +94,6 @@ class SimpleColocalization : Command {
     )
     private var gaussianBlurSigma = 3.0
 
-    private var meanGreenThreshold = 30.0
-
     @Parameter(
         label = "Cell Identification Parameters:",
         visibility = ItemVisibility.MESSAGE,
@@ -164,14 +163,12 @@ class SimpleColocalization : Command {
         val transducedImage = channelImages[transducedChannel - 1]
         transducedImage.show()
 
-        print("Starting extraction")
         val targetCells = extractCells(targetImage)
         val transducedCells = extractCells(transducedImage)
 
-        print("Starting analysis")
         val cellComparator = PixelCellComparator()
         val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
-        print(analysis)
+        showCount(targetCells=targetCells, transductionAnalysis=analysis)
     }
 
     /**
@@ -192,19 +189,24 @@ class SimpleColocalization : Command {
     /**
      * Displays the resulting counts as a results table.
      */
-    private fun showCount(analyses: Array<CellSegmentationService.CellAnalysis>) {
+    private fun showCount(
+        targetCells: List<PositionedCell>,
+        transductionAnalysis: TransductionAnalysis
+    ) {
         val table = DefaultGenericTable()
-        val cellCountColumn = IntColumn()
-        val greenCountColumn = IntColumn()
-        cellCountColumn.add(analyses.size)
+        val targetCellCountColumn = IntColumn()
+        val transducedTargetCellCount = IntColumn()
+        val transducedNonTargetCellCount = IntColumn()
+        targetCellCountColumn.add(targetCells.size)
+        transducedTargetCellCount.add(transductionAnalysis.overlapping.size)
+        transducedNonTargetCellCount.add(transductionAnalysis.disjoint.size)
 
-        // TODO(sonjoonho): Document magic numbers.
-        val greenCount = cellColocalizationService.countChannel(analyses, 1, meanGreenThreshold)
-        greenCountColumn.add(greenCount)
-        table.add(cellCountColumn)
-        table.add(greenCountColumn)
-        table.setColumnHeader(0, "Red Cell Count")
-        table.setColumnHeader(1, "Green Cell Count")
+        table.add(targetCellCountColumn)
+        table.add(transducedTargetCellCount)
+        table.add(transducedNonTargetCellCount)
+        table.setColumnHeader(0, "Target Cell Count")
+        table.setColumnHeader(1, "Transduced Target Cell Count")
+        table.setColumnHeader(2, "Transduced Non-Target Cell Count")
         uiService.show(table)
     }
 
