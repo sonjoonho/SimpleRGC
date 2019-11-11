@@ -170,7 +170,7 @@ class SimpleColocalization : Command {
 
         print("Starting analysis")
         // TODO (willburr): Fix magic number
-        val cellComparator = PixelCellComparator(0.5f)
+        val cellComparator = PixelCellComparator()
         val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
         print(analysis)
     }
