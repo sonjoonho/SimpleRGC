@@ -4,10 +4,10 @@ import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.MessageDialog
+import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
 import java.io.File
-import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -20,6 +20,9 @@ import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.cellcomparator.PixelCellComparator
+import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
+import simplecolocalization.services.colocalizer.PositionedCell
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -39,6 +42,33 @@ class SimpleColocalization : Command {
      */
     @Parameter
     private lateinit var uiService: UIService
+
+    /**
+     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
+     * the channels available at the parameter initiation stage.
+     * By default this is 1 (red) channel.
+     */
+    @Parameter(
+        label = "Target Cell Channel:",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    private var targetChannel = 1
+
+    /**
+     * Specify the channel for the transduced cells.
+     * By default this is the 2 (green) channel.
+     */
+    @Parameter(
+        label = "Transduced Cell Channel:",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    private var transducedChannel = 2
 
     @Parameter(
         label = "Preprocessing Parameters:",
@@ -112,19 +142,51 @@ class SimpleColocalization : Command {
         val originalImage = image.duplicate()
         originalImage.title = "${image.title} - segmented"
 
+        val channelImages = ChannelSplitter.split(image)
+        if (targetChannel < 1 || targetChannel > channelImages.size) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Error", "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
+            )
+            return
+        }
+
+        if (transducedChannel < 1 || transducedChannel > channelImages.size) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Error", "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
+            )
+            return
+        }
+
+        val targetImage = channelImages[targetChannel - 1]
+        targetImage.show()
+        val transducedImage = channelImages[transducedChannel - 1]
+        transducedImage.show()
+
+        print("Starting extraction")
+        val targetCells = extractCells(targetImage)
+        val transducedCells = extractCells(transducedImage)
+
+        print("Starting analysis")
+        val cellComparator = PixelCellComparator()
+        val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
+        print(analysis)
+    }
+
+    /**
+     * Extract an array of cells (as ROIs) from the specified image
+     */
+    private fun extractCells(image: ImagePlus): List<PositionedCell> {
+        // Process the target image.
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
-        val roiManager = RoiManager.getRoiManager()
+        // Create a unique ROI manager but don't display it.
+        // This allows us to retrieve only the ROIs corresponding to this image
+        val roiManager = RoiManager(true)
         val cells = cellSegmentationService.identifyCells(roiManager, image)
-        cellSegmentationService.markCells(originalImage, cells)
-
-        val analysis = cellColocalizationService.analyseCells(originalImage, cells)
-
-        showCount(analysis)
-        showPerCellAnalysis(analysis)
-
-        originalImage.show()
+        return cells.map { roi -> PositionedCell.fromRoi(roi) }
     }
 
     /**
@@ -221,9 +283,8 @@ class SimpleColocalization : Command {
             ij.launch()
 
             val file: File = ij.ui().chooseFile(null, "open")
-            val dataset: Dataset = ij.scifio().datasetIO().open(file.path)
-
-            ij.ui().show(dataset)
+            val imp = IJ.openImage(file.path)
+            imp.show()
             ij.command().run(SimpleColocalization::class.java, true)
         }
     }
