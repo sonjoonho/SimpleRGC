@@ -1,5 +1,6 @@
 package simplecolocalization.services.colocalizer
 
+import ij.gui.PolygonRoi
 import ij.gui.Roi
 
 /**
@@ -41,5 +42,9 @@ class PositionedCell(val points: Set<Pair<Int, Int>>) {
 
     override fun hashCode(): Int {
         return points.hashCode()
+    }
+
+    fun toRoi(): Roi {
+        return PolygonRoi(points.map{p -> p.first}.toIntArray(), points.map{p -> p.second}.toIntArray(), points.size, Roi.TRACED_ROI)
     }
 }

@@ -3,6 +3,7 @@ package simplecolocalization.services
 import ij.ImagePlus
 import ij.gui.Roi
 import ij.plugin.ChannelSplitter
+import ij.plugin.frame.RoiManager
 import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
@@ -55,5 +56,12 @@ class CellColocalizationService : AbstractService(), ImageJService {
     /** Counts the number of analysed cells that exceed the channel intensity threshold. */
     fun countChannel(analyses: Array<CellSegmentationService.CellAnalysis>, channel: Int, threshold: Double): Int {
         return analyses.count { it.channels[channel].mean > threshold }
+    }
+
+    fun markOverlappingCells(originalImage: ImagePlus, roiManager: RoiManager, overlapping: List<Roi>) {
+        overlapping.forEach { r ->
+            roiManager.addRoi(r)
+            r.image = originalImage
+        }
     }
 }

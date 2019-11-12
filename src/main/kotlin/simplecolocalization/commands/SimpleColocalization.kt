@@ -169,9 +169,13 @@ class SimpleColocalization : Command {
         val transducedCells = extractCells(transducedImage)
 
         print("Starting analysis")
-        val cellComparator = PixelCellComparator()
+        val cellComparator = PixelCellComparator(0f)
         val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
         print(analysis)
+
+        val roiManager = RoiManager.getRoiManager()
+        cellColocalizationService.markOverlappingCells(originalImage, roiManager, analysis.overlapping.map{x -> x.toRoi()})
+        originalImage.show()
     }
 
     /**
