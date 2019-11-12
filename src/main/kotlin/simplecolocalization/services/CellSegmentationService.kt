@@ -16,8 +16,8 @@ import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
-import simplecolocalization.commands.PreprocessingParameters
 import simplecolocalization.commands.SimpleCellCounter
+import simplecolocalization.utils.PreprocessingParameters
 import simplecolocalization.utils.bernsen
 import simplecolocalization.utils.niblack
 import simplecolocalization.utils.otsu

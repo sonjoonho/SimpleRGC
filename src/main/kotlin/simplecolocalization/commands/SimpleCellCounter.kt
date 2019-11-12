@@ -16,20 +16,8 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import simplecolocalization.services.CellSegmentationService
-import kotlin.math.roundToInt
-
-data class PreprocessingParameters(
-    val shouldSubtractBackground: Boolean = true,
-    val largestCellDiameter: Double = 30.0,
-    val thresholdLocality: String = SimpleCellCounter.ThresholdTypes.GLOBAL,
-    val globalThresholdAlgo: String = SimpleCellCounter.GlobalThresholdAlgos.OTSU,
-    val localThresholdAlgo: String = SimpleCellCounter.LocalThresholdAlgos.OTSU,
-    val localThresholdRadius: Int = 15,
-    val shouldDespeckle: Boolean = true,
-    val despeckleRadius: Double = 1.0,
-    val shouldGaussianBlur: Boolean = true,
-    val gaussianBlurSigma: Double = 3.0) {
-}
+import simplecolocalization.utils.PreprocessingParameters
+import simplecolocalization.utils.tuneParameters
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -46,6 +34,9 @@ class SimpleCellCounter : Command {
 
     @Parameter
     private lateinit var logService: LogService
+
+    @Parameter
+    private lateinit var cellSegmentationService: CellSegmentationService
 
     /**
      * Entry point for UI operations, automatically handling both graphical and
@@ -72,7 +63,7 @@ class SimpleCellCounter : Command {
     }
 
     @Parameter(
-        label = "Tune Parameters?",
+        label = "Manually Tune Parameters?",
         required = true,
         persist = false
     )
@@ -94,43 +85,12 @@ class SimpleCellCounter : Command {
         }
     }
 
-    private fun tuneParameters() : PreprocessingParameters {
-        var defaultParams = PreprocessingParameters()
-        // TODO: (Tiger) refactor into separate functions, renderDialog, getParamsfromDialog
-        val paramsDialog = GenericDialog("Tune Parameters")
-        paramsDialog.addCheckbox("Subtract Background?", defaultParams.shouldSubtractBackground)
-        paramsDialog.addNumericField("Largest Cell Diameter", defaultParams.largestCellDiameter, 0)
-        paramsDialog.addChoice("Threshold Locality", arrayOf(ThresholdTypes.GLOBAL, ThresholdTypes.LOCAL), defaultParams.thresholdLocality)
-        paramsDialog.addChoice("Global Thresholding Algorithm", arrayOf(GlobalThresholdAlgos.OTSU, GlobalThresholdAlgos.MOMENTS, GlobalThresholdAlgos.SHANBHAG), defaultParams.globalThresholdAlgo)
-        paramsDialog.addChoice("Local Thresholding Algorithm", arrayOf(LocalThresholdAlgos.OTSU, LocalThresholdAlgos.BERNSEN, LocalThresholdAlgos.NIBLACK), defaultParams.localThresholdAlgo)
-        paramsDialog.addNumericField("Local Threshold radius", defaultParams.localThresholdRadius.toDouble(), 0)
-        paramsDialog.addCheckbox("Despeckle?", defaultParams.shouldDespeckle)
-        paramsDialog.addNumericField("Despeckle Radius", defaultParams.despeckleRadius, 0)
-        paramsDialog.addCheckbox("Gaussian Blur?", defaultParams.shouldGaussianBlur)
-        paramsDialog.addNumericField("Gaussian Blur Sigma", defaultParams.gaussianBlurSigma, 0)
-        paramsDialog.showDialog()
-        if (paramsDialog.wasCanceled()) return defaultParams
-        val shouldSubtractBackground = paramsDialog.nextBoolean
-        val largestCellDiameter = paramsDialog.nextNumber
-        val thresholdLocality = paramsDialog.nextChoice
-        val globalThresholdAlgo = paramsDialog.nextChoice
-        val localThresholdAlgo = paramsDialog.nextChoice
-        val localThresholdRadius = paramsDialog.nextNumber.roundToInt()
-        val shouldDespeckle = paramsDialog.nextBoolean
-        val despeckleRadius = paramsDialog.nextNumber
-        val shouldGaussianBlur = paramsDialog.nextBoolean
-        val gaussianBlurSigma = paramsDialog.nextNumber
-        return PreprocessingParameters(shouldSubtractBackground, largestCellDiameter, thresholdLocality, globalThresholdAlgo, localThresholdAlgo, localThresholdRadius, shouldDespeckle, despeckleRadius, shouldGaussianBlur, gaussianBlurSigma)
-    }
-
     /** Processes single image. */
     private fun process(image: ImagePlus) {
         // We need to create a copy of the image since we want to show the results on the original image, but
         // preprocessing is done in-place which changes the image.
         val originalImage = image.duplicate()
         originalImage.title = "${image.title} - segmented"
-
-        val cellSegmentationService = CellSegmentationService()
 
         val preprocessingParams = if (tuneParams) tuneParameters() else PreprocessingParameters()
 
@@ -161,6 +121,8 @@ class SimpleCellCounter : Command {
         @JvmStatic
         fun main(args: Array<String>) {
             val ij = ImageJ()
+
+            ij.context().inject(CellSegmentationService())
 
             ij.launch()
 
