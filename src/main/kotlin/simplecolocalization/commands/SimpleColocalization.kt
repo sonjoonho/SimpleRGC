@@ -167,11 +167,13 @@ class SimpleColocalization : Command {
         val transducedCells = extractCells(transducedImage)
 
         val cellComparator = PixelCellComparator()
-        val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
-        showCount(targetCells=targetCells, transductionAnalysis=analysis)
+        val transductionAnalysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
+        val intensityAnalysis = cellColocalizationService.analyseCellIntensity(targetImage, transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray())
+        showCount(targetCells=targetCells, transductionAnalysis=transductionAnalysis)
+        showTransducedIntensity(intensityAnalysis)
 
         val roiManager = RoiManager.getRoiManager()
-        cellColocalizationService.markOverlappingCells(originalImage, roiManager, analysis.overlapping.map{x -> x.toRoi()})
+        cellColocalizationService.markOverlappingCells(originalImage, roiManager, transductionAnalysis.overlapping.map{x -> x.toRoi()})
         originalImage.show()
     }
 
@@ -215,58 +217,33 @@ class SimpleColocalization : Command {
     }
 
     /**
-     * Displays the resulting cell analysis as a results table.
+     * Displays a table for a transduction analysis with the result of
+     * overlapping, transduced cells.
      */
-    private fun showPerCellAnalysis(analyses: Array<CellSegmentationService.CellAnalysis>) {
+    private fun showTransducedIntensity(cellIntensityAnalysis: Array<CellColocalizationService.CellAnalysis>) {
         val table = DefaultGenericTable()
 
-        // If there are no analyses then show an empty table.
-        // We wish to access the first analysis later to inspect number of channels
-        // so we return to avoid an invalid deference.
-        if (analyses.isEmpty()) {
-            uiService.show(table)
-            return
-        }
-        val numberOfChannels = analyses[0].channels.size
-
-        // Retrieve the names of all the channels.
-        val channelNames = mutableListOf<String>()
-        for (i in 0 until numberOfChannels) {
-            channelNames.add(analyses[0].channels[i].name.capitalize())
-        }
-
         val areaColumn = IntColumn()
+        val meanColumn = IntColumn()
+        val minColumn = IntColumn()
+        val maxColumn = IntColumn()
 
-        val meanColumns = MutableList(numberOfChannels) { IntColumn() }
-        val maxColumns = MutableList(numberOfChannels) { IntColumn() }
-        val minColumns = MutableList(numberOfChannels) { IntColumn() }
+        table.add(areaColumn)
+        table.add(meanColumn)
+        table.add(minColumn)
+        table.add(maxColumn)
+
+        table.setColumnHeader(0, "Area")
+        table.setColumnHeader(1, "Mean")
+        table.setColumnHeader(2, "Min")
+        table.setColumnHeader(3, "Max")
 
         // Construct column values using the channel analysis values.
-        analyses.forEach { cellAnalysis ->
-            areaColumn.add(cellAnalysis.area)
-            cellAnalysis.channels.forEachIndexed { channelIndex, channel ->
-                meanColumns[channelIndex].add(channel.mean)
-                minColumns[channelIndex].add(channel.min)
-                maxColumns[channelIndex].add(channel.max)
-            }
-        }
-
-        // Add all of the columns (Mean, Min, Max) for each channel.
-        table.add(areaColumn)
-        for (i in 0 until numberOfChannels) {
-            table.add(meanColumns[i])
-            table.add(minColumns[i])
-            table.add(maxColumns[i])
-        }
-
-        // Add all the column headers for each channel.
-        var columnIndex = 0
-        table.setColumnHeader(columnIndex++, "Area")
-        for (i in 0 until numberOfChannels) {
-            val channelName = channelNames[i]
-            table.setColumnHeader(columnIndex++, "$channelName Mean")
-            table.setColumnHeader(columnIndex++, "$channelName Min")
-            table.setColumnHeader(columnIndex++, "$channelName Max")
+        cellIntensityAnalysis.forEach {
+            areaColumn.add(it.area)
+            meanColumn.add(it.mean)
+            minColumn.add(it.min)
+            maxColumn.add(it.max)
         }
 
         uiService.show(table)
