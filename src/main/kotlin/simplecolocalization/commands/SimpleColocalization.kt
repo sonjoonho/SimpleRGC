@@ -228,6 +228,14 @@ class SimpleColocalization : Command {
         val minColumn = IntColumn()
         val maxColumn = IntColumn()
 
+        // Construct column values using the channel analysis values.
+        cellIntensityAnalysis.forEach {
+            areaColumn.add(it.area)
+            meanColumn.add(it.mean)
+            minColumn.add(it.min)
+            maxColumn.add(it.max)
+        }
+
         table.add(areaColumn)
         table.add(meanColumn)
         table.add(minColumn)
@@ -237,15 +245,6 @@ class SimpleColocalization : Command {
         table.setColumnHeader(1, "Mean")
         table.setColumnHeader(2, "Min")
         table.setColumnHeader(3, "Max")
-
-        // Construct column values using the channel analysis values.
-        cellIntensityAnalysis.forEach {
-            areaColumn.add(it.area)
-            meanColumn.add(it.mean)
-            minColumn.add(it.min)
-            maxColumn.add(it.max)
-        }
-
         uiService.show(table)
     }
 

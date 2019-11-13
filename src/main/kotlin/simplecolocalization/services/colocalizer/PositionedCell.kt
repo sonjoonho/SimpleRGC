@@ -2,12 +2,13 @@ package simplecolocalization.services.colocalizer
 
 import ij.gui.PolygonRoi
 import ij.gui.Roi
+import java.lang.RuntimeException
 
 /**
  * The representation of a positioned cell is a set of points on a
  * two-dimensional coordinate system belonging which form the cell.
  */
-class PositionedCell(val points: Set<Pair<Int, Int>>) {
+class PositionedCell(val points: Set<Pair<Int, Int>>, val outline: Set<Pair<Int, Int>>? = null) {
 
     val center: Pair<Double, Double>
 
@@ -23,9 +24,10 @@ class PositionedCell(val points: Set<Pair<Int, Int>>) {
 
     companion object {
         fun fromRoi(roi: Roi): PositionedCell {
-            return PositionedCell(roi.containedPoints.map { point ->
-                Pair(point.x, point.y)
-            }.toSet())
+            return PositionedCell(
+                roi.containedPoints.map { Pair(it.x, it.y) }.toSet(),
+                (roi.floatPolygon.xpoints.map { it.toInt() } zip roi.floatPolygon.ypoints.map { it.toInt() }).toSet()
+            )
         }
     }
 
@@ -45,6 +47,15 @@ class PositionedCell(val points: Set<Pair<Int, Int>>) {
     }
 
     fun toRoi(): Roi {
-        return PolygonRoi(points.map{p -> p.first}.toIntArray(), points.map{p -> p.second}.toIntArray(), points.size, Roi.TRACED_ROI)
+        if (outline == null) {
+            throw RuntimeException("Cannot convert PositionedCell to ImageJ ROI: no cell outline provided.")
+        }
+
+        return PolygonRoi(
+            outline.map { it.first }.toIntArray(),
+            outline.map { it.second }.toIntArray(),
+            outline.size,
+            Roi.TRACED_ROI
+        )
     }
 }
