@@ -2,7 +2,6 @@ package simplecolocalization.services
 
 import ij.ImagePlus
 import ij.gui.Roi
-import ij.plugin.ChannelSplitter
 import ij.plugin.frame.RoiManager
 import net.imagej.ImageJService
 import org.scijava.plugin.Plugin

@@ -24,6 +24,8 @@ import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.TransductionAnalysis
+import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
+import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -62,7 +64,7 @@ class SimpleColocalization : Command {
 
     @Parameter(
         label = "Results Output:",
-        choices = [OutputDestination.DISPLAY],
+        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
         required = true,
         persist = false,
         style = "radioButtonVertical"
@@ -211,7 +213,9 @@ class SimpleColocalization : Command {
         showCount(targetCells=targetCells, transductionAnalysis=transductionAnalysis)
 
         if (outputDestination == OutputDestination.DISPLAY) {
-            showTransducedIntensityTable(intensityAnalysis)
+            ImageJTableColocalizationOutput(intensityAnalysis, uiService).output()
+        } else if (outputDestination == OutputDestination.CSV) {
+            CSVColocalizationOutput(intensityAnalysis, outputFile!!).output()
         }
 
         val roiManager = RoiManager.getRoiManager()
@@ -255,38 +259,6 @@ class SimpleColocalization : Command {
         table.setColumnHeader(0, "Target Cell Count")
         table.setColumnHeader(1, "Transduced Target Cell Count")
         table.setColumnHeader(2, "Transduced Non-Target Cell Count")
-        uiService.show(table)
-    }
-
-    /**
-     * Displays a table for a transduction analysis with the result of
-     * overlapping, transduced cells.
-     */
-    private fun showTransducedIntensityTable(cellIntensityAnalysis: Array<CellColocalizationService.CellAnalysis>) {
-        val table = DefaultGenericTable()
-
-        val areaColumn = IntColumn()
-        val meanColumn = IntColumn()
-        val minColumn = IntColumn()
-        val maxColumn = IntColumn()
-
-        // Construct column values using the channel analysis values.
-        cellIntensityAnalysis.forEach {
-            areaColumn.add(it.area)
-            meanColumn.add(it.mean)
-            minColumn.add(it.min)
-            maxColumn.add(it.max)
-        }
-
-        table.add(areaColumn)
-        table.add(meanColumn)
-        table.add(minColumn)
-        table.add(maxColumn)
-
-        table.setColumnHeader(0, "Area")
-        table.setColumnHeader(1, "Mean")
-        table.setColumnHeader(2, "Min")
-        table.setColumnHeader(3, "Max")
         uiService.show(table)
     }
 
