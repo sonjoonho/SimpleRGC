@@ -16,11 +16,11 @@ import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
+import simplecolocalization.PreprocessingParameters
+import simplecolocalization.bernsen
 import simplecolocalization.commands.SimpleCellCounter
-import simplecolocalization.utils.PreprocessingParameters
-import simplecolocalization.utils.bernsen
-import simplecolocalization.utils.niblack
-import simplecolocalization.utils.otsu
+import simplecolocalization.niblack
+import simplecolocalization.otsu
 
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
@@ -28,6 +28,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
     data class CellAnalysis(val area: Int, val channels: List<ChannelAnalysis>)
     data class ChannelAnalysis(val name: String, val mean: Int, val min: Int, val max: Int)
 
+    // TODO(tiger-cross): Implement a permanent fix.
     /** Preprocess image wrapper for SimpleColocalisation Plugin (temp fix). */
     fun preprocessImage(
         image: ImagePlus,
@@ -87,9 +88,21 @@ class CellSegmentationService : AbstractService(), ImageJService {
             }
             SimpleCellCounter.ThresholdTypes.LOCAL -> {
                 when (localThresholdAlgo) {
-                    SimpleCellCounter.LocalThresholdAlgos.OTSU -> otsu(image, localThresholdRadius)
-                    SimpleCellCounter.LocalThresholdAlgos.BERNSEN -> bernsen(image, localThresholdRadius, 15.0) // Not sure what additional param ought to be
-                    SimpleCellCounter.LocalThresholdAlgos.NIBLACK -> niblack(image, localThresholdRadius, 0.2, 0.0) // Not sure what additional params ought to be
+                    SimpleCellCounter.LocalThresholdAlgos.OTSU -> otsu(
+                        image,
+                        localThresholdRadius
+                    )
+                    SimpleCellCounter.LocalThresholdAlgos.BERNSEN -> bernsen(
+                        image,
+                        localThresholdRadius,
+                        15.0
+                    ) // TODO(rasnav99): Decide additional parameters for these methods.
+                    SimpleCellCounter.LocalThresholdAlgos.NIBLACK -> niblack(
+                        image,
+                        localThresholdRadius,
+                        0.2,
+                        0.0
+                    )
                     else -> throw InvalidArgumentException("Threshold Algorithm selected")
                 }
             }

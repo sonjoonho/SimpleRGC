@@ -7,7 +7,6 @@ import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
-import java.io.File
 import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.command.Command
@@ -15,9 +14,10 @@ import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
+import simplecolocalization.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
-import simplecolocalization.utils.PreprocessingParameters
-import simplecolocalization.utils.tuneParameters
+import simplecolocalization.tuneParameters
+import java.io.File
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -107,7 +107,7 @@ class SimpleCellCounter : Command {
         val cellCount = cells.size
 
         val countDialog = GenericDialog("Cell count")
-        countDialog.addMessage("The cell counter counted " + cellCount + " cells.")
+        countDialog.addMessage("The cell counter counted $cellCount cells.")
         countDialog.showDialog()
     }
 

@@ -1,4 +1,4 @@
-package simplecolocalization.utils
+package simplecolocalization
 
 import ij.IJ
 import ij.ImagePlus

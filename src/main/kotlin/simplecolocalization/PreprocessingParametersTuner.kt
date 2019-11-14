@@ -1,4 +1,4 @@
-package simplecolocalization.utils
+package simplecolocalization
 
 import ij.gui.GenericDialog
 import kotlin.math.roundToInt
@@ -20,9 +20,20 @@ data class PreprocessingParameters(
 private fun renderParamsDialog(paramsDialog: GenericDialog, defaultParams: PreprocessingParameters) {
     paramsDialog.addCheckbox("Subtract Background?", defaultParams.shouldSubtractBackground)
     paramsDialog.addNumericField("Largest Cell Diameter", defaultParams.largestCellDiameter, 0)
-    paramsDialog.addChoice("Threshold Locality", arrayOf(SimpleCellCounter.ThresholdTypes.GLOBAL, SimpleCellCounter.ThresholdTypes.LOCAL), defaultParams.thresholdLocality)
-    paramsDialog.addChoice("Global Thresholding Algorithm", arrayOf(SimpleCellCounter.GlobalThresholdAlgos.OTSU, SimpleCellCounter.GlobalThresholdAlgos.MOMENTS, SimpleCellCounter.GlobalThresholdAlgos.SHANBHAG), defaultParams.globalThresholdAlgo)
-    paramsDialog.addChoice("Local Thresholding Algorithm", arrayOf(SimpleCellCounter.LocalThresholdAlgos.OTSU, SimpleCellCounter.LocalThresholdAlgos.BERNSEN, SimpleCellCounter.LocalThresholdAlgos.NIBLACK), defaultParams.localThresholdAlgo)
+    paramsDialog.addChoice("Threshold Locality", arrayOf(
+        SimpleCellCounter.ThresholdTypes.GLOBAL,
+        SimpleCellCounter.ThresholdTypes.LOCAL
+    ), defaultParams.thresholdLocality)
+    paramsDialog.addChoice("Global Thresholding Algorithm", arrayOf(
+        SimpleCellCounter.GlobalThresholdAlgos.OTSU,
+        SimpleCellCounter.GlobalThresholdAlgos.MOMENTS,
+        SimpleCellCounter.GlobalThresholdAlgos.SHANBHAG
+    ), defaultParams.globalThresholdAlgo)
+    paramsDialog.addChoice("Local Thresholding Algorithm", arrayOf(
+        SimpleCellCounter.LocalThresholdAlgos.OTSU,
+        SimpleCellCounter.LocalThresholdAlgos.BERNSEN,
+        SimpleCellCounter.LocalThresholdAlgos.NIBLACK
+    ), defaultParams.localThresholdAlgo)
     paramsDialog.addNumericField("Local Threshold radius", defaultParams.localThresholdRadius.toDouble(), 0)
     paramsDialog.addCheckbox("Despeckle?", defaultParams.shouldDespeckle)
     paramsDialog.addNumericField("Despeckle Radius", defaultParams.despeckleRadius, 0)
@@ -42,13 +53,24 @@ private fun getParamsFromDialog(paramsDialog: GenericDialog): PreprocessingParam
     val despeckleRadius = paramsDialog.nextNumber
     val shouldGaussianBlur = paramsDialog.nextBoolean
     val gaussianBlurSigma = paramsDialog.nextNumber
-    return PreprocessingParameters(shouldSubtractBackground, largestCellDiameter, thresholdLocality, globalThresholdAlgo, localThresholdAlgo, localThresholdRadius, shouldDespeckle, despeckleRadius, shouldGaussianBlur, gaussianBlurSigma)
+    return PreprocessingParameters(
+        shouldSubtractBackground,
+        largestCellDiameter,
+        thresholdLocality,
+        globalThresholdAlgo,
+        localThresholdAlgo,
+        localThresholdRadius,
+        shouldDespeckle,
+        despeckleRadius,
+        shouldGaussianBlur,
+        gaussianBlurSigma
+    )
 }
 
 fun tuneParameters(): PreprocessingParameters {
-    var defaultParams = PreprocessingParameters()
+    val defaultParams = PreprocessingParameters()
     val paramsDialog = GenericDialog("Tune Parameters Manually")
     renderParamsDialog(paramsDialog, defaultParams)
-    if (paramsDialog.wasCanceled()) return defaultParams // TODO: Cancel plugin!
+    if (paramsDialog.wasCanceled()) return defaultParams // TODO(tiger-cross): Cancel plugin!
     return getParamsFromDialog(paramsDialog)
 }
