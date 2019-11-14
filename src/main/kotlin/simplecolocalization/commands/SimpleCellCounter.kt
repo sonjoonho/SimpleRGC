@@ -7,6 +7,7 @@ import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
+import java.io.File
 import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.command.Command
@@ -17,7 +18,6 @@ import org.scijava.ui.UIService
 import simplecolocalization.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.tuneParameters
-import java.io.File
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
