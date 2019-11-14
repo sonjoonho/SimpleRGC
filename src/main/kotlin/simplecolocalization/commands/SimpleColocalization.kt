@@ -147,7 +147,7 @@ class SimpleColocalization : Command {
             PreProcessingParams()
         )
         cellSegmentationService.segmentImage(image)
-      
+
         val channelImages = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > channelImages.size) {
             MessageDialog(
