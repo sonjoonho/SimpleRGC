@@ -80,7 +80,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
         thresholdImage(image, SimpleCellCounter.ThresholdTypes.GLOBAL, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
     }
 
-    fun thresholdImage(image: ImagePlus, thresholdChoice: String, globalThresholdAlgo: String, localThresholdAlgo: String, localThresholdRadius: Int) {
+    private fun thresholdImage(image: ImagePlus, thresholdChoice: String, globalThresholdAlgo: String, localThresholdAlgo: String, localThresholdRadius: Int) {
         when (thresholdChoice) {
             SimpleCellCounter.ThresholdTypes.GLOBAL -> {
                 image.channelProcessor.setAutoThreshold(globalThresholdAlgo)
