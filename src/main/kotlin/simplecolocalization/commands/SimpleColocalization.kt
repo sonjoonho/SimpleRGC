@@ -44,6 +44,38 @@ class SimpleColocalization : Command {
     @Parameter
     private lateinit var uiService: UIService
 
+    @Parameter(
+        label = "Output Parameters:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var outputParametersHeader: String
+
+    /**
+     * The user can optionally output the results to a file.
+     */
+    object OutputDestination {
+        const val DISPLAY = "Display in table"
+        const val CSV = "Save as CSV file"
+        const val XML = "Save as XML file"
+    }
+
+    @Parameter(
+        label = "Results Output:",
+        choices = [OutputDestination.DISPLAY],
+        required = true,
+        persist = false,
+        style = "radioButtonVertical"
+    )
+    private var outputDestination = OutputDestination.DISPLAY
+
+    @Parameter(
+        label = "Output File (if saving):",
+        style = "save",
+        required = false
+    )
+    private var outputFile: File? = null
+
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
      * the channels available at the parameter initiation stage.
@@ -135,11 +167,18 @@ class SimpleColocalization : Command {
     /** Processes single image. */
     private fun process(image: ImagePlus) {
         // TODO(sonjoonho): Remove duplication in this code fragment.
+        if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Error", "File to save to not specified."
+            )
+            return
+        }
 
         // We need to create a copy of the image since we want to show the results on the original image, but
         // preprocessing is done in-place which changes the image.
         val originalImage = image.duplicate()
-        originalImage.title = "${image.title} - segmented"
+        originalImage.title = "${image.title} - Transduced cells overlapping target cells"
 
         val channelImages = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > channelImages.size) {
@@ -170,7 +209,10 @@ class SimpleColocalization : Command {
         val transductionAnalysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
         val intensityAnalysis = cellColocalizationService.analyseCellIntensity(targetImage, transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray())
         showCount(targetCells=targetCells, transductionAnalysis=transductionAnalysis)
-        showTransducedIntensity(intensityAnalysis)
+
+        if (outputDestination == OutputDestination.DISPLAY) {
+            showTransducedIntensityTable(intensityAnalysis)
+        }
 
         val roiManager = RoiManager.getRoiManager()
         cellColocalizationService.markOverlappingCells(originalImage, roiManager, transductionAnalysis.overlapping.map{x -> x.toRoi()})
@@ -220,7 +262,7 @@ class SimpleColocalization : Command {
      * Displays a table for a transduction analysis with the result of
      * overlapping, transduced cells.
      */
-    private fun showTransducedIntensity(cellIntensityAnalysis: Array<CellColocalizationService.CellAnalysis>) {
+    private fun showTransducedIntensityTable(cellIntensityAnalysis: Array<CellColocalizationService.CellAnalysis>) {
         val table = DefaultGenericTable()
 
         val areaColumn = IntColumn()
