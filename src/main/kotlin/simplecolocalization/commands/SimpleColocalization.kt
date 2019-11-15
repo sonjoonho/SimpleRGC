@@ -7,6 +7,7 @@ import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
+import java.io.File
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -22,7 +23,6 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
-import java.io.File
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -135,12 +135,6 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     private fun process(image: ImagePlus) {
-        // TODO(sonjoonho): Remove duplication in this code fragment.
-
-        // We need to create a copy of the image since we want to show the results on the original image, but
-        // preprocessing is done in-place which changes the image.
-        val originalImage = image.duplicate()
-        originalImage.title = "${image.title} - segmented"
 
         val channelImages = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > channelImages.size) {
@@ -162,15 +156,13 @@ class SimpleColocalization : Command {
         }
 
         val targetImage = channelImages[targetChannel - 1]
-        targetImage.show()
         val transducedImage = channelImages[transducedChannel - 1]
-        transducedImage.show()
 
-        print("Starting extraction")
+        logService.info("Starting extraction")
         val targetCells = extractCells(targetImage)
         val transducedCells = extractCells(transducedImage)
 
-        print("Starting analysis")
+        logService.info("Starting analysis")
         val cellComparator = PixelCellComparator()
         val analysis = BucketedNaiveColocalizer(
             largestCellDiameter.toInt(),
