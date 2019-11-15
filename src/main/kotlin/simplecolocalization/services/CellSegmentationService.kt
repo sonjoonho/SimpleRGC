@@ -10,6 +10,7 @@ import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
 import ij.plugin.frame.RoiManager
+import ij.process.AutoThresholder
 import ij.process.ImageConverter
 import io.minio.errors.InvalidArgumentException
 import net.imagej.ImageJService
@@ -63,7 +64,13 @@ class CellSegmentationService : AbstractService(), ImageJService {
         }
 
         // Threshold grayscale image, leaving black and white image.
-        thresholdImage(image, params.thresholdLocality, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
+        thresholdImage(
+            image,
+            params.thresholdLocality,
+            params.globalThresholdAlgo,
+            params.localThresholdAlgo,
+            params.localThresholdRadius
+        )
 
         if (params.shouldDespeckle) {
             // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
@@ -77,14 +84,40 @@ class CellSegmentationService : AbstractService(), ImageJService {
         }
 
         // Threshold image again to remove blur.
-        thresholdImage(image, SimpleCellCounter.ThresholdTypes.GLOBAL, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
+        thresholdImage(
+            image,
+            SimpleCellCounter.ThresholdTypes.GLOBAL,
+            params.globalThresholdAlgo,
+            params.localThresholdAlgo,
+            params.localThresholdRadius
+        )
     }
 
-    private fun thresholdImage(image: ImagePlus, thresholdChoice: String, globalThresholdAlgo: String, localThresholdAlgo: String, localThresholdRadius: Int) {
+    private fun thresholdImage(
+        image: ImagePlus,
+        thresholdChoice: String,
+        globalThresholdAlgo: String,
+        localThresholdAlgo: String,
+        localThresholdRadius: Int
+    ) {
         when (thresholdChoice) {
             SimpleCellCounter.ThresholdTypes.GLOBAL -> {
-                image.channelProcessor.setAutoThreshold(globalThresholdAlgo)
-                image.channelProcessor.autoThreshold()
+                when (globalThresholdAlgo) {
+                    SimpleCellCounter.GlobalThresholdAlgos.OTSU -> image.processor.setAutoThreshold(
+                        AutoThresholder.Method.Otsu,
+                        true
+                    )
+                    SimpleCellCounter.GlobalThresholdAlgos.MOMENTS -> image.processor.setAutoThreshold(
+                        AutoThresholder.Method.Moments,
+                        true
+                    )
+                    SimpleCellCounter.GlobalThresholdAlgos.SHANBHAG -> image.processor.setAutoThreshold(
+                        AutoThresholder.Method.Shanbhag,
+                        true
+                    )
+                    else -> throw InvalidArgumentException("Threshold Algorithm selected")
+                }
+                image.processor.autoThreshold()
             }
             SimpleCellCounter.ThresholdTypes.LOCAL -> {
                 when (localThresholdAlgo) {
