@@ -18,7 +18,6 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
-import simplecolocalization.PreprocessingParameters
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
@@ -142,12 +141,6 @@ class SimpleColocalization : Command {
         // preprocessing is done in-place which changes the image.
         val originalImage = image.duplicate()
         originalImage.title = "${image.title} - segmented"
-
-        cellSegmentationService.preprocessImage(
-            image,
-            PreprocessingParameters()
-        )
-        cellSegmentationService.segmentImage(image)
 
         val channelImages = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > channelImages.size) {
