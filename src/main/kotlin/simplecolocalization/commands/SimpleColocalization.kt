@@ -4,6 +4,7 @@ import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.MessageDialog
+import ij.gui.PolygonRoi
 import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
@@ -23,9 +24,12 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
+import java.awt.Color
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
+
+    private val PERCENTAGE_THRESHOLD: Float = 40f
 
     @Parameter
     private lateinit var logService: LogService
@@ -160,19 +164,48 @@ class SimpleColocalization : Command {
         }
 
         val targetImage = channelImages[targetChannel - 1]
-        targetImage.show()
         val transducedImage = channelImages[transducedChannel - 1]
-        transducedImage.show()
 
         print("Starting extraction")
         val targetCells = extractCells(targetImage)
+        val originalTransducedImage = transducedImage.duplicate()
         val transducedCells = extractCells(transducedImage)
-
+        val filteredTransducedCells = filterTranducedCells(transducedCells, originalTransducedImage)
+        // TODO: Remove the following
+        // It is simply a drawing of the filtered transduced cells so that
+        // we can see whether we are getting valid transduced cells
+        originalImage.channelProcessor.setColor(Color.YELLOW)
+        filteredTransducedCells.forEach {
+            val xs = mutableListOf<Float>()
+            val ys = mutableListOf<Float>()
+            it.points.forEach { point ->
+                xs.add(point.first.toFloat())
+                ys.add(point.second.toFloat())
+            }
+            val polygonRoi = PolygonRoi(xs.toFloatArray(), ys.toFloatArray(), PolygonRoi.POLYGON)
+            polygonRoi.drawPixels(originalImage.channelProcessor)
+        }
+        originalImage.show()
         print("Starting analysis")
         val cellComparator = PixelCellComparator()
         val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
         print(analysis)
     }
+
+    private fun filterTranducedCells(cells: List<PositionedCell>, image: ImagePlus): List<PositionedCell> {
+        val intensities = cells.map { it.points.fold(0, {sum, point -> sum + image.getPixel(point.first, point.second)[0] }).toFloat() / it.points.size}
+        val maxIntensity = intensities.max()!!
+        val minIntensity = intensities.min()!!
+        val diff = (maxIntensity - minIntensity) * (PERCENTAGE_THRESHOLD / 100)
+        val threshold = maxIntensity - diff
+        val thresholdedCells = mutableListOf<PositionedCell>()
+        intensities.forEachIndexed { index, intensity ->
+            if (intensity > threshold) {
+                thresholdedCells.add(cells[index])
+            }
+         }
+        return thresholdedCells
+}
 
     /**
      * Extract an array of cells (as ROIs) from the specified image
