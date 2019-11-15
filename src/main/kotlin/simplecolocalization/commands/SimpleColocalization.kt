@@ -3,12 +3,16 @@ package simplecolocalization.commands
 import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
+import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
+import ij.process.FloatProcessor
+import ij.process.StackStatistics
 import java.io.File
 import net.imagej.ImageJ
+import net.imagej.ops.OpService
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
 import org.scijava.log.LogService
@@ -38,6 +42,9 @@ class SimpleColocalization : Command {
 
     @Parameter
     private lateinit var cellColocalizationService: CellColocalizationService
+
+    @Parameter
+    private lateinit var opsService: OpService
 
     /**
      * Entry point for UI operations, automatically handling both graphical and
@@ -211,11 +218,19 @@ class SimpleColocalization : Command {
         val transductionAnalysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
         val intensityAnalysis = cellColocalizationService.analyseCellIntensity(targetImage, transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray())
         showCount(targetCells=targetCells, transductionAnalysis=transductionAnalysis)
+        showHistogram(intensityAnalysis)
 
         if (outputDestination == OutputDestination.DISPLAY) {
             ImageJTableColocalizationOutput(intensityAnalysis, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
             CSVColocalizationOutput(intensityAnalysis, outputFile!!).output()
+        }
+
+        // The colocalization results are clearly displayed if the output
+        // destination is set to DISPLAY, however, a visual confirmation
+        // is useful if the output is saved to file.
+        if (outputDestination != OutputDestination.DISPLAY) {
+            MessageDialog(IJ.getInstance(), "Saved", "The colocalization results have successfully been saved to the specified file.")
         }
 
         val roiManager = RoiManager.getRoiManager()
@@ -260,6 +275,23 @@ class SimpleColocalization : Command {
         table.setColumnHeader(1, "Transduced Target Cell Count")
         table.setColumnHeader(2, "Transduced Non-Target Cell Count")
         uiService.show(table)
+    }
+
+    /**
+     * Displays the resulting colocalization results as a histogram.
+     */
+    private fun showHistogram(analysis: Array<CellColocalizationService.CellAnalysis>) {
+        val data = analysis.map {it.mean.toFloat()}.toFloatArray()
+        val ip = FloatProcessor(analysis.size, 1, data, null)
+        val imp = ImagePlus("", ip)
+        val stats = StackStatistics(imp, 256, 0.0, 256.0)
+        var maxCount = 0
+        for (i in stats.histogram.indices) {
+            if (stats.histogram[i] > maxCount)
+                maxCount = stats.histogram[i]
+        }
+        stats.histYMax = maxCount
+        HistogramWindow("Intensity distribution - transduced cells overlapping target cells", imp, stats)
     }
 
     companion object {
