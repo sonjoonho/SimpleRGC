@@ -7,7 +7,6 @@ import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
-import java.io.File
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -23,6 +22,7 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
+import java.io.File
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -189,7 +189,7 @@ class SimpleColocalization : Command {
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
-        val roiManager = RoiManager()
+        val roiManager = RoiManager.getRoiManager()
         val cells = cellSegmentationService.identifyCells(roiManager, image)
         return cells.map { roi -> PositionedCell.fromRoi(roi) }
     }
