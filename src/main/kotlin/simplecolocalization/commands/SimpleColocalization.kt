@@ -10,7 +10,6 @@ import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
-import java.io.File
 import net.imagej.ImageJ
 import net.imagej.ops.OpService
 import org.scijava.ItemVisibility
@@ -30,6 +29,7 @@ import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.TransductionAnalysis
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
+import java.io.File
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -193,7 +193,8 @@ class SimpleColocalization : Command {
         if (targetChannel < 1 || targetChannel > channelImages.size) {
             MessageDialog(
                 IJ.getInstance(),
-                "Error", "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
+                "Error",
+                "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
             )
             return
         }
@@ -201,7 +202,8 @@ class SimpleColocalization : Command {
         if (transducedChannel < 1 || transducedChannel > channelImages.size) {
             MessageDialog(
                 IJ.getInstance(),
-                "Error", "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
+                "Error",
+                "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
             )
             return
         }
@@ -215,9 +217,17 @@ class SimpleColocalization : Command {
         val transducedCells = extractCells(transducedImage)
 
         val cellComparator = PixelCellComparator()
-        val transductionAnalysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
-        val intensityAnalysis = cellColocalizationService.analyseCellIntensity(targetImage, transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray())
-        showCount(targetCells=targetCells, transductionAnalysis=transductionAnalysis)
+        val transductionAnalysis = BucketedNaiveColocalizer(
+            largestCellDiameter.toInt(),
+            targetImage.width,
+            targetImage.height,
+            cellComparator
+        ).analyseTransduction(targetCells, transducedCells)
+        val intensityAnalysis = cellColocalizationService.analyseCellIntensity(
+            targetImage,
+            transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
+        )
+        showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
         showHistogram(intensityAnalysis)
 
         if (outputDestination == OutputDestination.DISPLAY) {
@@ -230,11 +240,18 @@ class SimpleColocalization : Command {
         // destination is set to DISPLAY, however, a visual confirmation
         // is useful if the output is saved to file.
         if (outputDestination != OutputDestination.DISPLAY) {
-            MessageDialog(IJ.getInstance(), "Saved", "The colocalization results have successfully been saved to the specified file.")
+            MessageDialog(
+                IJ.getInstance(),
+                "Saved",
+                "The colocalization results have successfully been saved to the specified file."
+            )
         }
 
         val roiManager = RoiManager.getRoiManager()
-        cellColocalizationService.markOverlappingCells(originalImage, roiManager, transductionAnalysis.overlapping.map{x -> x.toRoi()})
+        cellColocalizationService.markOverlappingCells(
+            originalImage,
+            roiManager,
+            transductionAnalysis.overlapping.map { x -> x.toRoi() })
         originalImage.show()
     }
 
@@ -281,7 +298,7 @@ class SimpleColocalization : Command {
      * Displays the resulting colocalization results as a histogram.
      */
     private fun showHistogram(analysis: Array<CellColocalizationService.CellAnalysis>) {
-        val data = analysis.map {it.mean.toFloat()}.toFloatArray()
+        val data = analysis.map { it.mean.toFloat() }.toFloatArray()
         val ip = FloatProcessor(analysis.size, 1, data, null)
         val imp = ImagePlus("", ip)
         val stats = StackStatistics(imp, 256, 0.0, 256.0)

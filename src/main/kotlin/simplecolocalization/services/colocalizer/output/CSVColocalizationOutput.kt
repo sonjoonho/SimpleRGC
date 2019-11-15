@@ -1,10 +1,10 @@
 package simplecolocalization.services.colocalizer.output
 
 import de.siegmar.fastcsv.writer.CsvWriter
-import simplecolocalization.services.CellColocalizationService
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.ArrayList
+import simplecolocalization.services.CellColocalizationService
 
 /**
  * Displays a table for a transduction analysis with the result of
