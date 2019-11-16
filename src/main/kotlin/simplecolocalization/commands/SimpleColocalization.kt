@@ -184,11 +184,6 @@ class SimpleColocalization : Command {
             return
         }
 
-        // We need to create a copy of the image since we want to show the results on the original image, but
-        // preprocessing is done in-place which changes the image.
-        val originalImage = image.duplicate()
-        originalImage.title = "${image.title} - Transduced cells overlapping target cells"
-
         val channelImages = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > channelImages.size) {
             MessageDialog(
@@ -209,14 +204,21 @@ class SimpleColocalization : Command {
         }
 
         val targetImage = channelImages[targetChannel - 1]
-        targetImage.show()
         val transducedImage = channelImages[transducedChannel - 1]
-        transducedImage.show()
 
+        logService.info("Starting extraction")
         val targetCells = extractCells(targetImage)
         val transducedCells = extractCells(transducedImage)
 
+        logService.info("Starting analysis")
         val cellComparator = PixelCellComparator()
+        val analysis = BucketedNaiveColocalizer(
+            largestCellDiameter.toInt(),
+            targetImage.width,
+            targetImage.height,
+            cellComparator
+        ).analyseTransduction(targetCells, transducedCells)
+        print(analysis)
         val transductionAnalysis = BucketedNaiveColocalizer(
             largestCellDiameter.toInt(),
             targetImage.width,
@@ -249,10 +251,10 @@ class SimpleColocalization : Command {
 
         val roiManager = RoiManager.getRoiManager()
         cellColocalizationService.markOverlappingCells(
-            originalImage,
+            image,
             roiManager,
             transductionAnalysis.overlapping.map { x -> x.toRoi() })
-        originalImage.show()
+        image.show()
     }
 
     /**
@@ -263,9 +265,7 @@ class SimpleColocalization : Command {
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
-        // Create a unique ROI manager but don't display it.
-        // This allows us to retrieve only the ROIs corresponding to this image
-        val roiManager = RoiManager(true)
+        val roiManager = RoiManager.getRoiManager()
         val cells = cellSegmentationService.identifyCells(roiManager, image)
         return cells.map { roi -> PositionedCell.fromRoi(roi) }
     }
