@@ -135,18 +135,13 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     private fun process(image: ImagePlus) {
-        // TODO(sonjoonho): Remove duplication in this code fragment.
-
-        // We need to create a copy of the image since we want to show the results on the original image, but
-        // preprocessing is done in-place which changes the image.
-        val originalImage = image.duplicate()
-        originalImage.title = "${image.title} - segmented"
 
         val channelImages = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > channelImages.size) {
             MessageDialog(
                 IJ.getInstance(),
-                "Error", "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
+                "Error",
+                "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
             )
             return
         }
@@ -154,23 +149,27 @@ class SimpleColocalization : Command {
         if (transducedChannel < 1 || transducedChannel > channelImages.size) {
             MessageDialog(
                 IJ.getInstance(),
-                "Error", "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
+                "Error",
+                "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
             )
             return
         }
 
         val targetImage = channelImages[targetChannel - 1]
-        targetImage.show()
         val transducedImage = channelImages[transducedChannel - 1]
-        transducedImage.show()
 
-        print("Starting extraction")
+        logService.info("Starting extraction")
         val targetCells = extractCells(targetImage)
         val transducedCells = extractCells(transducedImage)
 
-        print("Starting analysis")
+        logService.info("Starting analysis")
         val cellComparator = PixelCellComparator()
-        val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
+        val analysis = BucketedNaiveColocalizer(
+            largestCellDiameter.toInt(),
+            targetImage.width,
+            targetImage.height,
+            cellComparator
+        ).analyseTransduction(targetCells, transducedCells)
         print(analysis)
     }
 
@@ -182,9 +181,7 @@ class SimpleColocalization : Command {
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
-        // Create a unique ROI manager but don't display it.
-        // This allows us to retrieve only the ROIs corresponding to this image
-        val roiManager = RoiManager(true)
+        val roiManager = RoiManager.getRoiManager()
         val cells = cellSegmentationService.identifyCells(roiManager, image)
         return cells.map { roi -> PositionedCell.fromRoi(roi) }
     }
