@@ -10,6 +10,7 @@ import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
+import java.io.File
 import net.imagej.ImageJ
 import net.imagej.ops.OpService
 import org.scijava.ItemVisibility
@@ -29,7 +30,6 @@ import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.TransductionAnalysis
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
-import java.io.File
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
