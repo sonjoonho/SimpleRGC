@@ -4,11 +4,12 @@ import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.MessageDialog
-import ij.gui.PolygonRoi
 import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
 import java.io.File
+import kotlin.math.max
+import kotlin.math.min
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -24,7 +25,6 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
-import java.awt.Color
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -150,7 +150,8 @@ class SimpleColocalization : Command {
         if (targetChannel < 1 || targetChannel > channelImages.size) {
             MessageDialog(
                 IJ.getInstance(),
-                "Error", "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
+                "Error",
+                "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
             )
             return
         }
@@ -158,7 +159,8 @@ class SimpleColocalization : Command {
         if (transducedChannel < 1 || transducedChannel > channelImages.size) {
             MessageDialog(
                 IJ.getInstance(),
-                "Error", "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
+                "Error",
+                "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
             )
             return
         }
@@ -169,46 +171,44 @@ class SimpleColocalization : Command {
         print("Starting extraction")
         val targetCells = extractCells(targetImage)
         val originalTransducedImage = transducedImage.duplicate()
-        val transducedCells = extractCells(transducedImage)
-        val filteredTransducedCells = filterTranducedCells(transducedCells, originalTransducedImage)
-        // TODO: Remove the following
-        // It is simply a drawing of the filtered transduced cells so that
-        // we can see whether we are getting valid transduced cells
-        originalImage.channelProcessor.setColor(Color.YELLOW)
-        filteredTransducedCells.forEach {
-            val xs = mutableListOf<Float>()
-            val ys = mutableListOf<Float>()
-            it.points.forEach { point ->
-                xs.add(point.first.toFloat())
-                ys.add(point.second.toFloat())
-            }
-            val polygonRoi = PolygonRoi(xs.toFloatArray(), ys.toFloatArray(), PolygonRoi.POLYGON)
-            polygonRoi.drawPixels(originalImage.channelProcessor)
-        }
-        originalImage.show()
+        val transducedCells = filterCellsByIntensity(extractCells(transducedImage), originalTransducedImage)
+
         print("Starting analysis")
         val cellComparator = PixelCellComparator()
-        val analysis = BucketedNaiveColocalizer(largestCellDiameter.toInt(), targetImage.width, targetImage.height, cellComparator).analyseTransduction(targetCells, transducedCells)
+        val analysis = BucketedNaiveColocalizer(
+            largestCellDiameter.toInt(),
+            targetImage.width,
+            targetImage.height,
+            cellComparator
+        ).analyseTransduction(targetCells, transducedCells)
         print(analysis)
     }
 
-    private fun filterTranducedCells(cells: List<PositionedCell>, image: ImagePlus): List<PositionedCell> {
-        val intensities = cells.map { it.points.fold(0, {sum, point -> sum + image.getPixel(point.first, point.second)[0] }).toFloat() / it.points.size}
-        val maxIntensity = intensities.max()!!
-        val minIntensity = intensities.min()!!
-        val diff = (maxIntensity - minIntensity) * (PERCENTAGE_THRESHOLD / 100)
-        val threshold = maxIntensity - diff
+    /**
+     * Filter the position cells by their average intensity in the given image
+     * using the PERCENTAGE_THRESHOLD.
+     */
+    private fun filterCellsByIntensity(cells: List<PositionedCell>, image: ImagePlus): List<PositionedCell> {
+        var maxIntensity = 0.0f
+        var minIntensity = Float.MAX_VALUE
+        val intensities = cells.map {
+            val intensity = it.getMeanIntensity(image)
+            maxIntensity = max(maxIntensity, intensity)
+            minIntensity = min(minIntensity, intensity)
+            intensity
+        }
+        val threshold = maxIntensity - (maxIntensity - minIntensity) * (PERCENTAGE_THRESHOLD / 100)
         val thresholdedCells = mutableListOf<PositionedCell>()
         intensities.forEachIndexed { index, intensity ->
             if (intensity > threshold) {
                 thresholdedCells.add(cells[index])
             }
-         }
+        }
         return thresholdedCells
-}
+    }
 
     /**
-     * Extract an array of cells (as ROIs) from the specified image
+     * Extract an array of cells (as ROIs) from the specified image.
      */
     private fun extractCells(image: ImagePlus): List<PositionedCell> {
         // Process the target image.
