@@ -29,7 +29,7 @@ import simplecolocalization.services.colocalizer.PositionedCell
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
 
-    private val PERCENTAGE_THRESHOLD: Float = 40f
+    private val intensityPercentageThreshold: Float = 40f
 
     @Parameter
     private lateinit var logService: LogService
@@ -191,7 +191,7 @@ class SimpleColocalization : Command {
             minIntensity = min(minIntensity, intensity)
             intensity
         }
-        val threshold = maxIntensity - (maxIntensity - minIntensity) * (PERCENTAGE_THRESHOLD / 100)
+        val threshold = maxIntensity - (maxIntensity - minIntensity) * (intensityPercentageThreshold / 100)
         val thresholdedCells = mutableListOf<PositionedCell>()
         intensities.forEachIndexed { index, intensity ->
             if (intensity > threshold) {
