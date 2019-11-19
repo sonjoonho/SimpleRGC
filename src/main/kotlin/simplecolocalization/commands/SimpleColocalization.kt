@@ -3,12 +3,16 @@ package simplecolocalization.commands
 import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
+import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
+import ij.process.FloatProcessor
+import ij.process.StackStatistics
 import java.io.File
 import net.imagej.ImageJ
+import net.imagej.ops.OpService
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
 import org.scijava.log.LogService
@@ -23,6 +27,9 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
+import simplecolocalization.services.colocalizer.TransductionAnalysis
+import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
+import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -36,12 +43,47 @@ class SimpleColocalization : Command {
     @Parameter
     private lateinit var cellColocalizationService: CellColocalizationService
 
+    @Parameter
+    private lateinit var opsService: OpService
+
     /**
      * Entry point for UI operations, automatically handling both graphical and
      * headless use of this plugin.
      */
     @Parameter
     private lateinit var uiService: UIService
+
+    @Parameter(
+        label = "Output Parameters:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var outputParametersHeader: String
+
+    /**
+     * The user can optionally output the results to a file.
+     */
+    object OutputDestination {
+        const val DISPLAY = "Display in table"
+        const val CSV = "Save as CSV file"
+        const val XML = "Save as XML file"
+    }
+
+    @Parameter(
+        label = "Results Output:",
+        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
+        required = true,
+        persist = false,
+        style = "radioButtonVertical"
+    )
+    private var outputDestination = OutputDestination.DISPLAY
+
+    @Parameter(
+        label = "Output File (if saving):",
+        style = "save",
+        required = false
+    )
+    private var outputFile: File? = null
 
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
@@ -93,8 +135,6 @@ class SimpleColocalization : Command {
     )
     private var gaussianBlurSigma = 3.0
 
-    private var meanGreenThreshold = 30.0
-
     @Parameter(
         label = "Cell Identification Parameters:",
         visibility = ItemVisibility.MESSAGE,
@@ -135,6 +175,14 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     private fun process(image: ImagePlus) {
+        // TODO(sonjoonho): Remove duplication in this code fragment.
+        if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Error", "File to save to not specified."
+            )
+            return
+        }
 
         val channelImages = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > channelImages.size) {
@@ -171,6 +219,42 @@ class SimpleColocalization : Command {
             cellComparator
         ).analyseTransduction(targetCells, transducedCells)
         print(analysis)
+        val transductionAnalysis = BucketedNaiveColocalizer(
+            largestCellDiameter.toInt(),
+            targetImage.width,
+            targetImage.height,
+            cellComparator
+        ).analyseTransduction(targetCells, transducedCells)
+        val intensityAnalysis = cellColocalizationService.analyseCellIntensity(
+            targetImage,
+            transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
+        )
+        showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
+        showHistogram(intensityAnalysis)
+
+        if (outputDestination == OutputDestination.DISPLAY) {
+            ImageJTableColocalizationOutput(intensityAnalysis, uiService).output()
+        } else if (outputDestination == OutputDestination.CSV) {
+            CSVColocalizationOutput(intensityAnalysis, outputFile!!).output()
+        }
+
+        // The colocalization results are clearly displayed if the output
+        // destination is set to DISPLAY, however, a visual confirmation
+        // is useful if the output is saved to file.
+        if (outputDestination != OutputDestination.DISPLAY) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Saved",
+                "The colocalization results have successfully been saved to the specified file."
+            )
+        }
+
+        val roiManager = RoiManager(true)
+        cellColocalizationService.markOverlappingCells(
+            image,
+            roiManager,
+            transductionAnalysis.overlapping.map { x -> x.toRoi() })
+        image.show()
     }
 
     /**
@@ -181,7 +265,7 @@ class SimpleColocalization : Command {
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
-        val roiManager = RoiManager.getRoiManager()
+        val roiManager = RoiManager(true)
         val cells = cellSegmentationService.identifyCells(roiManager, image)
         return cells.map { roi -> PositionedCell.fromRoi(roi) }
     }
@@ -189,78 +273,42 @@ class SimpleColocalization : Command {
     /**
      * Displays the resulting counts as a results table.
      */
-    private fun showCount(analyses: Array<CellSegmentationService.CellAnalysis>) {
+    private fun showCount(
+        targetCells: List<PositionedCell>,
+        transductionAnalysis: TransductionAnalysis
+    ) {
         val table = DefaultGenericTable()
-        val cellCountColumn = IntColumn()
-        val greenCountColumn = IntColumn()
-        cellCountColumn.add(analyses.size)
+        val targetCellCountColumn = IntColumn()
+        val transducedTargetCellCount = IntColumn()
+        val transducedNonTargetCellCount = IntColumn()
+        targetCellCountColumn.add(targetCells.size)
+        transducedTargetCellCount.add(transductionAnalysis.overlapping.size)
+        transducedNonTargetCellCount.add(transductionAnalysis.disjoint.size)
 
-        // TODO(sonjoonho): Document magic numbers.
-        val greenCount = cellColocalizationService.countChannel(analyses, 1, meanGreenThreshold)
-        greenCountColumn.add(greenCount)
-        table.add(cellCountColumn)
-        table.add(greenCountColumn)
-        table.setColumnHeader(0, "Red Cell Count")
-        table.setColumnHeader(1, "Green Cell Count")
+        table.add(targetCellCountColumn)
+        table.add(transducedTargetCellCount)
+        table.add(transducedNonTargetCellCount)
+        table.setColumnHeader(0, "Target Cell Count")
+        table.setColumnHeader(1, "Transduced Target Cell Count")
+        table.setColumnHeader(2, "Transduced Non-Target Cell Count")
         uiService.show(table)
     }
 
     /**
-     * Displays the resulting cell analysis as a results table.
+     * Displays the resulting colocalization results as a histogram.
      */
-    private fun showPerCellAnalysis(analyses: Array<CellSegmentationService.CellAnalysis>) {
-        val table = DefaultGenericTable()
-
-        // If there are no analyses then show an empty table.
-        // We wish to access the first analysis later to inspect number of channels
-        // so we return to avoid an invalid deference.
-        if (analyses.isEmpty()) {
-            uiService.show(table)
-            return
+    private fun showHistogram(analysis: Array<CellColocalizationService.CellAnalysis>) {
+        val data = analysis.map { it.mean.toFloat() }.toFloatArray()
+        val ip = FloatProcessor(analysis.size, 1, data, null)
+        val imp = ImagePlus("", ip)
+        val stats = StackStatistics(imp, 256, 0.0, 256.0)
+        var maxCount = 0
+        for (i in stats.histogram.indices) {
+            if (stats.histogram[i] > maxCount)
+                maxCount = stats.histogram[i]
         }
-        val numberOfChannels = analyses[0].channels.size
-
-        // Retrieve the names of all the channels.
-        val channelNames = mutableListOf<String>()
-        for (i in 0 until numberOfChannels) {
-            channelNames.add(analyses[0].channels[i].name.capitalize())
-        }
-
-        val areaColumn = IntColumn()
-
-        val meanColumns = MutableList(numberOfChannels) { IntColumn() }
-        val maxColumns = MutableList(numberOfChannels) { IntColumn() }
-        val minColumns = MutableList(numberOfChannels) { IntColumn() }
-
-        // Construct column values using the channel analysis values.
-        analyses.forEach { cellAnalysis ->
-            areaColumn.add(cellAnalysis.area)
-            cellAnalysis.channels.forEachIndexed { channelIndex, channel ->
-                meanColumns[channelIndex].add(channel.mean)
-                minColumns[channelIndex].add(channel.min)
-                maxColumns[channelIndex].add(channel.max)
-            }
-        }
-
-        // Add all of the columns (Mean, Min, Max) for each channel.
-        table.add(areaColumn)
-        for (i in 0 until numberOfChannels) {
-            table.add(meanColumns[i])
-            table.add(minColumns[i])
-            table.add(maxColumns[i])
-        }
-
-        // Add all the column headers for each channel.
-        var columnIndex = 0
-        table.setColumnHeader(columnIndex++, "Area")
-        for (i in 0 until numberOfChannels) {
-            val channelName = channelNames[i]
-            table.setColumnHeader(columnIndex++, "$channelName Mean")
-            table.setColumnHeader(columnIndex++, "$channelName Min")
-            table.setColumnHeader(columnIndex++, "$channelName Max")
-        }
-
-        uiService.show(table)
+        stats.histYMax = maxCount
+        HistogramWindow("Intensity distribution - transduced cells overlapping target cells", imp, stats)
     }
 
     companion object {
