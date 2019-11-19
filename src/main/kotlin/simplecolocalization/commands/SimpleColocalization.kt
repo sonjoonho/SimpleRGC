@@ -181,7 +181,7 @@ class SimpleColocalization : Command {
 
     /**
      * Filter the position cells by their average intensity in the given image
-     * using the PERCENTAGE_THRESHOLD.
+     * using the intensityPercentageThreshold.
      */
     private fun filterCellsByIntensity(cells: List<PositionedCell>, image: ImagePlus): List<PositionedCell> {
         var maxIntensity = 0.0f
