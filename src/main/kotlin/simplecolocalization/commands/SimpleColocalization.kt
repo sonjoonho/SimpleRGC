@@ -249,7 +249,7 @@ class SimpleColocalization : Command {
             )
         }
 
-        val roiManager = RoiManager.getRoiManager()
+        val roiManager = RoiManager(true)
         cellColocalizationService.markOverlappingCells(
             image,
             roiManager,
@@ -265,7 +265,7 @@ class SimpleColocalization : Command {
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
-        val roiManager = RoiManager.getRoiManager()
+        val roiManager = RoiManager(true)
         val cells = cellSegmentationService.identifyCells(roiManager, image)
         return cells.map { roi -> PositionedCell.fromRoi(roi) }
     }
