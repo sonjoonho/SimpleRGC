@@ -24,9 +24,7 @@ class PositionedCell(val points: Set<Pair<Int, Int>>) {
     fun getMeanIntensity(grayScaleImage: ImagePlus): Float {
         // ImagePlus.getPixel returns size 4 array
         // for grayscale, intensity will be at index 0
-        val intensitySum = points.fold(0.0f,
-            { sum, point -> sum + grayScaleImage.getPixel(point.first, point.second)[0] }
-        )
+        val intensitySum = points.map{grayScaleImage.getPixel(it.first, it.second)[0].toFloat()}.sum()
         return intensitySum / points.size
     }
 
