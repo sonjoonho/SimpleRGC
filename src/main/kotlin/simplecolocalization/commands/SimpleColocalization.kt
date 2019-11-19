@@ -164,6 +164,7 @@ class SimpleColocalization : Command {
 
         logService.info("Starting extraction")
         val targetCells = extractCells(targetImage)
+        // Take a duplicate of the image because extractCells will modify the transducedImage
         val originalTransducedImage = transducedImage.duplicate()
         val transducedCells = filterCellsByIntensity(extractCells(transducedImage), originalTransducedImage)
 
