@@ -1,9 +1,8 @@
 package simplecolocalization.services.colocalizer
 
-import ij.gui.PolygonRoi
 import ij.ImagePlus
+import ij.gui.PolygonRoi
 import ij.gui.Roi
-import java.lang.RuntimeException
 
 /**
  * The representation of a positioned cell is a set of points on a
