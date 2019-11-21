@@ -190,9 +190,8 @@ class SimpleCellCounter : Command {
             ij.launch()
 
             val file: File = ij.ui().chooseFile(null, "open")
-            val dataset: Dataset = ij.scifio().datasetIO().open(file.path)
-
-            ij.ui().show(dataset)
+            val imp = IJ.openImage(file.path)
+            imp.show()
             ij.command().run(SimpleCellCounter::class.java, true)
         }
     }
