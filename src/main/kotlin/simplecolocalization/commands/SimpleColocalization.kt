@@ -22,6 +22,7 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
+import simplecolocalization.SimpleCellManager
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
@@ -207,7 +208,9 @@ class SimpleColocalization : Command {
         val transducedImage = channelImages[transducedChannel - 1]
 
         logService.info("Starting extraction")
+        targetImage.show()
         val targetCells = extractCells(targetImage)
+        transducedImage.show()
         val transducedCells = extractCells(transducedImage)
 
         logService.info("Starting analysis")
@@ -265,9 +268,10 @@ class SimpleColocalization : Command {
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
-        val roiManager = RoiManager(true)
-        val cells = cellSegmentationService.identifyCells(roiManager, image)
-        return cells.map { roi -> PositionedCell.fromRoi(roi) }
+        val cellManager = SimpleCellManager()
+        cellSegmentationService.identifyCells(cellManager, image)
+        cellManager.show(image)
+        return emptyList()
     }
 
     /**

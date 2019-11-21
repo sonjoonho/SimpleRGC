@@ -22,6 +22,7 @@ class SimpleCellManager {
         val overlay: Overlay = OverlayLabels.createOverlay()
         rois.forEach { overlay.add(it) }
         val ic = imp.canvas
+        imp.overlay = overlay
         ic.showAllList = overlay
         imp.draw()
     }

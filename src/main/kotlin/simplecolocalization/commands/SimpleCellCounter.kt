@@ -16,6 +16,7 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
+import simplecolocalization.SimpleCellManager
 import simplecolocalization.services.CellSegmentationService
 
 /**
@@ -116,10 +117,9 @@ class SimpleCellCounter : Command {
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
-        val roiManager = RoiManager.getRoiManager()
-        val cells = cellSegmentationService.identifyCells(roiManager, image)
-        cellSegmentationService.markCells(originalImage, cells)
-
+        val simpleCellManager = SimpleCellManager()
+        val cells = cellSegmentationService.identifyCells(simpleCellManager, image)
+        
         // TODO(sonjoonho): Show total cell count here.
 
         originalImage.show()
