@@ -4,6 +4,7 @@ import ij.gui.GenericDialog
 import kotlin.math.roundToInt
 import simplecolocalization.commands.SimpleCellCounter
 
+// Data Structure for preprocessing parameters with defaults
 data class PreprocessingParameters(
     val shouldSubtractBackground: Boolean = true,
     val largestCellDiameter: Double = 30.0,

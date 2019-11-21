@@ -11,7 +11,7 @@ import ij.process.ImageProcessor
 import kotlin.experimental.and
 import kotlin.math.sqrt
 
-/** Copied with modification from FIJI's auto local thresholding algorithms: https://github.com/fiji/Auto_Local_Threshold */
+/** Modified from FIJI's auto local thresholding algorithms: https://github.com/fiji/Auto_Local_Threshold */
 private fun duplicateImage(iProcessor: ImageProcessor): ImagePlus {
     val w = iProcessor.width
     val h = iProcessor.height
