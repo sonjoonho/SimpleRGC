@@ -1,6 +1,7 @@
 package simplecolocalization.services.colocalizer
 
 import ij.ImagePlus
+import ij.gui.Overlay
 import ij.gui.PolygonRoi
 import ij.gui.Roi
 
@@ -64,4 +65,12 @@ class PositionedCell(val points: Set<Pair<Int, Int>>, val outline: Set<Pair<Int,
             Roi.TRACED_ROI
         )
     }
+}
+
+fun showCells(imp: ImagePlus, cells: List<PositionedCell>) {
+    val rois: Collection<Roi> = cells.map { it.toRoi() }
+    val overlay = Overlay()
+    rois.forEach { overlay.add(it) }
+    imp.overlay = overlay
+    imp.draw()
 }

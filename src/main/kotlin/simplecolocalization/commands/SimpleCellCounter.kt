@@ -6,7 +6,6 @@ import ij.WindowManager
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
 import java.io.File
-import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -15,10 +14,9 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
-import simplecolocalization.SimpleCellManager
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.colocalizer.showCells
 import simplecolocalization.services.counter.output.CSVCounterOutput
-import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -149,19 +147,14 @@ class SimpleCellCounter : Command {
             return
         }
 
-        // We need to create a copy of the image since we want to show the results on the original image, but
-        // preprocessing is done in-place which changes the image.
-        val originalImage = image.duplicate()
-        originalImage.title = "${image.title} - segmented"
+        val imageDuplicate = image.duplicate()
+        cellSegmentationService.preprocessImage(imageDuplicate, largestCellDiameter, gaussianBlurSigma)
+        cellSegmentationService.segmentImage(imageDuplicate)
 
-        cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
-        cellSegmentationService.segmentImage(image)
-
-        val simpleCellManager = SimpleCellManager()
-        val cells = cellSegmentationService.identifyCells(simpleCellManager, image)
+        val cells = cellSegmentationService.identifyCells(imageDuplicate)
 
         if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableCounterOutput(cells.size, uiService).output()
+            // ImageJTableCounterOutput(cells.size, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
             CSVCounterOutput(cells.size, outputFile!!).output()
         }
@@ -177,7 +170,8 @@ class SimpleCellCounter : Command {
             )
         }
 
-        originalImage.show()
+        image.show()
+        showCells(image, cells)
     }
 
     companion object {

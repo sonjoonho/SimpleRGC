@@ -7,7 +7,6 @@ import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
-import ij.plugin.frame.RoiManager
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
 import java.io.File
@@ -24,7 +23,6 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
-import simplecolocalization.SimpleCellManager
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
@@ -32,7 +30,7 @@ import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.TransductionAnalysis
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
-import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
+import simplecolocalization.services.colocalizer.showCells
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -213,7 +211,7 @@ class SimpleColocalization : Command {
 
         logService.info("Starting extraction")
         val targetCells = extractCells(targetImage)
-        // Take a duplicate of the image because extractCells will modify the transducedImage
+        // Take a duplicate of the image because extractCells will modify the transducedImage.
         val originalTransducedImage = transducedImage.duplicate()
         val transducedCells = filterCellsByIntensity(extractCells(transducedImage), originalTransducedImage)
 
@@ -229,11 +227,11 @@ class SimpleColocalization : Command {
             targetImage,
             transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
         )
-        showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
+        // showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
         showHistogram(intensityAnalysis)
 
         if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableColocalizationOutput(intensityAnalysis, uiService).output()
+            // ImageJTableColocalizationOutput(intensityAnalysis, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
             CSVColocalizationOutput(intensityAnalysis, outputFile!!).output()
         }
@@ -249,12 +247,8 @@ class SimpleColocalization : Command {
             )
         }
 
-        val roiManager = RoiManager(true)
-        cellColocalizationService.markOverlappingCells(
-            image,
-            roiManager,
-            transductionAnalysis.overlapping.map { x -> x.toRoi() })
         image.show()
+        showCells(image, transductionAnalysis.overlapping)
     }
 
     /**
@@ -288,10 +282,7 @@ class SimpleColocalization : Command {
         cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
         cellSegmentationService.segmentImage(image)
 
-        val cellManager = SimpleCellManager()
-        cellSegmentationService.identifyCells(cellManager, image)
-        cellManager.show(image)
-        return cellManager.cells
+        return cellSegmentationService.identifyCells(image)
     }
 
     /**
