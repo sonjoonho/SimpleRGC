@@ -3,6 +3,8 @@ package simplecolocalization.preprocessing
 import ij.gui.GenericDialog
 import kotlin.math.roundToInt
 
+/** This module contains the functions and data structures used for tuning the parameters when performing the preprocessing **/
+
 object ThresholdTypes {
     const val GLOBAL = "Global"
     const val LOCAL = "Local"
