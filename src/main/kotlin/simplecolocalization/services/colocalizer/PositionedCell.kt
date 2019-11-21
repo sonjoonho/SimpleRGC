@@ -71,6 +71,11 @@ fun showCells(imp: ImagePlus, cells: List<PositionedCell>) {
     val rois: Collection<Roi> = cells.map { it.toRoi() }
     val overlay = Overlay()
     rois.forEach { overlay.add(it) }
-    imp.overlay = overlay
+    val ic = imp.canvas
+    if (ic == null) {
+        imp.overlay = overlay
+        return
+    }
+    ic.showAllList = overlay
     imp.draw()
 }

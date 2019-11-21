@@ -17,6 +17,7 @@ import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.colocalizer.showCells
 import simplecolocalization.services.counter.output.CSVCounterOutput
+import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -154,7 +155,7 @@ class SimpleCellCounter : Command {
         val cells = cellSegmentationService.identifyCells(imageDuplicate)
 
         if (outputDestination == OutputDestination.DISPLAY) {
-            // ImageJTableCounterOutput(cells.size, uiService).output()
+            ImageJTableCounterOutput(cells.size, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
             CSVCounterOutput(cells.size, outputFile!!).output()
         }

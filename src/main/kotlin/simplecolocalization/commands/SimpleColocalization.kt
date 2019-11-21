@@ -30,6 +30,7 @@ import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.TransductionAnalysis
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
+import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplecolocalization.services.colocalizer.showCells
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
@@ -231,7 +232,7 @@ class SimpleColocalization : Command {
         showHistogram(intensityAnalysis)
 
         if (outputDestination == OutputDestination.DISPLAY) {
-            // ImageJTableColocalizationOutput(intensityAnalysis, uiService).output()
+            ImageJTableColocalizationOutput(intensityAnalysis, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
             CSVColocalizationOutput(intensityAnalysis, outputFile!!).output()
         }
