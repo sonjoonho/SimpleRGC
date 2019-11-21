@@ -24,7 +24,7 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
-import simplecolocalization.PreprocessingParameters
+import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator

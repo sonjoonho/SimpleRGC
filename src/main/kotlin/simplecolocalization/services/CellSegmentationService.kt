@@ -12,18 +12,17 @@ import ij.plugin.filter.RankFilters
 import ij.plugin.frame.RoiManager
 import ij.process.AutoThresholder
 import ij.process.ImageConverter
-import io.minio.errors.InvalidArgumentException
 import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
-import simplecolocalization.GlobalThresholdAlgos
-import simplecolocalization.LocalThresholdAlgos
-import simplecolocalization.PreprocessingParameters
-import simplecolocalization.ThresholdTypes
-import simplecolocalization.bernsen
-import simplecolocalization.niblack
-import simplecolocalization.otsu
+import simplecolocalization.preprocessing.GlobalThresholdAlgos
+import simplecolocalization.preprocessing.LocalThresholdAlgos
+import simplecolocalization.preprocessing.PreprocessingParameters
+import simplecolocalization.preprocessing.ThresholdTypes
+import simplecolocalization.algorithms.bernsen
+import simplecolocalization.algorithms.niblack
+import simplecolocalization.algorithms.otsu
 
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
@@ -90,7 +89,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
                         AutoThresholder.Method.Shanbhag,
                         true
                     )
-                    else -> throw InvalidArgumentException("Threshold Algorithm selected")
+                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
                 }
                 image.processor.autoThreshold()
             }
@@ -111,10 +110,10 @@ class CellSegmentationService : AbstractService(), ImageJService {
                         0.2,
                         0.0
                     )
-                    else -> throw InvalidArgumentException("Threshold Algorithm selected")
+                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
                 }
             }
-            else -> throw InvalidArgumentException("Invalid Threshold Choice selected")
+            else -> throw IllegalArgumentException("Invalid Threshold Choice selected")
         }
     }
 

@@ -1,4 +1,4 @@
-package simplecolocalization
+package simplecolocalization.preprocessing
 
 import ij.gui.GenericDialog
 import kotlin.math.roundToInt

@@ -15,11 +15,11 @@ import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
-import simplecolocalization.PreprocessingParameters
+import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
-import simplecolocalization.tuneParameters
+import simplecolocalization.preprocessing.tuneParameters
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
