@@ -17,6 +17,8 @@ import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import simplecolocalization.SimpleCellManager
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.counter.output.CSVCounterOutput
+import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -43,6 +45,37 @@ class SimpleCellCounter : Command {
      */
     @Parameter
     private lateinit var uiService: UIService
+
+    @Parameter(
+        label = "Output Parameters:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var outputParametersHeader: String
+
+    /**
+     * The user can optionally output the results to a file.
+     */
+    object OutputDestination {
+        const val DISPLAY = "Display in table"
+        const val CSV = "Save as CSV file"
+    }
+
+    @Parameter(
+        label = "Results Output:",
+        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
+        required = true,
+        persist = false,
+        style = "radioButtonVertical"
+    )
+    private var outputDestination = OutputDestination.DISPLAY
+
+    @Parameter(
+        label = "Output File (if saving):",
+        style = "save",
+        required = false
+    )
+    private var outputFile: File? = null
 
     @Parameter(
         label = "Preprocessing Parameters:",
@@ -108,6 +141,14 @@ class SimpleCellCounter : Command {
 
     /** Processes single image. */
     private fun process(image: ImagePlus) {
+        if (outputDestination != SimpleColocalization.OutputDestination.DISPLAY && outputFile == null) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Error", "File to save to not specified."
+            )
+            return
+        }
+
         // We need to create a copy of the image since we want to show the results on the original image, but
         // preprocessing is done in-place which changes the image.
         val originalImage = image.duplicate()
@@ -119,7 +160,22 @@ class SimpleCellCounter : Command {
         val simpleCellManager = SimpleCellManager()
         val cells = cellSegmentationService.identifyCells(simpleCellManager, image)
 
-        // TODO(sonjoonho): Show total cell count here.
+        if (outputDestination == OutputDestination.DISPLAY) {
+            ImageJTableCounterOutput(cells.size, uiService).output()
+        } else if (outputDestination == OutputDestination.CSV) {
+            CSVCounterOutput(cells.size, outputFile!!).output()
+        }
+
+        // The colocalization results are clearly displayed if the output
+        // destination is set to DISPLAY, however, a visual confirmation
+        // is useful if the output is saved to file.
+        if (outputDestination != SimpleColocalization.OutputDestination.DISPLAY) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Saved",
+                "The cell counting results have successfully been saved to the specified file."
+            )
+        }
 
         originalImage.show()
     }

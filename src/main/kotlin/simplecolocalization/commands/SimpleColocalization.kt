@@ -11,6 +11,8 @@ import ij.plugin.frame.RoiManager
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
 import java.io.File
+import kotlin.math.max
+import kotlin.math.min
 import net.imagej.ImageJ
 import net.imagej.ops.OpService
 import org.scijava.ItemVisibility
@@ -34,6 +36,8 @@ import simplecolocalization.services.colocalizer.output.ImageJTableColocalizatio
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
+
+    private val intensityPercentageThreshold: Float = 40f
 
     @Parameter
     private lateinit var logService: LogService
@@ -208,10 +212,10 @@ class SimpleColocalization : Command {
         val transducedImage = channelImages[transducedChannel - 1]
 
         logService.info("Starting extraction")
-        targetImage.show()
         val targetCells = extractCells(targetImage)
-        transducedImage.show()
-        val transducedCells = extractCells(transducedImage)
+        // Take a duplicate of the image because extractCells will modify the transducedImage
+        val originalTransducedImage = transducedImage.duplicate()
+        val transducedCells = filterCellsByIntensity(extractCells(transducedImage), originalTransducedImage)
 
         logService.info("Starting analysis")
         val cellComparator = PixelCellComparator()
@@ -254,7 +258,30 @@ class SimpleColocalization : Command {
     }
 
     /**
-     * Extract an array of cells (as ROIs) from the specified image
+     * Filter the position cells by their average intensity in the given image
+     * using the intensityPercentageThreshold.
+     */
+    private fun filterCellsByIntensity(cells: List<PositionedCell>, image: ImagePlus): List<PositionedCell> {
+        var maxIntensity = 0.0f
+        var minIntensity = Float.MAX_VALUE
+        val intensities = cells.map {
+            val intensity = it.getMeanIntensity(image)
+            maxIntensity = max(maxIntensity, intensity)
+            minIntensity = min(minIntensity, intensity)
+            intensity
+        }
+        val threshold = maxIntensity - (maxIntensity - minIntensity) * (intensityPercentageThreshold / 100)
+        val thresholdedCells = mutableListOf<PositionedCell>()
+        intensities.forEachIndexed { index, intensity ->
+            if (intensity > threshold) {
+                thresholdedCells.add(cells[index])
+            }
+        }
+        return thresholdedCells
+    }
+
+    /**
+     * Extract an array of cells (as ROIs) from the specified image.
      */
     private fun extractCells(image: ImagePlus): List<PositionedCell> {
         // Process the target image.
