@@ -5,9 +5,7 @@ import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
-import ij.plugin.frame.RoiManager
 import java.io.File
-import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -17,6 +15,7 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.colocalizer.showCells
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 
@@ -149,17 +148,11 @@ class SimpleCellCounter : Command {
             return
         }
 
-        // We need to create a copy of the image since we want to show the results on the original image, but
-        // preprocessing is done in-place which changes the image.
-        val originalImage = image.duplicate()
-        originalImage.title = "${image.title} - segmented"
+        val imageDuplicate = image.duplicate()
+        cellSegmentationService.preprocessImage(imageDuplicate, largestCellDiameter, gaussianBlurSigma)
+        cellSegmentationService.segmentImage(imageDuplicate)
 
-        cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
-        cellSegmentationService.segmentImage(image)
-
-        val roiManager = RoiManager.getRoiManager()
-        val cells = cellSegmentationService.identifyCells(roiManager, image)
-        cellSegmentationService.markCells(originalImage, cells)
+        val cells = cellSegmentationService.identifyCells(imageDuplicate)
 
         if (outputDestination == OutputDestination.DISPLAY) {
             ImageJTableCounterOutput(cells.size, uiService).output()
@@ -178,7 +171,8 @@ class SimpleCellCounter : Command {
             )
         }
 
-        originalImage.show()
+        image.show()
+        showCells(image, cells)
     }
 
     companion object {
@@ -197,9 +191,8 @@ class SimpleCellCounter : Command {
             ij.launch()
 
             val file: File = ij.ui().chooseFile(null, "open")
-            val dataset: Dataset = ij.scifio().datasetIO().open(file.path)
-
-            ij.ui().show(dataset)
+            val imp = IJ.openImage(file.path)
+            imp.show()
             ij.command().run(SimpleCellCounter::class.java, true)
         }
     }

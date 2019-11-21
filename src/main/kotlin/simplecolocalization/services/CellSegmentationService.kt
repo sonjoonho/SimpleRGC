@@ -1,7 +1,6 @@
 package simplecolocalization.services
 
 import ij.ImagePlus
-import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
 import ij.plugin.filter.BackgroundSubtracter
@@ -9,12 +8,13 @@ import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
-import ij.plugin.frame.RoiManager
 import ij.process.ImageConverter
 import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
+import simplecolocalization.DummyRoiManager
+import simplecolocalization.services.colocalizer.PositionedCell
 
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
@@ -69,7 +69,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
      * We use [ParticleAnalyzer] instead of [MaximumFinder] as the former highlights the shape of the cell instead
      * of just marking its centre.
      */
-    fun identifyCells(roiManager: RoiManager, segmentedImage: ImagePlus): Array<Roi> {
+    fun identifyCells(segmentedImage: ImagePlus): List<PositionedCell> {
+        val roiManager = DummyRoiManager()
         ParticleAnalyzer.setRoiManager(roiManager)
         ParticleAnalyzer(
             ParticleAnalyzer.SHOW_NONE or ParticleAnalyzer.ADD_TO_MANAGER,
@@ -78,13 +79,6 @@ class CellSegmentationService : AbstractService(), ImageJService {
             0.0,
             Double.MAX_VALUE
         ).analyze(segmentedImage)
-        return roiManager.roisAsArray
-    }
-
-    /** Mark the cell locations in the image. */
-    fun markCells(image: ImagePlus, rois: Array<Roi>) {
-        for (roi in rois) {
-            roi.image = image
-        }
+        return roiManager.roisAsArray.map { PositionedCell.fromRoi(it) }
     }
 }
