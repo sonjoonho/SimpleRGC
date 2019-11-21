@@ -5,7 +5,6 @@ import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
-import ij.plugin.frame.RoiManager
 import java.io.File
 import net.imagej.Dataset
 import net.imagej.ImageJ
@@ -119,7 +118,7 @@ class SimpleCellCounter : Command {
 
         val simpleCellManager = SimpleCellManager()
         val cells = cellSegmentationService.identifyCells(simpleCellManager, image)
-        
+
         // TODO(sonjoonho): Show total cell count here.
 
         originalImage.show()

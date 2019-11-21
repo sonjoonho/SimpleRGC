@@ -71,7 +71,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
      * We use [ParticleAnalyzer] instead of [MaximumFinder] as the former highlights the shape of the cell instead
      * of just marking its centre.
      */
-    fun identifyCells(cellManager: SimpleCellManager, segmentedImage: ImagePlus){
+    fun identifyCells(cellManager: SimpleCellManager, segmentedImage: ImagePlus) {
         val roiManager = DummyRoiManager()
         ParticleAnalyzer.setRoiManager(roiManager)
         ParticleAnalyzer(

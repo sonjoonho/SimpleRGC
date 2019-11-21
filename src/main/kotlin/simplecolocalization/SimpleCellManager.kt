@@ -7,7 +7,7 @@ import ij.plugin.OverlayLabels
 import simplecolocalization.services.colocalizer.PositionedCell
 
 class SimpleCellManager {
-    private val cells: MutableCollection<PositionedCell> = mutableListOf()
+    val cells: MutableList<PositionedCell> = mutableListOf()
 
     fun add(cell: PositionedCell) {
         cells.add(cell)

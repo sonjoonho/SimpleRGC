@@ -215,13 +215,6 @@ class SimpleColocalization : Command {
 
         logService.info("Starting analysis")
         val cellComparator = PixelCellComparator()
-        val analysis = BucketedNaiveColocalizer(
-            largestCellDiameter.toInt(),
-            targetImage.width,
-            targetImage.height,
-            cellComparator
-        ).analyseTransduction(targetCells, transducedCells)
-        print(analysis)
         val transductionAnalysis = BucketedNaiveColocalizer(
             largestCellDiameter.toInt(),
             targetImage.width,
@@ -271,7 +264,7 @@ class SimpleColocalization : Command {
         val cellManager = SimpleCellManager()
         cellSegmentationService.identifyCells(cellManager, image)
         cellManager.show(image)
-        return emptyList()
+        return cellManager.cells
     }
 
     /**
@@ -328,7 +321,6 @@ class SimpleColocalization : Command {
 
             ij.context().inject(CellSegmentationService())
             ij.context().inject(CellColocalizationService())
-
             ij.launch()
 
             val file: File = ij.ui().chooseFile(null, "open")
