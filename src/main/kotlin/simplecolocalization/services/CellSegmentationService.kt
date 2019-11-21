@@ -16,13 +16,13 @@ import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
+import simplecolocalization.algorithms.bernsen
+import simplecolocalization.algorithms.niblack
+import simplecolocalization.algorithms.otsu
 import simplecolocalization.preprocessing.GlobalThresholdAlgos
 import simplecolocalization.preprocessing.LocalThresholdAlgos
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.ThresholdTypes
-import simplecolocalization.algorithms.bernsen
-import simplecolocalization.algorithms.niblack
-import simplecolocalization.algorithms.otsu
 
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {

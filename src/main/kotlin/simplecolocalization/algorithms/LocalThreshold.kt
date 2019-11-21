@@ -13,7 +13,6 @@ import kotlin.math.sqrt
 
 /** This Module contains the local thresholding algorithms that can be used in the preprocessing step. **/
 
-
 /** Modified from FIJI's auto local thresholding algorithms: https://github.com/fiji/Auto_Local_Threshold */
 private fun duplicateImage(iProcessor: ImageProcessor): ImagePlus {
     val w = iProcessor.width
