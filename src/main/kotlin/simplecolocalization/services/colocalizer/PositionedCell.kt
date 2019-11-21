@@ -1,8 +1,8 @@
 package simplecolocalization.services.colocalizer
 
+import ij.ImagePlus
 import ij.gui.PolygonRoi
 import ij.gui.Roi
-import java.lang.RuntimeException
 
 /**
  * The representation of a positioned cell is a set of points on a
@@ -20,6 +20,12 @@ class PositionedCell(val points: Set<Pair<Int, Int>>, val outline: Set<Pair<Int,
             ySum += point.second
         }
         center = Pair(xSum / points.size, ySum / points.size)
+    }
+
+    fun getMeanIntensity(grayScaleImage: ImagePlus): Float {
+        // ImagePlus.getPixel returns size 4 array
+        // for grayscale, intensity will be at index 0
+        return points.map { grayScaleImage.getPixel(it.first, it.second)[0].toFloat() }.sum() / points.size
     }
 
     companion object {
