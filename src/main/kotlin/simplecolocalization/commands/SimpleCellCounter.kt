@@ -5,9 +5,7 @@ import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
-import ij.plugin.frame.RoiManager
 import java.io.File
-import net.imagej.Dataset
 import net.imagej.ImageJ
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
@@ -18,6 +16,7 @@ import org.scijava.ui.UIService
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.colocalizer.showCells
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 
@@ -103,7 +102,7 @@ class SimpleCellCounter : Command {
 
     /** Processes single image. */
     private fun process(image: ImagePlus) {
-        if (outputDestination != SimpleColocalization.OutputDestination.DISPLAY && outputFile == null) {
+        if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
             MessageDialog(
                 IJ.getInstance(),
                 "Error", "File to save to not specified."
@@ -111,19 +110,14 @@ class SimpleCellCounter : Command {
             return
         }
 
-        // We need to create a copy of the image since we want to show the results on the original image, but
-        // preprocessing is done in-place which changes the image.
-        val originalImage = image.duplicate()
-        originalImage.title = "${image.title} - segmented"
+        val imageDuplicate = image.duplicate()
 
         val preprocessingParams = if (tuneParams) tuneParameters() else PreprocessingParameters()
 
-        cellSegmentationService.preprocessImage(image, preprocessingParams)
-        cellSegmentationService.segmentImage(image)
+        cellSegmentationService.preprocessImage(imageDuplicate, preprocessingParams)
+        cellSegmentationService.segmentImage(imageDuplicate)
 
-        val roiManager = RoiManager.getRoiManager()
-        val cells = cellSegmentationService.identifyCells(roiManager, image)
-        cellSegmentationService.markCells(originalImage, cells)
+        val cells = cellSegmentationService.identifyCells(imageDuplicate)
 
         if (outputDestination == OutputDestination.DISPLAY) {
             ImageJTableCounterOutput(cells.size, uiService).output()
@@ -134,7 +128,7 @@ class SimpleCellCounter : Command {
         // The colocalization results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation
         // is useful if the output is saved to file.
-        if (outputDestination != SimpleColocalization.OutputDestination.DISPLAY) {
+        if (outputDestination != OutputDestination.DISPLAY) {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
@@ -142,7 +136,8 @@ class SimpleCellCounter : Command {
             )
         }
 
-        originalImage.show()
+        image.show()
+        showCells(image, cells)
     }
 
     companion object {
@@ -161,9 +156,8 @@ class SimpleCellCounter : Command {
             ij.launch()
 
             val file: File = ij.ui().chooseFile(null, "open")
-            val dataset: Dataset = ij.scifio().datasetIO().open(file.path)
-
-            ij.ui().show(dataset)
+            val imp = IJ.openImage(file.path)
+            imp.show()
             ij.command().run(SimpleCellCounter::class.java, true)
         }
     }
