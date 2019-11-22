@@ -8,12 +8,20 @@ import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
+import ij.process.AutoThresholder
 import ij.process.ImageConverter
 import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
 import simplecolocalization.DummyRoiManager
+import simplecolocalization.algorithms.bernsen
+import simplecolocalization.algorithms.niblack
+import simplecolocalization.algorithms.otsu
+import simplecolocalization.preprocessing.GlobalThresholdAlgos
+import simplecolocalization.preprocessing.LocalThresholdAlgos
+import simplecolocalization.preprocessing.PreprocessingParameters
+import simplecolocalization.preprocessing.ThresholdTypes
 import simplecolocalization.services.colocalizer.PositionedCell
 
 @Plugin(type = Service::class)
@@ -23,33 +31,90 @@ class CellSegmentationService : AbstractService(), ImageJService {
     data class ChannelAnalysis(val name: String, val mean: Int, val min: Int, val max: Int)
 
     /** Perform pre-processing on the image to remove background and set cells to white. */
-    fun preprocessImage(image: ImagePlus, largestCellDiameter: Double, gaussianBlurSigma: Double) {
+    fun preprocessImage(
+        image: ImagePlus,
+        params: PreprocessingParameters
+    ) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
 
-        // Remove background.
-        BackgroundSubtracter().rollingBallBackground(
-            image.channelProcessor,
-            largestCellDiameter,
-            false,
-            false,
-            false,
-            false,
-            false
-        )
+        if (params.shouldSubtractBackground) {
+            // Remove background.
+            BackgroundSubtracter().rollingBallBackground(
+                image.channelProcessor,
+                params.largestCellDiameter,
+                false,
+                false,
+                false,
+                false,
+                false
+            )
+        }
 
-        // Threshold grayscale image, leaving black and white image.
-        image.channelProcessor.autoThreshold()
+        thresholdImage(image, params.thresholdLocality, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
 
         // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
         RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
+        if (params.shouldDespeckle) {
+            // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
+            // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
+            RankFilters().rank(image.channelProcessor, params.despeckleRadius, RankFilters.MEDIAN)
+        }
 
-        // Apply Gaussian Blur to group larger speckles.
-        image.channelProcessor.blurGaussian(gaussianBlurSigma)
+        if (params.shouldGaussianBlur) {
+            // Apply Gaussian Blur to group larger speckles.
+            image.channelProcessor.blurGaussian(params.gaussianBlurSigma)
+        }
 
         // Threshold image to remove blur.
         image.channelProcessor.autoThreshold()
+        // Threshold image again to remove blur.
+        thresholdImage(image, ThresholdTypes.GLOBAL, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
+    }
+
+    private fun thresholdImage(image: ImagePlus, thresholdChoice: String, globalThresholdAlgo: String, localThresholdAlgo: String, localThresholdRadius: Int) {
+        when (thresholdChoice) {
+            ThresholdTypes.GLOBAL -> {
+                when (globalThresholdAlgo) {
+                    GlobalThresholdAlgos.OTSU -> image.processor.setAutoThreshold(
+                        AutoThresholder.Method.Otsu,
+                        true
+                    )
+                    GlobalThresholdAlgos.MOMENTS -> image.processor.setAutoThreshold(
+                        AutoThresholder.Method.Moments,
+                        true
+                    )
+                    GlobalThresholdAlgos.SHANBHAG -> image.processor.setAutoThreshold(
+                        AutoThresholder.Method.Shanbhag,
+                        true
+                    )
+                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
+                }
+                image.processor.autoThreshold()
+            }
+            ThresholdTypes.LOCAL -> {
+                when (localThresholdAlgo) {
+                    LocalThresholdAlgos.OTSU -> otsu(
+                        image,
+                        localThresholdRadius
+                    )
+                    LocalThresholdAlgos.BERNSEN -> bernsen(
+                        image,
+                        localThresholdRadius,
+                        15.0
+                    ) // TODO(rasnav99): Decide additional parameters for these methods.
+                    LocalThresholdAlgos.NIBLACK -> niblack(
+                        image,
+                        localThresholdRadius,
+                        0.2,
+                        0.0
+                    )
+                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
+                }
+            }
+            else -> throw IllegalArgumentException("Invalid Threshold Choice selected")
+        }
     }
 
     /**

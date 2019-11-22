@@ -13,7 +13,8 @@ import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
-import org.scijava.widget.NumberWidget
+import simplecolocalization.preprocessing.PreprocessingParameters
+import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.colocalizer.showCells
 import simplecolocalization.services.counter.output.CSVCounterOutput
@@ -46,6 +47,13 @@ class SimpleCellCounter : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
+        label = "Manually Tune Parameters?",
+        required = true,
+        persist = false
+    )
+    private var tuneParams = false
+
+    @Parameter(
         label = "Output Parameters:",
         visibility = ItemVisibility.MESSAGE,
         required = false
@@ -76,52 +84,6 @@ class SimpleCellCounter : Command {
     )
     private var outputFile: File? = null
 
-    @Parameter(
-        label = "Preprocessing Parameters:",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var preprocessingParamsHeader: String
-
-    /**
-     * Applied to the input image to reduce sensitivity of the thresholding
-     * algorithm. Higher value means more blur.
-     */
-    @Parameter(
-        label = "Gaussian Blur Sigma (Radius)",
-        description = "Reduces sensitivity to cell edges by blurring the " +
-            "overall image. Higher is less sensitive.",
-        min = "0.0",
-        stepSize = "1.0",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var gaussianBlurSigma = 3.0
-
-    @Parameter(
-        label = "Cell Identification Parameters:",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var identificationParamsHeader: String
-
-    /**
-     * Used during the cell identification stage to reduce overlapping cells
-     * being grouped into a single cell.
-     *
-     * TODO(#5): Figure out what this value should be.
-     */
-    @Parameter(
-        label = "Largest Cell Diameter",
-        min = "5.0",
-        stepSize = "1.0",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var largestCellDiameter = 30.0
-
     /** Runs after the parameters above are populated. */
     override fun run() {
         var image = WindowManager.getCurrentImage()
@@ -140,7 +102,7 @@ class SimpleCellCounter : Command {
 
     /** Processes single image. */
     private fun process(image: ImagePlus) {
-        if (outputDestination != SimpleColocalization.OutputDestination.DISPLAY && outputFile == null) {
+        if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
             MessageDialog(
                 IJ.getInstance(),
                 "Error", "File to save to not specified."
@@ -149,7 +111,10 @@ class SimpleCellCounter : Command {
         }
 
         val imageDuplicate = image.duplicate()
-        cellSegmentationService.preprocessImage(imageDuplicate, largestCellDiameter, gaussianBlurSigma)
+
+        val preprocessingParams = if (tuneParams) tuneParameters() else PreprocessingParameters()
+
+        cellSegmentationService.preprocessImage(imageDuplicate, preprocessingParams)
         cellSegmentationService.segmentImage(imageDuplicate)
 
         val cells = cellSegmentationService.identifyCells(imageDuplicate)
@@ -163,7 +128,7 @@ class SimpleCellCounter : Command {
         // The colocalization results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation
         // is useful if the output is saved to file.
-        if (outputDestination != SimpleColocalization.OutputDestination.DISPLAY) {
+        if (outputDestination != OutputDestination.DISPLAY) {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",

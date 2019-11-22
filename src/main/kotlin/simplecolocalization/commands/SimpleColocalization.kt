@@ -23,6 +23,7 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
+import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
@@ -280,7 +281,10 @@ class SimpleColocalization : Command {
      */
     private fun extractCells(image: ImagePlus): List<PositionedCell> {
         // Process the target image.
-        cellSegmentationService.preprocessImage(image, largestCellDiameter, gaussianBlurSigma)
+        cellSegmentationService.preprocessImage(
+            image,
+            PreprocessingParameters()
+        )
         cellSegmentationService.segmentImage(image)
 
         return cellSegmentationService.identifyCells(image)
