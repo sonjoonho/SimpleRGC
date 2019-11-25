@@ -10,7 +10,7 @@ import org.scijava.service.Service
 @Plugin(type = Service::class)
 class CellColocalizationService : AbstractService(), ImageJService {
 
-    data class CellAnalysis(val area: Int, val mean: Int, val min: Int, val max: Int)
+    data class CellAnalysis(val area: Int, val mean: Int, val median: Int)
 
     /**
      *  Analyses the intensity of a cell.
@@ -21,17 +21,14 @@ class CellColocalizationService : AbstractService(), ImageJService {
         return cells.map { cell ->
             var area = 0
             var sum = 0
-            var min = Integer.MAX_VALUE
-            var max = Integer.MIN_VALUE
             cell.containedPoints.forEach { point ->
                 // pixelData is of the form [value, 0, 0, 0] because ImageJ.
                 val pixelData = image.getPixel(point.x, point.y)
                 area++
                 sum += pixelData[0]
-                min = Integer.min(min, pixelData[0])
-                max = Integer.max(max, pixelData[0])
             }
-            CellAnalysis(area, sum / area, min, max)
+            val median = cell.containedPoints.map{ image.getPixel(it.x, it.y)[0] }.sorted().let { (it[it.size / 2] + it[(it.size - 1) / 2]) / 2 }
+            CellAnalysis(area, sum / area, median)
         }.toTypedArray()
     }
 

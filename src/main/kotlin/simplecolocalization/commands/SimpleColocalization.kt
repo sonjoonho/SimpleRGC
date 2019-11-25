@@ -210,6 +210,7 @@ class SimpleColocalization : Command {
 
         val targetImage = channelImages[targetChannel - 1]
         val transducedImage = channelImages[transducedChannel - 1]
+        val originalTargetImage = targetImage.duplicate()
 
         logService.info("Starting extraction")
         val targetCells = extractCells(targetImage)
@@ -226,7 +227,7 @@ class SimpleColocalization : Command {
             cellComparator
         ).analyseTransduction(targetCells, transducedCells)
         val intensityAnalysis = cellColocalizationService.analyseCellIntensity(
-            targetImage,
+            originalTargetImage,
             transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
         )
         // showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
@@ -318,7 +319,7 @@ class SimpleColocalization : Command {
      * Displays the resulting colocalization results as a histogram.
      */
     private fun showHistogram(analysis: Array<CellColocalizationService.CellAnalysis>) {
-        val data = analysis.map { it.mean.toFloat() }.toFloatArray()
+        val data = analysis.map { it.median.toFloat() }.toFloatArray()
         val ip = FloatProcessor(analysis.size, 1, data, null)
         val imp = ImagePlus("", ip)
         val stats = StackStatistics(imp, 256, 0.0, 256.0)
@@ -328,7 +329,7 @@ class SimpleColocalization : Command {
                 maxCount = stats.histogram[i]
         }
         stats.histYMax = maxCount
-        HistogramWindow("Intensity distribution - transduced cells overlapping target cells", imp, stats)
+        HistogramWindow("Median intensity distribution - transduced cells overlapping target cells", imp, stats)
     }
 
     companion object {
