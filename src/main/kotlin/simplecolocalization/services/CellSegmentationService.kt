@@ -53,6 +53,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
 
         thresholdImage(image, params.thresholdLocality, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
 
+        detectAxons(image)
+
         // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
         RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
@@ -71,6 +73,38 @@ class CellSegmentationService : AbstractService(), ImageJService {
         image.channelProcessor.autoThreshold()
         // Threshold image again to remove blur.
         thresholdImage(image, ThresholdTypes.GLOBAL, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
+    }
+
+    private fun detectAxons(image: ImagePlus) {
+        val manager = DummyRoiManager()
+        val rt = ResultsTable()
+        ParticleAnalyzer.setRoiManager(manager)
+        val particleAnalyzer = ParticleAnalyzer(ParticleAnalyzer.SHOW_NONE, Measurements.PERIMETER or Measurements.CIRCULARITY,
+            rt, 0.0, Double.MAX_VALUE,
+            0.0, 1.0)
+        particleAnalyzer.setHideOutputImage(false)
+        particleAnalyzer.analyze(image)
+
+        // Calculate median area and circularity for image
+        val areaIndex = rt.getColumnIndex("Perim.")
+        val circIndex = rt.getColumnIndex("Circ.")
+        val areas = rt.getColumn(areaIndex)
+        val circs = rt.getColumn(circIndex)
+        areas.sort()
+        circs.sort()
+        val avgArea = areas[areas.size / 2].toDouble()
+        val avgCirc = circs[circs.size / 2].toDouble()
+        println(avgArea)
+        println(avgCirc)
+
+        // Analyze particles that are outside of norm
+        // TODO: Find the ideal parameters
+        val particleAnalyzer2 = ParticleAnalyzer(ParticleAnalyzer.SHOW_OUTLINES, Measurements.AREA or Measurements.CIRCULARITY, rt,
+            avgArea, Double.MAX_VALUE, 0.0, avgCirc)
+        particleAnalyzer2.setHideOutputImage(false)
+        particleAnalyzer2.analyze(image)
+
+        //TODO: Draw ROIs on image
     }
 
     private fun thresholdImage(image: ImagePlus, thresholdChoice: String, globalThresholdAlgo: String, localThresholdAlgo: String, localThresholdRadius: Int) {
