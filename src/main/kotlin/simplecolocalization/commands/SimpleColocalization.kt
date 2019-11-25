@@ -224,15 +224,15 @@ class SimpleColocalization : Command {
             PixelCellComparator()
         ).analyseTransduction(targetCells, transducedCells)
 
-        val transducedTargetCellsAnalysis = cellColocalizationService.analyseCellIntensity(
-            targetChannel,
+        val targetCellTransductionAnalysis = cellColocalizationService.analyseCellIntensity(
+            transducedChannel,
             transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
         )
 
         if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableColocalizationOutput(transducedTargetCellsAnalysis, uiService).output()
+            ImageJTableColocalizationOutput(targetCellTransductionAnalysis, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
-            CSVColocalizationOutput(transducedTargetCellsAnalysis, outputFile!!).output()
+            CSVColocalizationOutput(targetCellTransductionAnalysis, outputFile!!).output()
         }
 
         // The colocalization results are clearly displayed if the output
@@ -249,7 +249,7 @@ class SimpleColocalization : Command {
         image.show()
         showCells(image, transductionAnalysis.overlapping)
         // showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
-        showHistogram(transducedTargetCellsAnalysis)
+        showHistogram(targetCellTransductionAnalysis)
     }
 
     /**
@@ -329,7 +329,7 @@ class SimpleColocalization : Command {
                 maxCount = stats.histogram[i]
         }
         stats.histYMax = maxCount
-        HistogramWindow("Median intensity distribution - transduced cells overlapping target cells", imp, stats)
+        HistogramWindow("Median intensity distribution of transduced cells overlapping target cells", imp, stats)
     }
 
     companion object {
