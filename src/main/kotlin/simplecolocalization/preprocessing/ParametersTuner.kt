@@ -10,12 +10,6 @@ object ThresholdTypes {
     const val LOCAL = "Local"
 }
 
-object GlobalThresholdAlgos {
-    const val OTSU = "Otsu"
-    const val MOMENTS = "Moments"
-    const val SHANBHAG = "Shanbhag"
-}
-
 object LocalThresholdAlgos {
     const val OTSU = "Otsu"
     const val BERNSEN = "Bernsen"
@@ -23,12 +17,10 @@ object LocalThresholdAlgos {
 }
 
 data class PreprocessingParameters(
-    val shouldSubtractBackground: Boolean = true,
-    val largestCellDiameter: Double = 30.0,
-    val thresholdLocality: String = ThresholdTypes.GLOBAL,
-    val globalThresholdAlgo: String = GlobalThresholdAlgos.OTSU,
-    val localThresholdAlgo: String = LocalThresholdAlgos.OTSU,
-    val localThresholdRadius: Int = 15,
+    val shouldSubtractBackground: Boolean = false,
+    val largestCellDiameter: Int = 30,
+    val thresholdLocality: String = ThresholdTypes.LOCAL,
+    val localThresholdAlgo: String = LocalThresholdAlgos.NIBLACK,
     val shouldDespeckle: Boolean = true,
     val despeckleRadius: Double = 1.0,
     val shouldGaussianBlur: Boolean = true,
@@ -37,22 +29,16 @@ data class PreprocessingParameters(
 
 private fun renderParamsDialog(paramsDialog: GenericDialog, defaultParams: PreprocessingParameters) {
     paramsDialog.addCheckbox("Subtract Background?", defaultParams.shouldSubtractBackground)
-    paramsDialog.addNumericField("Largest Cell Diameter", defaultParams.largestCellDiameter, 0)
+    paramsDialog.addNumericField("Largest Cell Diameter", defaultParams.largestCellDiameter.toDouble(), 0)
     paramsDialog.addChoice("Threshold Locality", arrayOf(
         ThresholdTypes.GLOBAL,
         ThresholdTypes.LOCAL
     ), defaultParams.thresholdLocality)
-    paramsDialog.addChoice("Global Thresholding Algorithm", arrayOf(
-        GlobalThresholdAlgos.OTSU,
-        GlobalThresholdAlgos.MOMENTS,
-        GlobalThresholdAlgos.SHANBHAG
-    ), defaultParams.globalThresholdAlgo)
     paramsDialog.addChoice("Local Thresholding Algorithm", arrayOf(
         LocalThresholdAlgos.OTSU,
         LocalThresholdAlgos.BERNSEN,
         LocalThresholdAlgos.NIBLACK
     ), defaultParams.localThresholdAlgo)
-    paramsDialog.addNumericField("Local Threshold radius", defaultParams.localThresholdRadius.toDouble(), 0)
     paramsDialog.addCheckbox("Despeckle?", defaultParams.shouldDespeckle)
     paramsDialog.addNumericField("Despeckle Radius", defaultParams.despeckleRadius, 0)
     paramsDialog.addCheckbox("Gaussian Blur?", defaultParams.shouldGaussianBlur)
@@ -62,11 +48,9 @@ private fun renderParamsDialog(paramsDialog: GenericDialog, defaultParams: Prepr
 
 private fun getParamsFromDialog(paramsDialog: GenericDialog): PreprocessingParameters {
     val shouldSubtractBackground = paramsDialog.nextBoolean
-    val largestCellDiameter = paramsDialog.nextNumber
+    val largestCellDiameter = paramsDialog.nextNumber.roundToInt()
     val thresholdLocality = paramsDialog.nextChoice
-    val globalThresholdAlgo = paramsDialog.nextChoice
     val localThresholdAlgo = paramsDialog.nextChoice
-    val localThresholdRadius = paramsDialog.nextNumber.roundToInt()
     val shouldDespeckle = paramsDialog.nextBoolean
     val despeckleRadius = paramsDialog.nextNumber
     val shouldGaussianBlur = paramsDialog.nextBoolean
@@ -75,9 +59,7 @@ private fun getParamsFromDialog(paramsDialog: GenericDialog): PreprocessingParam
         shouldSubtractBackground,
         largestCellDiameter,
         thresholdLocality,
-        globalThresholdAlgo,
         localThresholdAlgo,
-        localThresholdRadius,
         shouldDespeckle,
         despeckleRadius,
         shouldGaussianBlur,

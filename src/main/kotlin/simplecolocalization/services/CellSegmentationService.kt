@@ -18,7 +18,6 @@ import simplecolocalization.DummyRoiManager
 import simplecolocalization.algorithms.bernsen
 import simplecolocalization.algorithms.niblack
 import simplecolocalization.algorithms.otsu
-import simplecolocalization.preprocessing.GlobalThresholdAlgos
 import simplecolocalization.preprocessing.LocalThresholdAlgos
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.ThresholdTypes
@@ -42,7 +41,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             // Remove background.
             BackgroundSubtracter().rollingBallBackground(
                 image.channelProcessor,
-                params.largestCellDiameter,
+                params.largestCellDiameter.toDouble(),
                 false,
                 false,
                 false,
@@ -51,11 +50,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
             )
         }
 
-        thresholdImage(image, params.thresholdLocality, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
+        thresholdImage(image, params.thresholdLocality, params.localThresholdAlgo, params.largestCellDiameter)
 
-        // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
-        // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
-        RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
         if (params.shouldDespeckle) {
             // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
             // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
@@ -67,30 +63,18 @@ class CellSegmentationService : AbstractService(), ImageJService {
             image.channelProcessor.blurGaussian(params.gaussianBlurSigma)
         }
 
-        // Threshold image to remove blur.
-        image.channelProcessor.autoThreshold()
         // Threshold image again to remove blur.
-        thresholdImage(image, ThresholdTypes.GLOBAL, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
+        thresholdImage(image, ThresholdTypes.GLOBAL, params.localThresholdAlgo, params.largestCellDiameter)
     }
 
-    private fun thresholdImage(image: ImagePlus, thresholdChoice: String, globalThresholdAlgo: String, localThresholdAlgo: String, localThresholdRadius: Int) {
+    /**
+     * Threshold the image, either globally or locally, depending on parameters specified by the user.
+     *
+     */
+    private fun thresholdImage(image: ImagePlus, thresholdChoice: String, localThresholdAlgo: String, localThresholdRadius: Int) {
         when (thresholdChoice) {
             ThresholdTypes.GLOBAL -> {
-                when (globalThresholdAlgo) {
-                    GlobalThresholdAlgos.OTSU -> image.processor.setAutoThreshold(
-                        AutoThresholder.Method.Otsu,
-                        true
-                    )
-                    GlobalThresholdAlgos.MOMENTS -> image.processor.setAutoThreshold(
-                        AutoThresholder.Method.Moments,
-                        true
-                    )
-                    GlobalThresholdAlgos.SHANBHAG -> image.processor.setAutoThreshold(
-                        AutoThresholder.Method.Shanbhag,
-                        true
-                    )
-                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
-                }
+                image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
                 image.processor.autoThreshold()
             }
             ThresholdTypes.LOCAL -> {
@@ -124,7 +108,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
      * Used as a simple starting point that'd allow for cell counting.
      */
     fun segmentImage(image: ImagePlus) {
-        // TODO(#7): Review and improve upon simple watershed.
+        // Preprocessing is good enough that watershed is sufficient to segment here.
         EDM().toWatershed(image.channelProcessor)
     }
 
