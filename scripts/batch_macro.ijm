@@ -9,6 +9,7 @@ input = getDirectory("Choose an Input Directory")
 recurse = getBoolean("Apply batch process in nested folders?")
 suffix = getString("File suffix to run plugin on:", ".tif")
 
+setBatchMode(true);
 processFolder(input);
 
 // function to scan folders/subfolders/files to find files with correct suffix
@@ -23,16 +24,13 @@ function processFolder(input) {
 		if (recurse && endsWith(file, "/")) {
 		    processFolder(file);
 		} else if (endsWith(list[i], suffix)) {
-		    processFile(input, file);
+		    processFile(file);
 		}
 	}
 }
 
-run("Close All");
-
-function processFile(input, file) {
-	print(file);
+function processFile(file) {
 	open(file);
 	// TODO: Run headless somehow.
-	// run("Invert");
+	run("Simple Cell Counter");
 }
