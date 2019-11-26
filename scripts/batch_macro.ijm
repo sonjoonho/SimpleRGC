@@ -9,8 +9,6 @@ input = getDirectory("Choose an Input Directory")
 recurse = getBoolean("Apply batch process in nested folders?")
 suffix = getString("File suffix to run plugin on:", ".tif")
 
-exit
-
 processFolder(input);
 
 // function to scan folders/subfolders/files to find files with correct suffix
@@ -26,8 +24,11 @@ function processFolder(input) {
 	}
 }
 
+// close("*")
+
 function processFile(input, file) {
 	print(file);
+	open(file);
 	// TODO: Run headless somehow.
-	run("Simple Colocalization");
+	// run("Invert");
 }
