@@ -1,6 +1,9 @@
 package simplecolocalization.services
 
+import de.biomedical_imaging.ij.steger.LineDetector
 import ij.ImagePlus
+import ij.gui.PolygonRoi
+import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
 import ij.plugin.filter.BackgroundSubtracter
@@ -9,6 +12,7 @@ import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
 import ij.process.AutoThresholder
+import ij.process.FloatPolygon
 import ij.process.ImageConverter
 import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
@@ -51,10 +55,15 @@ class CellSegmentationService : AbstractService(), ImageJService {
             )
         }
 
-        thresholdImage(image, params.thresholdLocality, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
-
-        detectAxons(image)
-
+        thresholdImage(
+            image,
+            params.thresholdLocality,
+            params.globalThresholdAlgo,
+            params.localThresholdAlgo,
+            params.localThresholdRadius
+        )
+        // detectAxons(image)
+        removeAxons(image)
         // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
         RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
@@ -72,16 +81,52 @@ class CellSegmentationService : AbstractService(), ImageJService {
         // Threshold image to remove blur.
         image.channelProcessor.autoThreshold()
         // Threshold image again to remove blur.
-        thresholdImage(image, ThresholdTypes.GLOBAL, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
+        thresholdImage(
+            image,
+            ThresholdTypes.GLOBAL,
+            params.globalThresholdAlgo,
+            params.localThresholdAlgo,
+            params.localThresholdRadius
+        )
+    }
+
+    private fun removeAxons(image: ImagePlus) {
+        // TODO(willburr): Remove magic numbers
+        val contours = LineDetector().detectLines(
+            image.processor, 1.61, 15.0, 5.0,
+            0.0, 0.0, false, true, true, true
+        )
+        for (c in contours) {
+            val x = c.xCoordinates
+            for (j in x.indices) {
+                x[j] = ((x[j] + 0.5).toFloat())
+            }
+            val y = c.yCoordinates
+            for (j in y.indices) {
+                y[j] = ((y[j] + 0.5).toFloat())
+            }
+            val p = FloatPolygon(x, y, c.number)
+            val r = PolygonRoi(p, Roi.FREELINE)
+            r.position = c.frame
+            r.name = "C" + c.id
+            var sumWidths = 0.0
+            for (j in c.lineWidthL.indices) {
+                sumWidths += c.lineWidthL[j] + c.lineWidthR[j]
+            }
+            r.strokeWidth = (sumWidths / (c.xCoordinates.size)).toFloat()
+            r.drawPixels(image.processor)
+        }
     }
 
     private fun detectAxons(image: ImagePlus) {
         val manager = DummyRoiManager()
         val rt = ResultsTable()
         ParticleAnalyzer.setRoiManager(manager)
-        val particleAnalyzer = ParticleAnalyzer(ParticleAnalyzer.SHOW_NONE, Measurements.PERIMETER or Measurements.CIRCULARITY,
+        val particleAnalyzer = ParticleAnalyzer(
+            ParticleAnalyzer.SHOW_NONE, Measurements.PERIMETER or Measurements.CIRCULARITY,
             rt, 0.0, Double.MAX_VALUE,
-            0.0, 1.0)
+            0.0, 1.0
+        )
         particleAnalyzer.setHideOutputImage(false)
         particleAnalyzer.analyze(image)
 
@@ -99,15 +144,23 @@ class CellSegmentationService : AbstractService(), ImageJService {
 
         // Analyze particles that are outside of norm
         // TODO: Find the ideal parameters
-        val particleAnalyzer2 = ParticleAnalyzer(ParticleAnalyzer.SHOW_OUTLINES, Measurements.AREA or Measurements.CIRCULARITY, rt,
-            avgArea, Double.MAX_VALUE, 0.0, avgCirc)
+        val particleAnalyzer2 = ParticleAnalyzer(
+            ParticleAnalyzer.SHOW_OUTLINES, Measurements.AREA or Measurements.CIRCULARITY, rt,
+            avgArea, Double.MAX_VALUE, 0.0, avgCirc
+        )
         particleAnalyzer2.setHideOutputImage(false)
         particleAnalyzer2.analyze(image)
 
         //TODO: Draw ROIs on image
     }
 
-    private fun thresholdImage(image: ImagePlus, thresholdChoice: String, globalThresholdAlgo: String, localThresholdAlgo: String, localThresholdRadius: Int) {
+    private fun thresholdImage(
+        image: ImagePlus,
+        thresholdChoice: String,
+        globalThresholdAlgo: String,
+        localThresholdAlgo: String,
+        localThresholdRadius: Int
+    ) {
         when (thresholdChoice) {
             ThresholdTypes.GLOBAL -> {
                 when (globalThresholdAlgo) {
