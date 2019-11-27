@@ -62,8 +62,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             params.localThresholdAlgo,
             params.localThresholdRadius
         )
-        // detectAxons(image)
-        removeAxons(image)
+
         // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
         // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
         RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
@@ -72,6 +71,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
             // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
             RankFilters().rank(image.channelProcessor, params.despeckleRadius, RankFilters.MEDIAN)
         }
+        
+        removeAxons(image)
 
         if (params.shouldGaussianBlur) {
             // Apply Gaussian Blur to group larger speckles.
@@ -116,42 +117,6 @@ class CellSegmentationService : AbstractService(), ImageJService {
             r.strokeWidth = (sumWidths / (c.xCoordinates.size)).toFloat()
             r.drawPixels(image.processor)
         }
-    }
-
-    private fun detectAxons(image: ImagePlus) {
-        val manager = DummyRoiManager()
-        val rt = ResultsTable()
-        ParticleAnalyzer.setRoiManager(manager)
-        val particleAnalyzer = ParticleAnalyzer(
-            ParticleAnalyzer.SHOW_NONE, Measurements.PERIMETER or Measurements.CIRCULARITY,
-            rt, 0.0, Double.MAX_VALUE,
-            0.0, 1.0
-        )
-        particleAnalyzer.setHideOutputImage(false)
-        particleAnalyzer.analyze(image)
-
-        // Calculate median area and circularity for image
-        val areaIndex = rt.getColumnIndex("Perim.")
-        val circIndex = rt.getColumnIndex("Circ.")
-        val areas = rt.getColumn(areaIndex)
-        val circs = rt.getColumn(circIndex)
-        areas.sort()
-        circs.sort()
-        val avgArea = areas[areas.size / 2].toDouble()
-        val avgCirc = circs[circs.size / 2].toDouble()
-        println(avgArea)
-        println(avgCirc)
-
-        // Analyze particles that are outside of norm
-        // TODO: Find the ideal parameters
-        val particleAnalyzer2 = ParticleAnalyzer(
-            ParticleAnalyzer.SHOW_OUTLINES, Measurements.AREA or Measurements.CIRCULARITY, rt,
-            avgArea, Double.MAX_VALUE, 0.0, avgCirc
-        )
-        particleAnalyzer2.setHideOutputImage(false)
-        particleAnalyzer2.analyze(image)
-
-        //TODO: Draw ROIs on image
     }
 
     private fun thresholdImage(
