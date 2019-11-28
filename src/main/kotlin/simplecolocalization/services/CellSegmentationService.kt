@@ -14,6 +14,7 @@ import ij.plugin.filter.RankFilters
 import ij.process.AutoThresholder
 import ij.process.FloatPolygon
 import ij.process.ImageConverter
+import java.awt.Color
 import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
@@ -27,7 +28,6 @@ import simplecolocalization.preprocessing.LocalThresholdAlgos
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.ThresholdTypes
 import simplecolocalization.services.colocalizer.PositionedCell
-import java.awt.Color
 
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
@@ -72,7 +72,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
             RankFilters().rank(image.channelProcessor, params.despeckleRadius, RankFilters.MEDIAN)
         }
-        
+
         removeAxons(image, detectAxons(image))
 
         if (params.shouldGaussianBlur) {
@@ -136,7 +136,6 @@ class CellSegmentationService : AbstractService(), ImageJService {
             axon.drawPixels(image.processor)
         }
     }
-
 
     private fun thresholdImage(
         image: ImagePlus,
