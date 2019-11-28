@@ -3,10 +3,12 @@ package simplecolocalization.commands
 import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
+import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
 import java.io.File
 import net.imagej.ImageJ
+import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
 import org.scijava.log.LogService
@@ -77,11 +79,6 @@ class SimpleCellCounter : Command {
     )
     private var outputDestination = OutputDestination.DISPLAY
 
-    @Parameter(
-        label = "Output File (if saving):",
-        style = "save",
-        required = false
-    )
     private var outputFile: File? = null
 
     /** Runs after the parameters above are populated. */
@@ -103,11 +100,15 @@ class SimpleCellCounter : Command {
     /** Processes single image. */
     private fun process(image: ImagePlus) {
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error", "File to save to not specified."
-            )
-            return
+            val path = IJ.getDirectory(image.title)
+            val name = FilenameUtils.removeExtension(image.title) + ".csv"
+            outputFile = File(path + name)
+            if (!outputFile!!.createNewFile()) {
+                val dialog = GenericDialog("Warning")
+                dialog.addMessage("Overwriting file \"$name\"")
+                dialog.showDialog()
+                if (dialog.wasCanceled()) return
+            }
         }
 
         val imageDuplicate = image.duplicate()
