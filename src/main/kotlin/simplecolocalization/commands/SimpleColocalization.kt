@@ -3,6 +3,7 @@ package simplecolocalization.commands
 import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
+import ij.gui.GenericDialog
 import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
@@ -14,6 +15,7 @@ import kotlin.math.max
 import kotlin.math.min
 import net.imagej.ImageJ
 import net.imagej.ops.OpService
+import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
 import org.scijava.log.LogService
@@ -182,11 +184,15 @@ class SimpleColocalization : Command {
     private fun process(image: ImagePlus) {
         // TODO(sonjoonho): Remove duplication in this code fragment.
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error", "File to save to not specified."
-            )
-            return
+            val path = IJ.getDirectory("current")
+            val name = FilenameUtils.removeExtension(image.title) + ".csv"
+            outputFile = File(path + name)
+            if (!outputFile!!.createNewFile()) {
+                val dialog = GenericDialog("Warning")
+                dialog.addMessage("Overwriting file \"$name\"")
+                dialog.showDialog()
+                if (dialog.wasCanceled()) return
+            }
         }
 
         val channelImages = ChannelSplitter.split(image)
