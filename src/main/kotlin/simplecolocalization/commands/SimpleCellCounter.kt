@@ -13,6 +13,7 @@ import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
+import org.scijava.widget.FileWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
@@ -155,7 +156,7 @@ class SimpleCellCounter : Command {
 
             ij.launch()
 
-            val file: File = ij.ui().chooseFile(null, "open")
+            val file: File = ij.ui().chooseFile(null, FileWidget.OPEN_STYLE)
             val imp = IJ.openImage(file.path)
             imp.show()
             ij.command().run(SimpleCellCounter::class.java, true)

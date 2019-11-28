@@ -22,6 +22,7 @@ import org.scijava.plugin.Plugin
 import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
+import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellColocalizationService
@@ -347,7 +348,7 @@ class SimpleColocalization : Command {
             ij.context().inject(CellColocalizationService())
             ij.launch()
 
-            val file: File = ij.ui().chooseFile(null, "open")
+            val file: File = ij.ui().chooseFile(null, FileWidget.OPEN_STYLE)
             val imp = IJ.openImage(file.path)
             imp.show()
             ij.command().run(SimpleColocalization::class.java, true)
