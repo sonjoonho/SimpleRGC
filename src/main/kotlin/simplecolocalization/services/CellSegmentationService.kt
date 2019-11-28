@@ -105,15 +105,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
         )
         val axons = mutableListOf<Roi>()
         for (c in contours) {
-            val x = c.xCoordinates
-            for (j in x.indices) {
-                x[j] = ((x[j] + 0.5).toFloat())
-            }
-            val y = c.yCoordinates
-            for (j in y.indices) {
-                y[j] = ((y[j] + 0.5).toFloat())
-            }
-            val p = FloatPolygon(x, y, c.number)
+            val p = FloatPolygon(c.xCoordinates, c.yCoordinates, c.number)
             val r = PolygonRoi(p, Roi.FREELINE)
             r.position = c.frame
             r.name = "C" + c.id
@@ -135,6 +127,9 @@ class CellSegmentationService : AbstractService(), ImageJService {
         for (axon in axons) {
             axon.drawPixels(image.processor)
         }
+
+        val dupImage = image.duplicate()
+        dupImage.show()
     }
 
     private fun thresholdImage(
