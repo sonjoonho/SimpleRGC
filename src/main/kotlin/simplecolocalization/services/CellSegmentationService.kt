@@ -72,7 +72,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             RankFilters().rank(image.channelProcessor, params.despeckleRadius, RankFilters.MEDIAN)
         }
         
-        removeAxons(image)
+        removeAxons(image, detectAxons(image))
 
         if (params.shouldGaussianBlur) {
             // Apply Gaussian Blur to group larger speckles.
@@ -91,12 +91,19 @@ class CellSegmentationService : AbstractService(), ImageJService {
         )
     }
 
-    private fun removeAxons(image: ImagePlus) {
+    private fun removeAxons(image: ImagePlus, axons: List<Roi>) {
+        for (axon in axons) {
+            axon.drawPixels(image.processor)
+        }
+    }
+
+    private fun detectAxons(image: ImagePlus): List<Roi> {
         // TODO(willburr): Remove magic numbers
         val contours = LineDetector().detectLines(
             image.processor, 1.61, 15.0, 5.0,
             0.0, 0.0, false, true, true, true
         )
+        val axons = mutableListOf<Roi>()
         for (c in contours) {
             val x = c.xCoordinates
             for (j in x.indices) {
@@ -115,9 +122,11 @@ class CellSegmentationService : AbstractService(), ImageJService {
                 sumWidths += c.lineWidthL[j] + c.lineWidthR[j]
             }
             r.strokeWidth = (sumWidths / (c.xCoordinates.size)).toFloat()
-            r.drawPixels(image.processor)
+            axons.add(r)
         }
+        return axons
     }
+
 
     private fun thresholdImage(
         image: ImagePlus,
