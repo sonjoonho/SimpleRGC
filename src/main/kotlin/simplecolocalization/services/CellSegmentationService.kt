@@ -27,6 +27,7 @@ import simplecolocalization.preprocessing.LocalThresholdAlgos
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.ThresholdTypes
 import simplecolocalization.services.colocalizer.PositionedCell
+import java.awt.Color
 
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
@@ -91,12 +92,11 @@ class CellSegmentationService : AbstractService(), ImageJService {
         )
     }
 
-    private fun removeAxons(image: ImagePlus, axons: List<Roi>) {
-        for (axon in axons) {
-            axon.drawPixels(image.processor)
-        }
-    }
-
+    /**
+     * Detect axons/dendrites within an image and return them as Rois.
+     *
+     * Uses Ridge Detection plugin's LineDetector.
+     */
     private fun detectAxons(image: ImagePlus): List<Roi> {
         // TODO(willburr): Remove magic numbers
         val contours = LineDetector().detectLines(
@@ -125,6 +125,16 @@ class CellSegmentationService : AbstractService(), ImageJService {
             axons.add(r)
         }
         return axons
+    }
+
+    /** Remove axon rois from the (thresholded) image. */
+    private fun removeAxons(image: ImagePlus, axons: List<Roi>) {
+        // The background post-thresholding will be black
+        // therefore we want the brush to be black
+        image.setColor(Color.BLACK)
+        for (axon in axons) {
+            axon.drawPixels(image.processor)
+        }
     }
 
 
