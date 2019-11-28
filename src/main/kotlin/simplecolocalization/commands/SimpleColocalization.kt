@@ -189,53 +189,50 @@ class SimpleColocalization : Command {
             return
         }
 
-        val channelImages = ChannelSplitter.split(image)
-        if (targetChannel < 1 || targetChannel > channelImages.size) {
+        val imageChannels = ChannelSplitter.split(image)
+        if (targetChannel < 1 || targetChannel > imageChannels.size) {
             MessageDialog(
                 IJ.getInstance(),
                 "Error",
-                "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
+                "Target channel selected does not exist. There are %d channels available.".format(imageChannels.size)
             )
             return
         }
 
-        if (transducedChannel < 1 || transducedChannel > channelImages.size) {
+        if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
             MessageDialog(
                 IJ.getInstance(),
                 "Error",
-                "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
+                "Tranduced channel selected does not exist. There are %d channels available.".format(imageChannels.size)
             )
             return
         }
 
-        val targetImage = channelImages[targetChannel - 1]
-        val transducedImage = channelImages[transducedChannel - 1]
+        val targetChannel = imageChannels[targetChannel - 1]
+        val transducedChannel = imageChannels[transducedChannel - 1]
 
         logService.info("Starting extraction")
-        val targetCells = extractCells(targetImage)
-        // Take a duplicate of the image because extractCells will modify the transducedImage.
-        val originalTransducedImage = transducedImage.duplicate()
-        val transducedCells = filterCellsByIntensity(extractCells(transducedImage), originalTransducedImage)
+        val targetCells = extractCells(targetChannel)
+        val transducedCells = filterCellsByIntensity(extractCells(transducedChannel), transducedChannel)
 
         logService.info("Starting analysis")
-        val cellComparator = PixelCellComparator()
+
         val transductionAnalysis = BucketedNaiveColocalizer(
             largestCellDiameter.toInt(),
-            targetImage.width,
-            targetImage.height,
-            cellComparator
+            targetChannel.width,
+            targetChannel.height,
+            PixelCellComparator()
         ).analyseTransduction(targetCells, transducedCells)
-        val intensityAnalysis = cellColocalizationService.analyseCellIntensity(
-            targetImage,
+
+        val targetCellTransductionAnalysis = cellColocalizationService.analyseCellIntensity(
+            transducedChannel,
             transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
         )
-        // showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
-        showHistogram(intensityAnalysis)
 
         if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableColocalizationOutput(intensityAnalysis, uiService).output()
+            ImageJTableColocalizationOutput(targetCellTransductionAnalysis, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
-            CSVColocalizationOutput(intensityAnalysis, outputFile!!).output()
+            CSVColocalizationOutput(targetCellTransductionAnalysis, outputFile!!).output()
         }
 
         // The colocalization results are clearly displayed if the output
@@ -251,6 +248,8 @@ class SimpleColocalization : Command {
 
         image.show()
         showCells(image, transductionAnalysis.overlapping)
+        // showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
+        showHistogram(targetCellTransductionAnalysis)
     }
 
     /**
@@ -280,14 +279,16 @@ class SimpleColocalization : Command {
      * Extract an array of cells (as ROIs) from the specified image.
      */
     private fun extractCells(image: ImagePlus): List<PositionedCell> {
+        val mutableImage = image.duplicate()
+
         // Process the target image.
         cellSegmentationService.preprocessImage(
-            image,
+            mutableImage,
             PreprocessingParameters()
         )
-        cellSegmentationService.segmentImage(image)
+        cellSegmentationService.segmentImage(mutableImage)
 
-        return cellSegmentationService.identifyCells(image)
+        return cellSegmentationService.identifyCells(mutableImage)
     }
 
     /**
@@ -318,7 +319,7 @@ class SimpleColocalization : Command {
      * Displays the resulting colocalization results as a histogram.
      */
     private fun showHistogram(analysis: Array<CellColocalizationService.CellAnalysis>) {
-        val data = analysis.map { it.mean.toFloat() }.toFloatArray()
+        val data = analysis.map { it.median.toFloat() }.toFloatArray()
         val ip = FloatProcessor(analysis.size, 1, data, null)
         val imp = ImagePlus("", ip)
         val stats = StackStatistics(imp, 256, 0.0, 256.0)
@@ -328,7 +329,7 @@ class SimpleColocalization : Command {
                 maxCount = stats.histogram[i]
         }
         stats.histYMax = maxCount
-        HistogramWindow("Intensity distribution - transduced cells overlapping target cells", imp, stats)
+        HistogramWindow("Median intensity distribution of transduced cells overlapping target cells", imp, stats)
     }
 
     companion object {
