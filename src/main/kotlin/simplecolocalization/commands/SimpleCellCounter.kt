@@ -131,7 +131,7 @@ class SimpleCellCounter : Command {
         val imageDuplicate = image.duplicate()
 
         val preprocessingParams = if (tuneParams) {
-                tuneParameters(largestCellDiameter)?: return
+                tuneParameters(largestCellDiameter) ?: return
             } else {
                 PreprocessingParameters(largestCellDiameter = largestCellDiameter)
             }
