@@ -140,7 +140,6 @@ class CellSegmentationService : AbstractService(), ImageJService {
         }
     }
 
-
     /**
      * Segment the image into individual cells, overlaying outlines for cells in the image.
      *
