@@ -3,20 +3,14 @@ package simplecolocalization.services.counter.output
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.util.ArrayList
 
-class CSVCounterOutput(private val outputFile: File) : CounterOutput() {
+class CSVCounterOutput(private val count: Int, private val file: File) : CounterOutput() {
 
-    private val arrayList: ArrayList<Pair<String, Int>> = ArrayList()
-
-    override fun addCountForFile(count: Int, file: String) {
-        arrayList.add(Pair(file, count))
-    }
-
-    fun save() {
+    override fun output() {
         val csvWriter = CsvWriter()
-
-        val outputData = arrayList.map { arrayOf(it.first, it.second.toString()) }
-
-        csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
+        val outputData = ArrayList<Array<String>>()
+        outputData.add(arrayOf(count.toString()))
+        csvWriter.write(file, StandardCharsets.UTF_8, outputData)
     }
 }
