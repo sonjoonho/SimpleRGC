@@ -84,7 +84,6 @@ class SimpleBatch : Command {
         }
     }
 
-
     private fun process(file: File) {
         println(file)
     }
