@@ -13,6 +13,11 @@ import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import java.io.File
 
+object PluginChoice {
+    const val SIMPLE_CELL_COUNTER = "SimpleCellCounter"
+    const val SIMPLE_COLOCALIZATION = "SimpleColocalization"
+}
+
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch Run")
 class SimpleBatch : Command {
 
@@ -22,24 +27,20 @@ class SimpleBatch : Command {
     @Parameter
     private lateinit var uiService: UIService
 
-    @Parameter
-    private lateinit var cellSegmentationService: CellSegmentationService
-
-    @Parameter
-    private lateinit var cellColocalizationService: CellColocalizationService
-
     @Parameter(
         label = "Batch Process files in subdirectories recursively ?",
         required = true
     )
     private var recursive: Boolean = false
 
-    override fun run() {
-        // Set batch mode to false.
+    @Parameter(
+        label = "Which plugin do you want to run in Batch Mode ?",
+        choices = [PluginChoice.SIMPLE_CELL_COUNTER, PluginChoice.SIMPLE_COLOCALIZATION],
+        required = true
+    )
+    private var pluginChoice = PluginChoice.SIMPLE_CELL_COUNTER
 
-        // Get the selected folder from somewhere?
-        // Maybe use: https://imagej.nih.gov/ij/developer/api/ij/plugin/FolderOpener.html
-        // Do the following:
+    override fun run() {
         val path = IJ.getDirectory("current")
         val file = File(path)
 
@@ -68,12 +69,7 @@ class SimpleBatch : Command {
             }
         }
 
-        val tifs = files.filter { f -> f.endsWith(".tif") or f.endsWith(".tiff") }
-        // Should we parallelise the below with cheeky coroutines???!!!
-
-        for (tif in tifs) {
-            process(tif)
-        }
+        files.filter { f -> f.endsWith(".tif") or f.endsWith(".tiff") }.forEach { tif -> process(tif) }
     }
 
     private fun getAllFiles(file: File, recursive: Boolean): List<File> {
@@ -100,8 +96,6 @@ class SimpleBatch : Command {
         fun main(args: Array<String>) {
             val ij = ImageJ()
 
-            ij.context().inject(CellSegmentationService())
-            ij.context().inject(CellColocalizationService())
             ij.launch()
 
             ij.command().run(SimpleBatch::class.java, true)
