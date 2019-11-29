@@ -3,14 +3,13 @@ package simplecolocalization.commands
 import ij.IJ
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
+import ij.io.DirectoryChooser
 import net.imagej.ImageJ
 import org.scijava.command.Command
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
-import simplecolocalization.services.CellColocalizationService
-import simplecolocalization.services.CellSegmentationService
 import java.io.File
 
 object PluginChoice {
@@ -41,7 +40,10 @@ class SimpleBatch : Command {
     private var pluginChoice = PluginChoice.SIMPLE_CELL_COUNTER
 
     override fun run() {
-        val path = IJ.getDirectory("current")
+
+        val directoryChooser = DirectoryChooser("Select Input Folder")
+
+        val path = directoryChooser.directory
         val file = File(path)
 
         if (!file.exists()) {
@@ -51,7 +53,7 @@ class SimpleBatch : Command {
 
         val files = getAllFiles(file, recursive)
 
-        val lifs = files.filter { f -> f.endsWith(".lif") }
+        val lifs = files.filter { it.extension == "lif" }
         if (lifs.isNotEmpty()) {
 
             val dialog = GenericDialog("Found lifs")
@@ -69,7 +71,9 @@ class SimpleBatch : Command {
             }
         }
 
-        files.filter { f -> f.endsWith(".tif") or f.endsWith(".tiff") }.forEach { tif -> process(tif) }
+        files.filter { it.extension == "tif" || it.extension == "tiff" }.forEach {
+            tif -> process(tif)
+        }
     }
 
     private fun getAllFiles(file: File, recursive: Boolean): List<File> {
@@ -82,7 +86,7 @@ class SimpleBatch : Command {
 
 
     private fun process(file: File) {
-        // Run selected plugin!
+        println(file)
     }
 
     companion object {
