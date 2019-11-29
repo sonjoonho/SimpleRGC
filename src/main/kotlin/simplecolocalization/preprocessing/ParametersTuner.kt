@@ -1,7 +1,6 @@
 package simplecolocalization.preprocessing
 
 import ij.gui.GenericDialog
-import kotlin.math.roundToInt
 
 /** This module contains the functions and data structures used for tuning the parameters when performing the preprocessing **/
 
@@ -16,20 +15,21 @@ object LocalThresholdAlgos {
     const val NIBLACK = "Niblack"
 }
 
+// We suspect this value may depend on the image, we will have to find a way to
 data class PreprocessingParameters(
+    val largestCellDiameter: Double,
     val shouldSubtractBackground: Boolean = false,
-    val largestCellDiameter: Int = 30,
     val thresholdLocality: String = ThresholdTypes.LOCAL,
     val localThresholdAlgo: String = LocalThresholdAlgos.NIBLACK,
     val shouldDespeckle: Boolean = true,
-    val despeckleRadius: Double = 1.0,
+    val despeckleRadius: Double = 2.0,
     val shouldGaussianBlur: Boolean = true,
     val gaussianBlurSigma: Double = 3.0
 )
 
 private fun renderParamsDialog(paramsDialog: GenericDialog, defaultParams: PreprocessingParameters) {
+    paramsDialog.addNumericField("Largest Cell Diameter", defaultParams.largestCellDiameter, 0)
     paramsDialog.addCheckbox("Subtract Background?", defaultParams.shouldSubtractBackground)
-    paramsDialog.addNumericField("Largest Cell Diameter", defaultParams.largestCellDiameter.toDouble(), 0)
     paramsDialog.addChoice("Threshold Locality", arrayOf(
         ThresholdTypes.GLOBAL,
         ThresholdTypes.LOCAL
@@ -47,8 +47,8 @@ private fun renderParamsDialog(paramsDialog: GenericDialog, defaultParams: Prepr
 }
 
 private fun getParamsFromDialog(paramsDialog: GenericDialog): PreprocessingParameters {
+    val largestCellDiameter = paramsDialog.nextNumber
     val shouldSubtractBackground = paramsDialog.nextBoolean
-    val largestCellDiameter = paramsDialog.nextNumber.roundToInt()
     val thresholdLocality = paramsDialog.nextChoice
     val localThresholdAlgo = paramsDialog.nextChoice
     val shouldDespeckle = paramsDialog.nextBoolean
@@ -56,8 +56,8 @@ private fun getParamsFromDialog(paramsDialog: GenericDialog): PreprocessingParam
     val shouldGaussianBlur = paramsDialog.nextBoolean
     val gaussianBlurSigma = paramsDialog.nextNumber
     return PreprocessingParameters(
-        shouldSubtractBackground,
         largestCellDiameter,
+        shouldSubtractBackground,
         thresholdLocality,
         localThresholdAlgo,
         shouldDespeckle,
@@ -67,10 +67,10 @@ private fun getParamsFromDialog(paramsDialog: GenericDialog): PreprocessingParam
     )
 }
 
-fun tuneParameters(): PreprocessingParameters {
-    val defaultParams = PreprocessingParameters()
+fun tuneParameters(largestCellDiameter: Double): PreprocessingParameters {
+    val defaultParams = PreprocessingParameters(largestCellDiameter = largestCellDiameter)
     val paramsDialog = GenericDialog("Tune Parameters Manually")
     renderParamsDialog(paramsDialog, defaultParams)
-    if (paramsDialog.wasCanceled()) return defaultParams // TODO(tiger-cross): Cancel plugin!
+    if (paramsDialog.wasCanceled()) throw RuntimeException()
     return getParamsFromDialog(paramsDialog)
 }

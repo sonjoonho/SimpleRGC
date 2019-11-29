@@ -8,10 +8,12 @@ import ij.ImagePlus
 val localThresholder = Auto_Local_Threshold()
 
 fun otsu(image: ImagePlus, radius: Int) {
+    // Additional params with values 0.0 are unused. Just required by localthreshold api.
     localThresholder.exec(image, "Otsu", radius, 0.0, 0.0, true)
 }
 
 fun bernsen(image: ImagePlus, radius: Int, contrastThreshold: Double) {
+    // Additional param with values 0.0 is unused. Just required by localthreshold api.
     localThresholder.exec(image, "Bernsen", radius, contrastThreshold, 0.0, true)
 }
 

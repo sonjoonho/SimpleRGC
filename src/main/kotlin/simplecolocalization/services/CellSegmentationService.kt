@@ -50,7 +50,33 @@ class CellSegmentationService : AbstractService(), ImageJService {
             )
         }
 
-        thresholdImage(image, params.thresholdLocality, params.localThresholdAlgo, params.largestCellDiameter)
+        when (params.thresholdLocality) {
+            ThresholdTypes.GLOBAL -> {
+                image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
+                image.processor.autoThreshold()
+            }
+            ThresholdTypes.LOCAL -> {
+                when (params.localThresholdAlgo) {
+                    LocalThresholdAlgos.OTSU -> otsu(
+                        image,
+                        params.largestCellDiameter.toInt()
+                    )
+                    LocalThresholdAlgos.BERNSEN -> bernsen(
+                        image,
+                        params.largestCellDiameter.toInt(),
+                        15.0
+                    )
+                    LocalThresholdAlgos.NIBLACK -> niblack(
+                        image,
+                        params.largestCellDiameter.toInt(),
+                        0.2,
+                        0.0
+                    )
+                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
+                }
+            }
+            else -> throw IllegalArgumentException("Invalid Threshold Choice selected")
+        }
 
         if (params.shouldDespeckle) {
             // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
@@ -64,41 +90,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
         }
 
         // Threshold image again to remove blur.
-        thresholdImage(image, ThresholdTypes.GLOBAL, params.localThresholdAlgo, params.largestCellDiameter)
-    }
-
-    /**
-     * Threshold the image, either globally or locally, depending on parameters specified by the user.
-     *
-     */
-    private fun thresholdImage(image: ImagePlus, thresholdChoice: String, localThresholdAlgo: String, localThresholdRadius: Int) {
-        when (thresholdChoice) {
-            ThresholdTypes.GLOBAL -> {
-                image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
-                image.processor.autoThreshold()
-            }
-            ThresholdTypes.LOCAL -> {
-                when (localThresholdAlgo) {
-                    LocalThresholdAlgos.OTSU -> otsu(
-                        image,
-                        localThresholdRadius
-                    )
-                    LocalThresholdAlgos.BERNSEN -> bernsen(
-                        image,
-                        localThresholdRadius,
-                        15.0
-                    ) // TODO(rasnav99): Decide additional parameters for these methods.
-                    LocalThresholdAlgos.NIBLACK -> niblack(
-                        image,
-                        localThresholdRadius,
-                        0.2,
-                        0.0
-                    )
-                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
-                }
-            }
-            else -> throw IllegalArgumentException("Invalid Threshold Choice selected")
-        }
+        image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
+        image.processor.autoThreshold()
     }
 
     /**
