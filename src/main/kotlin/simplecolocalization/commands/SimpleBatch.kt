@@ -11,6 +11,10 @@ import org.scijava.ui.UIService
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import java.io.File
+import java.io.IOException
+import java.util.stream.Collectors
+
+
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch Run")
 class SimpleBatch : Command {
@@ -59,15 +63,7 @@ class SimpleBatch : Command {
     }
 
     private fun getAllFiles(file: File): List<File> {
-        val result = mutableListOf<File>()
-        for (f in file.listFiles()) {
-            if (!f.isDirectory) {
-                result.add(f)
-            } else {
-                result.addAll(getAllFiles(file))
-            }
-        }
-        return result
+        return file.walkTopDown().filter { f -> !f.isDirectory }.toList()
     }
 
 
