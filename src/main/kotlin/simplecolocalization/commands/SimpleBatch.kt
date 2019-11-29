@@ -15,6 +15,7 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 
 object PluginChoice {
     const val SIMPLE_CELL_COUNTER = "SimpleCellCounter"
@@ -122,9 +123,13 @@ class SimpleBatch : Command {
         val preprocessingParameters = PreprocessingParameters()
 
         val numCellsList = tifs.map { simpleCellCounter.countCells(ImagePlus(it.absolutePath), preprocessingParameters) }.map { it.size }
+        val imageAndCount = tifs.zip(numCellsList)
 
         when (outputDestination) {
             OutputDestination.DISPLAY -> {
+                val output = ImageJTableCounterOutput(uiService)
+                imageAndCount.forEach { output.addCountForFile(it.second, it.first.name) }
+                output.show()
             }
         }
     }

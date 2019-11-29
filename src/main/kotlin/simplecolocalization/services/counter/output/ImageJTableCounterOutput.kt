@@ -16,8 +16,6 @@ class ImageJTableCounterOutput(private val uiService: UIService) : CounterOutput
     }
 
     fun show() {
-        val table = DefaultGenericTable()
-        val countColumn = IntColumn()
         table.add(countColumn)
         table.setColumnHeader(0, "Count")
         uiService.show(table)
