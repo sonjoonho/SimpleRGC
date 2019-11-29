@@ -23,7 +23,7 @@ object PluginChoice {
     const val SIMPLE_COLOCALIZATION = "SimpleColocalization"
 }
 
-@Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch Run")
+@Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch Process")
 class SimpleBatch : Command {
 
     @Parameter
