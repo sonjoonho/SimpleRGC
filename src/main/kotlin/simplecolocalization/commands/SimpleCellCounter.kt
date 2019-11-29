@@ -118,7 +118,8 @@ class SimpleCellCounter : Command {
 
         val cells = countCells(imageDuplicate, preprocessingParams)
 
-        displayOutput(cells.size)
+        // TODO: Get image filename for output
+        displayOutput(cells.size, "Image")
 
         // The colocalization results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation

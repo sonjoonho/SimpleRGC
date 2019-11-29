@@ -1,7 +1,5 @@
 package simplecolocalization.services.counter.output
 
-import org.scijava.table.CharColumn
-import org.scijava.table.Column
 import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
