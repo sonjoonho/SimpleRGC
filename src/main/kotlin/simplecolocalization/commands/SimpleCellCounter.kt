@@ -15,6 +15,7 @@ import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
+import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
@@ -54,6 +55,22 @@ class SimpleCellCounter : Command {
         persist = false
     )
     private var tuneParams = false
+
+    /**
+     * Used during the cell segmentation stage to perform local thresholding or
+     * background subtraction.
+     */
+    @Parameter(
+        label = "Largest Cell Diameter",
+        description = "Value we use to apply the rolling ball algorithm to subtract " +
+            "the background when thresholding",
+            min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var largestCellDiameter = 30.0
 
     @Parameter(
         label = "Output Parameters:",
@@ -113,7 +130,11 @@ class SimpleCellCounter : Command {
 
         val imageDuplicate = image.duplicate()
 
-        val preprocessingParams = if (tuneParams) tuneParameters() else PreprocessingParameters()
+        val preprocessingParams = if (tuneParams) {
+                tuneParameters(largestCellDiameter) ?: return
+            } else {
+                PreprocessingParameters(largestCellDiameter = largestCellDiameter)
+            }
 
         cellSegmentationService.preprocessImage(imageDuplicate, preprocessingParams)
         cellSegmentationService.segmentImage(imageDuplicate)
