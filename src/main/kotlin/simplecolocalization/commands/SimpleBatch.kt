@@ -1,16 +1,20 @@
 package simplecolocalization.commands
 
 import ij.IJ
+import ij.ImagePlus
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.io.DirectoryChooser
+import java.io.File
 import net.imagej.ImageJ
+import org.scijava.Context
 import org.scijava.command.Command
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
-import java.io.File
+import simplecolocalization.preprocessing.PreprocessingParameters
+import simplecolocalization.services.CellSegmentationService
 
 object PluginChoice {
     const val SIMPLE_CELL_COUNTER = "SimpleCellCounter"
@@ -25,6 +29,26 @@ class SimpleBatch : Command {
 
     @Parameter
     private lateinit var uiService: UIService
+
+    @Parameter
+    private lateinit var context: Context
+
+    /**
+     * The user can optionally output the results to a file.
+     */
+    object OutputDestination {
+        const val DISPLAY = "Display in table"
+        const val CSV = "Save as CSV file"
+    }
+
+    @Parameter(
+        label = "Results Output:",
+        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
+        required = true,
+        persist = false,
+        style = "radioButtonVertical"
+    )
+    private var outputDestination = OutputDestination.DISPLAY
 
     @Parameter(
         label = "Batch Process files in subdirectories recursively ?",
@@ -71,9 +95,9 @@ class SimpleBatch : Command {
             }
         }
 
-        files.filter { it.extension == "tif" || it.extension == "tiff" }.forEach {
-            tif -> process(tif)
-        }
+        val tifs = files.filter { it.extension == "tif" || it.extension == "tiff" }
+
+        process(tifs)
     }
 
     private fun getAllFiles(file: File, recursive: Boolean): List<File> {
@@ -84,8 +108,28 @@ class SimpleBatch : Command {
         }
     }
 
-    private fun process(file: File) {
-        println(file)
+    private fun process(tifs: List<File>) {
+        when (pluginChoice) {
+            PluginChoice.SIMPLE_CELL_COUNTER -> processSimpleCellCounter(tifs)
+            PluginChoice.SIMPLE_COLOCALIZATION -> processSimpleColocalization(tifs)
+        }
+    }
+
+    private fun processSimpleCellCounter(tifs: List<File>) {
+        val simpleCellCounter = SimpleCellCounter()
+        context.inject(simpleCellCounter)
+
+        val preprocessingParameters = PreprocessingParameters()
+
+        val numCellsList = tifs.map { simpleCellCounter.countCells(ImagePlus(it.absolutePath), preprocessingParameters) }.map { it.size }
+
+        when (outputDestination) {
+            OutputDestination.DISPLAY -> {
+            }
+        }
+    }
+
+    private fun processSimpleColocalization(tifs: List<File>) {
     }
 
     companion object {
@@ -99,6 +143,7 @@ class SimpleBatch : Command {
         fun main(args: Array<String>) {
             val ij = ImageJ()
 
+            ij.context().inject(CellSegmentationService())
             ij.launch()
 
             ij.command().run(SimpleBatch::class.java, true)
