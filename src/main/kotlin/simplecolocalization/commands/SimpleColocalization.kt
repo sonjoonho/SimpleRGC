@@ -3,6 +3,7 @@ package simplecolocalization.commands
 import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
+import ij.gui.GenericDialog
 import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
@@ -14,6 +15,7 @@ import kotlin.math.max
 import kotlin.math.min
 import net.imagej.ImageJ
 import net.imagej.ops.OpService
+import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
 import org.scijava.log.LogService
@@ -125,38 +127,14 @@ class SimpleColocalization : Command {
     private lateinit var preprocessingParamsHeader: String
 
     /**
-     * Applied to the input image to reduce sensitivity of the thresholding
-     * algorithm. Higher value means more blur.
-     */
-    @Parameter(
-        label = "Gaussian Blur Sigma (Radius)",
-        description = "Reduces sensitivity to cell edges by blurring the " +
-            "overall image. Higher is less sensitive.",
-        min = "0.0",
-        stepSize = "1.0",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var gaussianBlurSigma = 3.0
-
-    @Parameter(
-        label = "Cell Identification Parameters:",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var identificationParamsHeader: String
-
-    /**
-     * Used during the cell identification stage to reduce overlapping cells
-     * being grouped into a single cell.
-     *
-     * TODO(#5): Figure out what this value should be.
+     * Used during the cell segmentation stage to reduce overlapping cells
+     * being grouped into a single cell and perform local thresholding or
+     * background subtraction.
      */
     @Parameter(
         label = "Largest Cell Diameter",
-        min = "5.0",
-        stepSize = "1.0",
+        min = "1",
+        stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
         persist = false
@@ -182,11 +160,15 @@ class SimpleColocalization : Command {
     private fun process(image: ImagePlus) {
         // TODO(sonjoonho): Remove duplication in this code fragment.
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error", "File to save to not specified."
-            )
-            return
+            val path = IJ.getDirectory("current")
+            val name = FilenameUtils.removeExtension(image.title) + ".csv"
+            outputFile = File(path + name)
+            if (!outputFile!!.createNewFile()) {
+                val dialog = GenericDialog("Warning")
+                dialog.addMessage("Overwriting file \"$name\"")
+                dialog.showDialog()
+                if (dialog.wasCanceled()) return
+            }
         }
 
         val imageChannels = ChannelSplitter.split(image)
@@ -284,7 +266,7 @@ class SimpleColocalization : Command {
         // Process the target image.
         cellSegmentationService.preprocessImage(
             mutableImage,
-            PreprocessingParameters()
+            PreprocessingParameters(largestCellDiameter = largestCellDiameter)
         )
         cellSegmentationService.segmentImage(mutableImage)
 
