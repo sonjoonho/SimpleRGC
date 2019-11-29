@@ -15,6 +15,7 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 
 object PluginChoice {
@@ -50,6 +51,13 @@ class SimpleBatch : Command {
         style = "radioButtonVertical"
     )
     private var outputDestination = OutputDestination.DISPLAY
+
+    @Parameter(
+        label = "Output File (if saving in CSV):",
+        style = "save",
+        required = false
+    )
+    private var outputFile: File? = null
 
     @Parameter(
         label = "Batch Process files in subdirectories recursively ?",
@@ -130,6 +138,11 @@ class SimpleBatch : Command {
                 val output = ImageJTableCounterOutput(uiService)
                 imageAndCount.forEach { output.addCountForFile(it.second, it.first.name) }
                 output.show()
+            }
+            OutputDestination.CSV -> {
+                val output = CSVCounterOutput(outputFile!!)
+                imageAndCount.forEach { output.addCountForFile(it.second, it.first.name) }
+                output.save()
             }
         }
     }
