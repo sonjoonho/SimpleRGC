@@ -1,6 +1,7 @@
 package simplecolocalization.commands
 
 import ij.IJ
+import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import net.imagej.ImageJ
 import org.scijava.command.Command
@@ -11,10 +12,6 @@ import org.scijava.ui.UIService
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import java.io.File
-import java.io.IOException
-import java.util.stream.Collectors
-
-
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch Run")
 class SimpleBatch : Command {
@@ -31,39 +28,60 @@ class SimpleBatch : Command {
     @Parameter
     private lateinit var cellColocalizationService: CellColocalizationService
 
+    @Parameter(
+        label = "Batch Process files in subdirectories recursively ?",
+        required = true
+    )
+    private var recursive: Boolean = false
+
     override fun run() {
         // Set batch mode to false.
 
         // Get the selected folder from somewhere?
         // Maybe use: https://imagej.nih.gov/ij/developer/api/ij/plugin/FolderOpener.html
         // Do the following:
-        val dir : File // Get this somehow
+        val path = IJ.getDirectory("current")
+        val file = File(path)
 
-        // If fails at some point:
-        MessageDialog(IJ.getInstance(), "Error", "There is no file open")
-
-        val files = getAllFiles(dir)
-        val lifs = files.filter { f -> f.endsWith(".lif") }
-        if (lifs.size > 0) {
-            // Create dialog to say: we found n lifs. Please note this plugin
-            // is only able to process files in .tif format. If you would like to
-            // Process both lifs and tifs, please install the bioformats plugin (link)
-            // and use the macro here (link).
-
-            // Would you like to continue?
-            // GetBoolean
+        if (!file.exists()) {
+            MessageDialog(IJ.getInstance(), "Error", "There is no file open")
             return
         }
 
-        val tifs = files.filter { f -> f.endsWith(".tif") }
+        val files = getAllFiles(file, recursive)
+
+        val lifs = files.filter { f -> f.endsWith(".lif") }
+        if (lifs.isNotEmpty()) {
+
+            val dialog = GenericDialog("Found lifs")
+
+            dialog.addMessage("We found ${lifs.size} files with the .lif extension. \n" +
+                "Please note this plugin is only able to process files that are in .tif format. \n" +
+                "If you would like to process both lifs, please install the Bioformats plugin \n")
+
+            dialog.addMessage("Please press OK if you would like to continue and process tifs")
+
+            dialog.showDialog()
+
+            if (dialog.wasCanceled()) {
+                return
+            }
+        }
+
+        val tifs = files.filter { f -> f.endsWith(".tif") or f.endsWith(".tiff") }
         // Should we parallelise the below with cheeky coroutines???!!!
+
         for (tif in tifs) {
             process(tif)
         }
     }
 
-    private fun getAllFiles(file: File): List<File> {
-        return file.walkTopDown().filter { f -> !f.isDirectory }.toList()
+    private fun getAllFiles(file: File, recursive: Boolean): List<File> {
+        return if (recursive) {
+            file.walkTopDown().filter { f -> !f.isDirectory }.toList()
+        } else {
+            file.listFiles()?.toList() ?: listOf(file)
+        }
     }
 
 
@@ -85,8 +103,7 @@ class SimpleBatch : Command {
             ij.context().inject(CellSegmentationService())
             ij.context().inject(CellColocalizationService())
             ij.launch()
-            // We can't do this in this location right?
-            // val file: File = ij.ui().chooseFile(null, FileWidget.DIRECTORY_STYLE)
+
             ij.command().run(SimpleBatch::class.java, true)
         }
     }
