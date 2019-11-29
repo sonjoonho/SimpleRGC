@@ -3,10 +3,12 @@ package simplecolocalization.commands
 import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
+import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ZProjector
 import java.io.File
 import net.imagej.ImageJ
+import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
 import org.scijava.log.LogService
@@ -55,6 +57,22 @@ class SimpleCellCounter : Command {
     )
     private var tuneParams = false
 
+    /**
+     * Used during the cell segmentation stage to perform local thresholding or
+     * background subtraction.
+     */
+    @Parameter(
+        label = "Largest Cell Diameter",
+        description = "Value we use to apply the rolling ball algorithm to subtract " +
+            "the background when thresholding",
+            min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var largestCellDiameter = 30.0
+
     @Parameter(
         label = "Output Parameters:",
         visibility = ItemVisibility.MESSAGE,
@@ -79,11 +97,6 @@ class SimpleCellCounter : Command {
     )
     private var outputDestination = OutputDestination.DISPLAY
 
-    @Parameter(
-        label = "Output File (if saving):",
-        style = "save",
-        required = false
-    )
     private var outputFile: File? = null
 
     /** Runs after the parameters above are populated. */
@@ -105,16 +118,24 @@ class SimpleCellCounter : Command {
     /** Processes single image. */
     private fun process(image: ImagePlus) {
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error", "File to save to not specified."
-            )
-            return
+            val path = IJ.getDirectory("current")
+            val name = FilenameUtils.removeExtension(image.title) + ".csv"
+            outputFile = File(path + name)
+            if (!outputFile!!.createNewFile()) {
+                val dialog = GenericDialog("Warning")
+                dialog.addMessage("Overwriting file \"$name\"")
+                dialog.showDialog()
+                if (dialog.wasCanceled()) return
+            }
         }
 
         val imageDuplicate = image.duplicate()
 
-        val preprocessingParams = if (tuneParams) tuneParameters() else PreprocessingParameters()
+        val preprocessingParams = if (tuneParams) {
+                tuneParameters(largestCellDiameter) ?: return
+            } else {
+                PreprocessingParameters(largestCellDiameter = largestCellDiameter)
+            }
 
         val cells = countCells(imageDuplicate, preprocessingParams)
 
