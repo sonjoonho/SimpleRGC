@@ -67,10 +67,10 @@ private fun getParamsFromDialog(paramsDialog: GenericDialog): PreprocessingParam
     )
 }
 
-fun tuneParameters(largestCellDiameter: Double): PreprocessingParameters {
+fun tuneParameters(largestCellDiameter: Double): PreprocessingParameters? {
     val defaultParams = PreprocessingParameters(largestCellDiameter = largestCellDiameter)
     val paramsDialog = GenericDialog("Tune Parameters Manually")
     renderParamsDialog(paramsDialog, defaultParams)
-    if (paramsDialog.wasCanceled()) throw RuntimeException()
+    if (paramsDialog.wasCanceled()) return null
     return getParamsFromDialog(paramsDialog)
 }

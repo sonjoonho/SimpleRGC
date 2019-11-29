@@ -22,7 +22,6 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.colocalizer.showCells
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
-import java.lang.RuntimeException
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -132,13 +131,7 @@ class SimpleCellCounter : Command {
         val imageDuplicate = image.duplicate()
 
         val preprocessingParams = if (tuneParams) {
-            try {
-                tuneParameters(largestCellDiameter)
-            } catch (e : RuntimeException) {
-                e.printStackTrace()
-                MessageDialog(IJ.getInstance(), "Cancelled", "Plugin exited without running.")
-                return
-            }
+                tuneParameters(largestCellDiameter)?: return
             } else {
                 PreprocessingParameters(largestCellDiameter = largestCellDiameter)
             }
