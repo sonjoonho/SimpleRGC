@@ -17,6 +17,7 @@ import org.scijava.widget.FileWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.showCells
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
@@ -115,16 +116,9 @@ class SimpleCellCounter : Command {
 
         val preprocessingParams = if (tuneParams) tuneParameters() else PreprocessingParameters()
 
-        cellSegmentationService.preprocessImage(imageDuplicate, preprocessingParams)
-        cellSegmentationService.segmentImage(imageDuplicate)
+        val cells = countCells(imageDuplicate, preprocessingParams)
 
-        val cells = cellSegmentationService.identifyCells(imageDuplicate)
-
-        if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableCounterOutput(cells.size, uiService).output()
-        } else if (outputDestination == OutputDestination.CSV) {
-            CSVCounterOutput(cells.size, outputFile!!).output()
-        }
+        displayOutput(cells.size)
 
         // The colocalization results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation
@@ -139,6 +133,25 @@ class SimpleCellCounter : Command {
 
         image.show()
         showCells(image, cells)
+    }
+
+    fun countCells(image: ImagePlus, preprocessingParameters: PreprocessingParameters): List<PositionedCell> {
+        cellSegmentationService.preprocessImage(image, preprocessingParameters)
+        cellSegmentationService.segmentImage(image)
+
+        return cellSegmentationService.identifyCells(image)
+    }
+
+    fun displayOutput(numCells: Int, file: String) {
+        if (outputDestination == OutputDestination.DISPLAY) {
+            val output = ImageJTableCounterOutput(uiService)
+            output.addCountForFile(numCells, file)
+            output.show()
+        } else if (outputDestination == OutputDestination.CSV) {
+            val output = CSVCounterOutput(outputFile!!)
+            output.addCountForFile(numCells, file)
+            output.save()
+        }
     }
 
     companion object {
