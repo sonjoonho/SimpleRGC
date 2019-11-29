@@ -119,8 +119,8 @@ class SimpleCellCounter : Command {
     /** Processes single image. */
     private fun process(image: ImagePlus) {
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
-            val path = IJ.getDirectory("current")
-            val name = FilenameUtils.removeExtension(image.title) + ".csv"
+            val path = image.originalFileInfo.directory
+            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")

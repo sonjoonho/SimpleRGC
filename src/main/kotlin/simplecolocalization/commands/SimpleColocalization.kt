@@ -161,8 +161,8 @@ class SimpleColocalization : Command {
     private fun process(image: ImagePlus) {
         // TODO(sonjoonho): Remove duplication in this code fragment.
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
-            val path = IJ.getDirectory("current")
-            val name = FilenameUtils.removeExtension(image.title) + ".csv"
+            val path = image.originalFileInfo.directory
+            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
