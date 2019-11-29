@@ -10,6 +10,7 @@ import java.io.File
 import net.imagej.ImageJ
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
+import org.scijava.app.StatusService
 import org.scijava.command.Command
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
@@ -35,6 +36,9 @@ import simplecolocalization.services.counter.output.ImageJTableCounterOutput
  */
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Cell Counter")
 class SimpleCellCounter : Command {
+
+    @Parameter
+    private lateinit var statusService: StatusService
 
     @Parameter
     private lateinit var logService: LogService
@@ -116,6 +120,8 @@ class SimpleCellCounter : Command {
 
     /** Processes single image. */
     private fun process(image: ImagePlus) {
+        statusService.showStatus(0, 100, "Starting...")
+
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
             val path = IJ.getDirectory("current")
             val name = FilenameUtils.removeExtension(image.title) + ".csv"
@@ -136,8 +142,15 @@ class SimpleCellCounter : Command {
                 PreprocessingParameters(largestCellDiameter = largestCellDiameter)
             }
 
+        statusService.showStatus(25, 100, "Preprocessing...")
+
         cellSegmentationService.preprocessImage(imageDuplicate, preprocessingParams)
+
+        statusService.showStatus(50, 100, "Segmenting cells...")
+
         cellSegmentationService.segmentImage(imageDuplicate)
+
+        statusService.showStatus(75, 100, "Identifying cells...")
 
         val cells = cellSegmentationService.identifyCells(imageDuplicate)
 
@@ -157,6 +170,8 @@ class SimpleCellCounter : Command {
                 "The cell counting results have successfully been saved to the specified file."
             )
         }
+
+        statusService.showStatus(100, 100, "Done!")
 
         image.show()
         showCells(image, cells)
