@@ -98,17 +98,19 @@ class CellSegmentationService : AbstractService(), ImageJService {
      * Uses Ridge Detection plugin's LineDetector.
      */
     private fun detectAxons(image: ImagePlus): List<Roi> {
-        // TODO(willburr): Remove magic numbers
+        // Empirically, the values of sigma, upperThresh and lowerThresh
+        // proved the most effective on test images
         val contours = LineDetector().detectLines(
             image.processor, 1.61, 15.0, 5.0,
             0.0, 0.0, false, true, true, true
         )
         val axons = mutableListOf<Roi>()
+        // Convert to Rois
         for (c in contours) {
             val p = FloatPolygon(c.xCoordinates, c.yCoordinates, c.number)
             val r = PolygonRoi(p, Roi.FREELINE)
             r.position = c.frame
-            r.name = "C" + c.id
+            // Set the line width of Roi based on the average width of axon
             var sumWidths = 0.0
             for (j in c.lineWidthL.indices) {
                 sumWidths += c.lineWidthL[j] + c.lineWidthR[j]
@@ -127,9 +129,6 @@ class CellSegmentationService : AbstractService(), ImageJService {
         for (axon in axons) {
             axon.drawPixels(image.processor)
         }
-
-        val dupImage = image.duplicate()
-        dupImage.show()
     }
 
     private fun thresholdImage(
