@@ -130,18 +130,16 @@ class SimpleCellCounter : Command {
             }
         }
 
-        val imageDuplicate = image.duplicate()
-
         val preprocessingParams = if (tuneParams) {
                 tuneParameters(largestCellDiameter) ?: return
             } else {
                 PreprocessingParameters(largestCellDiameter = largestCellDiameter)
             }
 
-        val cells = countCells(imageDuplicate, preprocessingParams)
+        val path = image.originalFileInfo.directory + image.originalFileInfo.fileName
+        val cells = countCells(path, preprocessingParams)
 
-        // TODO: Get image filename for output
-        displayOutput(cells.size, "Image")
+        displayOutput(cells.size, image.title)
 
         // The colocalization results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation
@@ -158,14 +156,16 @@ class SimpleCellCounter : Command {
         showCells(image, cells)
     }
 
-    fun countCells(image: ImagePlus, preprocessingParameters: PreprocessingParameters): List<PositionedCell> {
+    fun countCells(imagePath: String, preprocessingParameters: PreprocessingParameters): List<PositionedCell> {
+        val image = ImagePlus(imagePath).duplicate()
+
         cellSegmentationService.preprocessImage(image, preprocessingParameters)
         cellSegmentationService.segmentImage(image)
 
         return cellSegmentationService.identifyCells(image)
     }
 
-    fun displayOutput(numCells: Int, file: String) {
+    private fun displayOutput(numCells: Int, file: String) {
         if (outputDestination == OutputDestination.DISPLAY) {
             val output = ImageJTableCounterOutput(uiService)
             output.addCountForFile(numCells, file)

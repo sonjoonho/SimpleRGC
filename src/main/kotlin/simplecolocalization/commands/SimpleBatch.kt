@@ -1,7 +1,6 @@
 package simplecolocalization.commands
 
 import ij.IJ
-import ij.ImagePlus
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.io.DirectoryChooser
@@ -147,7 +146,7 @@ class SimpleBatch : Command {
 
         val preprocessingParameters = PreprocessingParameters(largestCellDiameter = largestCellDiameter)
 
-        val numCellsList = tifs.map { simpleCellCounter.countCells(ImagePlus(it.absolutePath), preprocessingParameters) }.map { it.size }
+        val numCellsList = tifs.map { simpleCellCounter.countCells(it.absolutePath, preprocessingParameters).size }
         val imageAndCount = tifs.zip(numCellsList)
 
         when (outputDestination) {
