@@ -21,8 +21,6 @@ import org.scijava.command.Command
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
-import org.scijava.table.DefaultGenericTable
-import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
@@ -31,10 +29,9 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
-import simplecolocalization.services.colocalizer.TransductionAnalysis
+import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
-import simplecolocalization.services.colocalizer.showCells
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -229,9 +226,8 @@ class SimpleColocalization : Command {
         }
 
         image.show()
-        showCells(image, transductionAnalysis.overlapping)
-        // showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
         showHistogram(targetCellTransductionAnalysis)
+        addToRoiManager(transductionAnalysis.overlapping)
     }
 
     /**
@@ -271,30 +267,6 @@ class SimpleColocalization : Command {
         cellSegmentationService.segmentImage(mutableImage)
 
         return cellSegmentationService.identifyCells(mutableImage)
-    }
-
-    /**
-     * Displays the resulting counts as a results table.
-     */
-    private fun showCount(
-        targetCells: List<PositionedCell>,
-        transductionAnalysis: TransductionAnalysis
-    ) {
-        val table = DefaultGenericTable()
-        val targetCellCountColumn = IntColumn()
-        val transducedTargetCellCount = IntColumn()
-        val transducedNonTargetCellCount = IntColumn()
-        targetCellCountColumn.add(targetCells.size)
-        transducedTargetCellCount.add(transductionAnalysis.overlapping.size)
-        transducedNonTargetCellCount.add(transductionAnalysis.disjoint.size)
-
-        table.add(targetCellCountColumn)
-        table.add(transducedTargetCellCount)
-        table.add(transducedNonTargetCellCount)
-        table.setColumnHeader(0, "Target Cell Count")
-        table.setColumnHeader(1, "Transduced Target Cell Count")
-        table.setColumnHeader(2, "Transduced Non-Target Cell Count")
-        uiService.show(table)
     }
 
     /**

@@ -19,7 +19,7 @@ import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
-import simplecolocalization.services.colocalizer.showCells
+import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 
@@ -159,7 +159,7 @@ class SimpleCellCounter : Command {
         }
 
         image.show()
-        showCells(image, cells)
+        addToRoiManager(cells)
     }
 
     companion object {
