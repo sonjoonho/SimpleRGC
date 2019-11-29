@@ -59,6 +59,22 @@ class SimpleBatch : Command {
     )
     private var outputFile: File? = null
 
+    /**
+     * Used during the cell segmentation stage to perform local thresholding or
+     * background subtraction.
+     */
+    @Parameter(
+        label = "Largest Cell Diameter",
+        description = "Value we use to apply the rolling ball algorithm to subtract " +
+            "the background when thresholding",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var largestCellDiameter = 30.0
+
     @Parameter(
         label = "Batch Process files in subdirectories recursively ?",
         required = true
@@ -128,7 +144,7 @@ class SimpleBatch : Command {
         val simpleCellCounter = SimpleCellCounter()
         context.inject(simpleCellCounter)
 
-        val preprocessingParameters = PreprocessingParameters()
+        val preprocessingParameters = PreprocessingParameters(largestCellDiameter = largestCellDiameter)
 
         val numCellsList = tifs.map { simpleCellCounter.countCells(ImagePlus(it.absolutePath), preprocessingParameters) }.map { it.size }
         val imageAndCount = tifs.zip(numCellsList)
