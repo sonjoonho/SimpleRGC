@@ -13,6 +13,7 @@ import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
+import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.counter.output.CSVCounterOutput
