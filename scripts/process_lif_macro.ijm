@@ -2,12 +2,9 @@
  * Macro template to process multiple images in a folder
  */
 
-// TODO
-// create dialogue for input
-
 input = getDirectory("Choose an Input Directory")
-recurse = getBoolean("Apply batch process in nested folders?")
-suffix = getString("File suffix to run plugin on:", ".tif")
+recurse = true //getBoolean("Apply batch process in nested folders?")
+suffix = ".lif"
 
 setBatchMode(true);
 processFolder(input);
@@ -24,13 +21,14 @@ function processFolder(input) {
 		if (recurse && endsWith(file, "/")) {
 		    processFolder(file);
 		} else if (endsWith(list[i], suffix)) {
+			fixSpaces(file);
 		    processFile(file);
 		}
 	}
 }
 
 function processFile(file) {
-	open(file);
-	// TODO: Run headless somehow.
-	run("Simple Cell Counter");
+	// Following fails if filepath has spaces in it:
+	run("Bio-Formats Importer", "open=" + file + " color_mode=Composite open_all_series view=Hyperstack stack_order=XYCZT");
+    // run("Bio-Formats Exporter", "save=” + file + “.tif export compression=Uncompressed");
 }
