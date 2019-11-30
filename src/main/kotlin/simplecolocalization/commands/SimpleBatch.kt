@@ -164,6 +164,7 @@ class SimpleBatch : Command {
         }
     }
 
+    // TODO: Implement batch processing for SimpleColocalization
     private fun processSimpleColocalization(tifs: List<File>) {
     }
 
