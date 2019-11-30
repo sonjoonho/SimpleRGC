@@ -96,7 +96,7 @@ class SimpleBatch : Command {
         val file = File(path)
 
         if (!file.exists()) {
-            MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+            MessageDialog(IJ.getInstance(), "Error", "Input Folder/File specified does not exist.")
             return
         }
 
@@ -107,9 +107,10 @@ class SimpleBatch : Command {
 
             val dialog = GenericDialog("Found lifs")
 
-            dialog.addMessage("We found ${lifs.size} files with the .lif extension. \n" +
-                "Please note this plugin is only able to process files that are in .tif format. \n" +
-                "If you would like to process both lifs, please install the Bioformats plugin \n")
+            dialog.addMessage("We found ${lifs.size} files with the .LIF extension. \n" +
+                "Please note that this plugin will skip over files in the .LIF format. \n" +
+                "Please refer to this plugin's documentation on how to automatically " +
+                "batch convert .LIF files to the accepted .TIF extension.")
 
             dialog.addMessage("Please press OK if you would like to continue and process tifs")
 
