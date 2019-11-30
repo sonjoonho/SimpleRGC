@@ -112,7 +112,7 @@ class SimpleBatch : Command {
                 "Please refer to this plugin's documentation on how to automatically " +
                 "batch convert .LIF files to the accepted .TIF extension.")
 
-            dialog.addMessage("Please press OK if you would like to continue and process tifs")
+            dialog.addMessage("Continue to process only .TIF images in your input directory")
 
             dialog.showDialog()
 
