@@ -1,34 +1,29 @@
 /*
- * Macro template to process multiple images in a folder
+ * Macro to process lif images, deconstructiing them and saving each series as a .tif
+ * 
  */
 
-input = getDirectory("Choose an Input Directory")
-recurse = true //getBoolean("Apply batch process in nested folders?")
-suffix = ".lif"
+input = File.openDialog("Choose a Lif file to process.")
 
-setBatchMode(true);
-processFolder(input);
+processLif(input);
 
-// function to scan folders/subfolders/files to find files with correct suffix
-function processFolder(input) {
-
-	list = getFileList(input);
-
-	for (i = 0; i < list.length; i++) {
-
-		file = input + list[i];
-
-		if (recurse && endsWith(file, "/")) {
-		    processFolder(file);
-		} else if (endsWith(list[i], suffix)) {
-			fixSpaces(file);
-		    processFile(file);
-		}
+// Function to open and save lif as series of tifs
+function processLif(file) {
+	suffix = ".lif"
+	// Ensure no GUI windows pop up.
+	setBatchMode(true);
+	if (!endsWith(file, suffix)) {	
+		exit("Please choose a file in .lif format to run this plugin")
 	}
-}
-
-function processFile(file) {
-	// Following fails if filepath has spaces in it:
-	run("Bio-Formats Importer", "open=" + file + " color_mode=Composite open_all_series view=Hyperstack stack_order=XYCZT");
-    // run("Bio-Formats Exporter", "save=” + file + “.tif export compression=Uncompressed");
+	dir = File.directory;
+	
+	run("Bio-Formats Importer", "open=[" + file + "] color_mode=Composite rois_import=[ROI manager] open_all_series view=Hyperstack stack_order=XYCZT");
+	numOpenImgs = nImages;
+    for (i=1; i<= numOpenImgs; i++) {
+    	// Select window
+        selectImage(i);
+        // Save image title in array.
+        // Doesn't deal with dupicates.
+        saveAs("Tiff", dir + getTitle() + ".tif");
+    }
 }
