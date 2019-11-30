@@ -76,10 +76,10 @@ class SimpleBatch : Command {
     private var largestCellDiameter = 30.0
 
     @Parameter(
-        label = "Batch Process files in subdirectories recursively ?",
+        label = "Batch Process files in nested folders ?",
         required = true
     )
-    private var recursive: Boolean = false
+    private var processFilesInNestedFolders: Boolean = false
 
     @Parameter(
         label = "Which plugin do you want to run in Batch Mode ?",
@@ -100,7 +100,7 @@ class SimpleBatch : Command {
             return
         }
 
-        val files = getAllFiles(file, recursive)
+        val files = getAllFiles(file, processFilesInNestedFolders)
 
         val lifs = files.filter { it.extension == "lif" }
         if (lifs.isNotEmpty()) {
@@ -125,8 +125,8 @@ class SimpleBatch : Command {
         process(tifs)
     }
 
-    private fun getAllFiles(file: File, recursive: Boolean): List<File> {
-        return if (recursive) {
+    private fun getAllFiles(file: File, processFilesInNestedFolders: Boolean): List<File> {
+        return if (processFilesInNestedFolders) {
             file.walkTopDown().filter { f -> !f.isDirectory }.toList()
         } else {
             file.listFiles()?.toList() ?: listOf(file)
