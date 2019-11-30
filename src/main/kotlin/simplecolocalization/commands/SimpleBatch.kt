@@ -79,7 +79,7 @@ class SimpleBatch : Command {
         label = "Batch Process files in nested folders ?",
         required = true
     )
-    private var processFilesInNestedFolders: Boolean = false
+    private var processFilesInNestedFolders: Boolean = true
 
     @Parameter(
         label = "Which plugin do you want to run in Batch Mode ?",
