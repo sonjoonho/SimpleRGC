@@ -105,7 +105,7 @@ class SimpleBatch : Command {
         val lifs = files.filter { it.extension == "lif" }
         if (lifs.isNotEmpty()) {
 
-            val dialog = GenericDialog("Found lifs")
+            val dialog = GenericDialog(".LIF files found")
 
             dialog.addMessage("We found ${lifs.size} files with the .LIF extension. \n" +
                 "Please note that this plugin will skip over files in the .LIF format. \n" +
