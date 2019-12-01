@@ -39,7 +39,7 @@ import simplecolocalization.services.colocalizer.showCells
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
 
-    private val intensityPercentageThreshold: Float = 40f
+    private val intensityPercentageThreshold: Float = 90f
 
     @Parameter
     private lateinit var logService: LogService
@@ -203,7 +203,7 @@ class SimpleColocalization : Command {
             largestCellDiameter.toInt(),
             targetChannel.width,
             targetChannel.height,
-            PixelCellComparator()
+            PixelCellComparator(threshold = 0.01f)
         ).analyseTransduction(targetCells, transducedCells)
 
         val targetCellTransductionAnalysis = cellColocalizationService.analyseCellIntensity(
