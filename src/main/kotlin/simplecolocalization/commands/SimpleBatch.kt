@@ -39,21 +39,20 @@ class SimpleBatch : Command {
      * The user can optionally output the results to a file.
      */
     object OutputDestination {
-        const val DISPLAY = "Display in table"
         const val CSV = "Save as CSV file"
     }
 
     @Parameter(
         label = "Results Output:",
-        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
+        choices = [OutputDestination.CSV],
         required = true,
         persist = false,
         style = "radioButtonVertical"
     )
-    private var outputDestination = OutputDestination.DISPLAY
+    private var outputDestination = OutputDestination.CSV
 
     @Parameter(
-        label = "Output File (if saving in CSV):",
+        label = "Output File :",
         style = "save",
         required = false
     )
@@ -96,7 +95,8 @@ class SimpleBatch : Command {
         val file = File(path)
 
         if (!file.exists()) {
-            MessageDialog(IJ.getInstance(), "Error", "Input Folder/File specified does not exist.")
+            MessageDialog(IJ.getInstance(), "Error",
+                "The input folder could not be opened. Please create it if it does not already exist")
             return
         }
 
@@ -151,11 +151,6 @@ class SimpleBatch : Command {
         val imageAndCount = tifs.zip(numCellsList)
 
         when (outputDestination) {
-            OutputDestination.DISPLAY -> {
-                val output = ImageJTableCounterOutput(uiService)
-                imageAndCount.forEach { output.addCountForFile(it.second, it.first.name) }
-                output.show()
-            }
             OutputDestination.CSV -> {
                 val output = CSVCounterOutput(outputFile!!)
                 imageAndCount.forEach { output.addCountForFile(it.second, it.first.name) }
