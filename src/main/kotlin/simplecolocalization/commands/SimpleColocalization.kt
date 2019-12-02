@@ -3,6 +3,7 @@ package simplecolocalization.commands
 import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
+import ij.gui.GenericDialog
 import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
@@ -14,6 +15,7 @@ import kotlin.math.max
 import kotlin.math.min
 import net.imagej.ImageJ
 import net.imagej.ops.OpService
+import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
 import org.scijava.log.LogService
@@ -37,7 +39,7 @@ import simplecolocalization.services.colocalizer.showCells
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
 
-    private val intensityPercentageThreshold: Float = 40f
+    private val intensityPercentageThreshold: Float = 90f
 
     @Parameter
     private lateinit var logService: LogService
@@ -125,38 +127,14 @@ class SimpleColocalization : Command {
     private lateinit var preprocessingParamsHeader: String
 
     /**
-     * Applied to the input image to reduce sensitivity of the thresholding
-     * algorithm. Higher value means more blur.
-     */
-    @Parameter(
-        label = "Gaussian Blur Sigma (Radius)",
-        description = "Reduces sensitivity to cell edges by blurring the " +
-            "overall image. Higher is less sensitive.",
-        min = "0.0",
-        stepSize = "1.0",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var gaussianBlurSigma = 3.0
-
-    @Parameter(
-        label = "Cell Identification Parameters:",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var identificationParamsHeader: String
-
-    /**
-     * Used during the cell identification stage to reduce overlapping cells
-     * being grouped into a single cell.
-     *
-     * TODO(#5): Figure out what this value should be.
+     * Used during the cell segmentation stage to reduce overlapping cells
+     * being grouped into a single cell and perform local thresholding or
+     * background subtraction.
      */
     @Parameter(
         label = "Largest Cell Diameter",
-        min = "5.0",
-        stepSize = "1.0",
+        min = "1",
+        stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
         persist = false
@@ -182,60 +160,61 @@ class SimpleColocalization : Command {
     private fun process(image: ImagePlus) {
         // TODO(sonjoonho): Remove duplication in this code fragment.
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error", "File to save to not specified."
-            )
-            return
+            val path = IJ.getDirectory("current")
+            val name = FilenameUtils.removeExtension(image.title) + ".csv"
+            outputFile = File(path + name)
+            if (!outputFile!!.createNewFile()) {
+                val dialog = GenericDialog("Warning")
+                dialog.addMessage("Overwriting file \"$name\"")
+                dialog.showDialog()
+                if (dialog.wasCanceled()) return
+            }
         }
 
-        val channelImages = ChannelSplitter.split(image)
-        if (targetChannel < 1 || targetChannel > channelImages.size) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error",
-                "Target channel selected does not exist. There are %d channels available.".format(channelImages.size)
-            )
-            return
-        }
-
-        if (transducedChannel < 1 || transducedChannel > channelImages.size) {
+        val imageChannels = ChannelSplitter.split(image)
+        if (targetChannel < 1 || targetChannel > imageChannels.size) {
             MessageDialog(
                 IJ.getInstance(),
                 "Error",
-                "Tranduced channel selected does not exist. There are %d channels available.".format(channelImages.size)
+                "Target channel selected does not exist. There are %d channels available.".format(imageChannels.size)
             )
             return
         }
 
-        val targetImage = channelImages[targetChannel - 1]
-        val transducedImage = channelImages[transducedChannel - 1]
+        if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Error",
+                "Tranduced channel selected does not exist. There are %d channels available.".format(imageChannels.size)
+            )
+            return
+        }
+
+        val targetChannel = imageChannels[targetChannel - 1]
+        val transducedChannel = imageChannels[transducedChannel - 1]
 
         logService.info("Starting extraction")
-        val targetCells = extractCells(targetImage)
-        // Take a duplicate of the image because extractCells will modify the transducedImage.
-        val originalTransducedImage = transducedImage.duplicate()
-        val transducedCells = filterCellsByIntensity(extractCells(transducedImage), originalTransducedImage)
+        val targetCells = extractCells(targetChannel)
+        val transducedCells = filterCellsByIntensity(extractCells(transducedChannel), transducedChannel)
 
         logService.info("Starting analysis")
-        val cellComparator = PixelCellComparator()
+
         val transductionAnalysis = BucketedNaiveColocalizer(
             largestCellDiameter.toInt(),
-            targetImage.width,
-            targetImage.height,
-            cellComparator
+            targetChannel.width,
+            targetChannel.height,
+            PixelCellComparator(threshold = 0.01f)
         ).analyseTransduction(targetCells, transducedCells)
-        val intensityAnalysis = cellColocalizationService.analyseCellIntensity(
-            targetImage,
+
+        val targetCellTransductionAnalysis = cellColocalizationService.analyseCellIntensity(
+            transducedChannel,
             transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
         )
-        // showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
-        showHistogram(intensityAnalysis)
 
         if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableColocalizationOutput(intensityAnalysis, uiService).output()
+            ImageJTableColocalizationOutput(targetCellTransductionAnalysis, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
-            CSVColocalizationOutput(intensityAnalysis, outputFile!!).output()
+            CSVColocalizationOutput(targetCellTransductionAnalysis, outputFile!!).output()
         }
 
         // The colocalization results are clearly displayed if the output
@@ -251,6 +230,8 @@ class SimpleColocalization : Command {
 
         image.show()
         showCells(image, transductionAnalysis.overlapping)
+        // showCount(targetCells = targetCells, transductionAnalysis = transductionAnalysis)
+        showHistogram(targetCellTransductionAnalysis)
     }
 
     /**
@@ -280,14 +261,16 @@ class SimpleColocalization : Command {
      * Extract an array of cells (as ROIs) from the specified image.
      */
     private fun extractCells(image: ImagePlus): List<PositionedCell> {
+        val mutableImage = image.duplicate()
+
         // Process the target image.
         cellSegmentationService.preprocessImage(
-            image,
-            PreprocessingParameters()
+            mutableImage,
+            PreprocessingParameters(largestCellDiameter = largestCellDiameter)
         )
-        cellSegmentationService.segmentImage(image)
+        cellSegmentationService.segmentImage(mutableImage)
 
-        return cellSegmentationService.identifyCells(image)
+        return cellSegmentationService.identifyCells(mutableImage)
     }
 
     /**
@@ -318,7 +301,7 @@ class SimpleColocalization : Command {
      * Displays the resulting colocalization results as a histogram.
      */
     private fun showHistogram(analysis: Array<CellColocalizationService.CellAnalysis>) {
-        val data = analysis.map { it.mean.toFloat() }.toFloatArray()
+        val data = analysis.map { it.median.toFloat() }.toFloatArray()
         val ip = FloatProcessor(analysis.size, 1, data, null)
         val imp = ImagePlus("", ip)
         val stats = StackStatistics(imp, 256, 0.0, 256.0)
@@ -328,7 +311,7 @@ class SimpleColocalization : Command {
                 maxCount = stats.histogram[i]
         }
         stats.histYMax = maxCount
-        HistogramWindow("Intensity distribution - transduced cells overlapping target cells", imp, stats)
+        HistogramWindow("Median intensity distribution of transduced cells overlapping target cells", imp, stats)
     }
 
     companion object {

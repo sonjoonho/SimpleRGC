@@ -18,27 +18,24 @@ class ImageJTableColocalizationOutput(
         val table = DefaultGenericTable()
 
         val areaColumn = IntColumn()
+        val medianColumn = IntColumn()
         val meanColumn = IntColumn()
-        val minColumn = IntColumn()
-        val maxColumn = IntColumn()
 
         // Construct column values using the channel analysis values.
         analysis.forEach {
             areaColumn.add(it.area)
+            medianColumn.add(it.median)
             meanColumn.add(it.mean)
-            minColumn.add(it.min)
-            maxColumn.add(it.max)
         }
 
         table.add(areaColumn)
+        table.add(medianColumn)
         table.add(meanColumn)
-        table.add(minColumn)
-        table.add(maxColumn)
 
         table.setColumnHeader(0, "Area")
-        table.setColumnHeader(1, "Mean")
-        table.setColumnHeader(2, "Min")
-        table.setColumnHeader(3, "Max")
+        table.setColumnHeader(1, "Median")
+        table.setColumnHeader(2, "Mean")
+
         uiService.show(table)
     }
 }

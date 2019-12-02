@@ -18,7 +18,6 @@ import simplecolocalization.DummyRoiManager
 import simplecolocalization.algorithms.bernsen
 import simplecolocalization.algorithms.niblack
 import simplecolocalization.algorithms.otsu
-import simplecolocalization.preprocessing.GlobalThresholdAlgos
 import simplecolocalization.preprocessing.LocalThresholdAlgos
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.ThresholdTypes
@@ -42,7 +41,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             // Remove background.
             BackgroundSubtracter().rollingBallBackground(
                 image.channelProcessor,
-                params.largestCellDiameter,
+                params.largestCellDiameter.toDouble(),
                 false,
                 false,
                 false,
@@ -51,11 +50,34 @@ class CellSegmentationService : AbstractService(), ImageJService {
             )
         }
 
-        thresholdImage(image, params.thresholdLocality, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
+        when (params.thresholdLocality) {
+            ThresholdTypes.GLOBAL -> {
+                image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
+                image.processor.autoThreshold()
+            }
+            ThresholdTypes.LOCAL -> {
+                when (params.localThresholdAlgo) {
+                    LocalThresholdAlgos.OTSU -> otsu(
+                        image,
+                        params.largestCellDiameter.toInt()
+                    )
+                    LocalThresholdAlgos.BERNSEN -> bernsen(
+                        image,
+                        params.largestCellDiameter.toInt(),
+                        15.0
+                    )
+                    LocalThresholdAlgos.NIBLACK -> niblack(
+                        image,
+                        params.largestCellDiameter.toInt(),
+                        0.2,
+                        0.0
+                    )
+                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
+                }
+            }
+            else -> throw IllegalArgumentException("Invalid Threshold Choice selected")
+        }
 
-        // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
-        // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
-        RankFilters().rank(image.channelProcessor, 1.0, RankFilters.MEDIAN)
         if (params.shouldDespeckle) {
             // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
             // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
@@ -67,54 +89,9 @@ class CellSegmentationService : AbstractService(), ImageJService {
             image.channelProcessor.blurGaussian(params.gaussianBlurSigma)
         }
 
-        // Threshold image to remove blur.
-        image.channelProcessor.autoThreshold()
         // Threshold image again to remove blur.
-        thresholdImage(image, ThresholdTypes.GLOBAL, params.globalThresholdAlgo, params.localThresholdAlgo, params.localThresholdRadius)
-    }
-
-    private fun thresholdImage(image: ImagePlus, thresholdChoice: String, globalThresholdAlgo: String, localThresholdAlgo: String, localThresholdRadius: Int) {
-        when (thresholdChoice) {
-            ThresholdTypes.GLOBAL -> {
-                when (globalThresholdAlgo) {
-                    GlobalThresholdAlgos.OTSU -> image.processor.setAutoThreshold(
-                        AutoThresholder.Method.Otsu,
-                        true
-                    )
-                    GlobalThresholdAlgos.MOMENTS -> image.processor.setAutoThreshold(
-                        AutoThresholder.Method.Moments,
-                        true
-                    )
-                    GlobalThresholdAlgos.SHANBHAG -> image.processor.setAutoThreshold(
-                        AutoThresholder.Method.Shanbhag,
-                        true
-                    )
-                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
-                }
-                image.processor.autoThreshold()
-            }
-            ThresholdTypes.LOCAL -> {
-                when (localThresholdAlgo) {
-                    LocalThresholdAlgos.OTSU -> otsu(
-                        image,
-                        localThresholdRadius
-                    )
-                    LocalThresholdAlgos.BERNSEN -> bernsen(
-                        image,
-                        localThresholdRadius,
-                        15.0
-                    ) // TODO(rasnav99): Decide additional parameters for these methods.
-                    LocalThresholdAlgos.NIBLACK -> niblack(
-                        image,
-                        localThresholdRadius,
-                        0.2,
-                        0.0
-                    )
-                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
-                }
-            }
-            else -> throw IllegalArgumentException("Invalid Threshold Choice selected")
-        }
+        image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
+        image.processor.autoThreshold()
     }
 
     /**
@@ -124,7 +101,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
      * Used as a simple starting point that'd allow for cell counting.
      */
     fun segmentImage(image: ImagePlus) {
-        // TODO(#7): Review and improve upon simple watershed.
+        // Preprocessing is good enough that watershed is sufficient to segment here.
         EDM().toWatershed(image.channelProcessor)
     }
 

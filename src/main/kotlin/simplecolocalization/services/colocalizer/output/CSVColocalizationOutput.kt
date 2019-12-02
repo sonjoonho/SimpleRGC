@@ -18,8 +18,8 @@ class CSVColocalizationOutput(
     override fun output() {
         val csvWriter = CsvWriter()
         val outputData = ArrayList<Array<String>>()
-        outputData.add(arrayOf("Area", "Mean", "Min", "Max"))
-        analysis.forEach { outputData.add(arrayOf(it.area.toString(), it.mean.toString(), it.min.toString(), it.max.toString())) }
+        outputData.add(arrayOf("Area", "Median", "Mean"))
+        analysis.forEach { outputData.add(arrayOf(it.area.toString(), it.median.toString(), it.mean.toString())) }
         csvWriter.write(file, StandardCharsets.UTF_8, outputData)
     }
 }
