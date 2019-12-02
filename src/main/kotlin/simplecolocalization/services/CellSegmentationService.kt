@@ -108,19 +108,20 @@ class CellSegmentationService : AbstractService(), ImageJService {
      */
     private fun detectAxons(image: ImagePlus): List<Roi> {
         // Empirically, the values of sigma, upperThresh and lowerThresh
-        // proved the most effective on test images
+        // proved the most effective on test images.
         // TODO: Investigate optimum parameters for Line Detector
         val contours = LineDetector().detectLines(
             image.processor, 1.61, 15.0, 5.0,
             0.0, 0.0, false, true, true, true
         )
         val axons = mutableListOf<Roi>()
-        // Convert to Rois
+        // Convert to Rois.
         for (c in contours) {
+            // Generate one Roi per contour.
             val p = FloatPolygon(c.xCoordinates, c.yCoordinates, c.number)
             val r = PolygonRoi(p, Roi.FREELINE)
             r.position = c.frame
-            // Set the line width of Roi based on the average width of axon
+            // Set the line width of Roi based on the average width of axon.
             var sumWidths = 0.0
             for (j in c.lineWidthL.indices) {
                 sumWidths += c.lineWidthL[j] + c.lineWidthR[j]
