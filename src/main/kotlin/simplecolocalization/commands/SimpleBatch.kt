@@ -16,7 +16,6 @@ import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.counter.output.CSVCounterOutput
-import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 
 object PluginChoice {
     const val SIMPLE_CELL_COUNTER = "SimpleCellCounter"
@@ -78,7 +77,7 @@ class SimpleBatch : Command {
         label = "Batch Process files in nested folders ?",
         required = true
     )
-    private var processFilesInNestedFolders: Boolean = true
+    private var shouldProcessFilesInNestedFolders: Boolean = true
 
     @Parameter(
         label = "Which plugin do you want to run in Batch Mode ?",
@@ -100,7 +99,7 @@ class SimpleBatch : Command {
             return
         }
 
-        val files = getAllFiles(file, processFilesInNestedFolders)
+        val files = getAllFiles(file, shouldProcessFilesInNestedFolders)
 
         val lifs = files.filter { it.extension == "lif" }
         if (lifs.isNotEmpty()) {
@@ -126,8 +125,8 @@ class SimpleBatch : Command {
         process(tifs)
     }
 
-    private fun getAllFiles(file: File, processFilesInNestedFolders: Boolean): List<File> {
-        return if (processFilesInNestedFolders) {
+    private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
+        return if (shouldProcessFilesInNestedFolders) {
             file.walkTopDown().filter { f -> !f.isDirectory }.toList()
         } else {
             file.listFiles()?.toList() ?: listOf(file)
