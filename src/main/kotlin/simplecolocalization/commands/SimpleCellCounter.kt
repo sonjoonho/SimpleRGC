@@ -21,7 +21,6 @@ import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.colocalizer.PositionedCell
-import simplecolocalization.services.colocalizer.showCells
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
