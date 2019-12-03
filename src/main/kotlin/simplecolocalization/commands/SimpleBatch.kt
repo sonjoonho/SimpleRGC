@@ -53,7 +53,8 @@ class SimpleBatch : Command {
     @Parameter(
         label = "Output File :",
         style = "save",
-        required = false
+        required = false,
+        persist = false
     )
     private var outputFile: File? = null
 
@@ -87,6 +88,12 @@ class SimpleBatch : Command {
     private var pluginChoice = PluginChoice.SIMPLE_CELL_COUNTER
 
     override fun run() {
+
+        if (outputFile == null) {
+            MessageDialog(IJ.getInstance(), "Error",
+                "Please provide an output file.")
+            return
+        }
 
         val directoryChooser = DirectoryChooser("Select Input Folder")
 
