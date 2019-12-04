@@ -51,12 +51,12 @@ class SimpleBatch : Command {
     private var outputDestination = OutputDestination.CSV
 
     @Parameter(
-        label = "Output File :",
-        style = "save",
+        label = "Output File Name:",
+        description = "Please specify the name of the output file. Leaving this empty will save a csv with the same name as the directory you choose as input. Files with ",
         required = false,
         persist = false
     )
-    private var outputFile: File? = null
+    private var outputFileName = ""
 
     /**
      * Used during the cell segmentation stage to perform local thresholding or
@@ -89,16 +89,16 @@ class SimpleBatch : Command {
 
     override fun run() {
 
-        if (outputFile == null) {
-            MessageDialog(IJ.getInstance(), "Error",
-                "Please provide an output file.")
-            return
-        }
-
         val directoryChooser = DirectoryChooser("Select Input Folder")
 
         val path = directoryChooser.directory
         val file = File(path)
+
+        val outputPath = if (outputFileName.isBlank()) {
+            "$path${file.name}.csv";
+        } else {
+            "$path$outputFileName.csv";
+        }
 
         if (!file.exists()) {
             MessageDialog(IJ.getInstance(), "Error",
@@ -129,7 +129,7 @@ class SimpleBatch : Command {
 
         val tifs = files.filter { it.extension == "tif" || it.extension == "tiff" }
 
-        process(tifs)
+        process(tifs, outputPath)
     }
 
     private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
@@ -140,14 +140,14 @@ class SimpleBatch : Command {
         }
     }
 
-    private fun process(tifs: List<File>) {
+    private fun process(tifs: List<File>, outputName: String) {
         when (pluginChoice) {
-            PluginChoice.SIMPLE_CELL_COUNTER -> processSimpleCellCounter(tifs)
-            PluginChoice.SIMPLE_COLOCALIZATION -> processSimpleColocalization(tifs)
+            PluginChoice.SIMPLE_CELL_COUNTER -> processSimpleCellCounter(tifs, outputName)
+            PluginChoice.SIMPLE_COLOCALIZATION -> processSimpleColocalization(tifs, outputName)
         }
     }
 
-    private fun processSimpleCellCounter(tifs: List<File>) {
+    private fun processSimpleCellCounter(tifs: List<File>, outputName: String) {
         val simpleCellCounter = SimpleCellCounter()
         context.inject(simpleCellCounter)
 
@@ -158,7 +158,7 @@ class SimpleBatch : Command {
 
         when (outputDestination) {
             OutputDestination.CSV -> {
-                val output = CSVCounterOutput(outputFile!!)
+                val output = CSVCounterOutput(File(outputName))
                 imageAndCount.forEach { output.addCountForFile(it.second, it.first.name) }
                 output.save()
             }
@@ -166,7 +166,7 @@ class SimpleBatch : Command {
     }
 
     // TODO: Implement batch processing for SimpleColocalization
-    private fun processSimpleColocalization(tifs: List<File>) {
+    private fun processSimpleColocalization(tifs: List<File>, outputName: String) {
     }
 
     companion object {
