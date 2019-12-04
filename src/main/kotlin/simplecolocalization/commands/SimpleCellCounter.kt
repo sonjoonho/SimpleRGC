@@ -15,10 +15,12 @@ import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
+import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
@@ -117,8 +119,8 @@ class SimpleCellCounter : Command {
     /** Processes single image. */
     private fun process(image: ImagePlus) {
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
-            val path = IJ.getDirectory("current")
-            val name = FilenameUtils.removeExtension(image.title) + ".csv"
+            val path = image.originalFileInfo.directory
+            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
@@ -128,24 +130,16 @@ class SimpleCellCounter : Command {
             }
         }
 
-        val imageDuplicate = image.duplicate()
-
         val preprocessingParams = if (tuneParams) {
                 tuneParameters(largestCellDiameter) ?: return
             } else {
                 PreprocessingParameters(largestCellDiameter = largestCellDiameter)
             }
 
-        cellSegmentationService.preprocessImage(imageDuplicate, preprocessingParams)
-        cellSegmentationService.segmentImage(imageDuplicate)
+        val path = image.originalFileInfo.directory + image.originalFileInfo.fileName
+        val cells = countCells(path, preprocessingParams)
 
-        val cells = cellSegmentationService.identifyCells(imageDuplicate)
-
-        if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableCounterOutput(cells.size, uiService).output()
-        } else if (outputDestination == OutputDestination.CSV) {
-            CSVCounterOutput(cells.size, outputFile!!).output()
-        }
+        displayOutput(cells.size, image.title)
 
         // The colocalization results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation
@@ -160,6 +154,27 @@ class SimpleCellCounter : Command {
 
         image.show()
         addToRoiManager(cells)
+    }
+
+    fun countCells(imagePath: String, preprocessingParameters: PreprocessingParameters): List<PositionedCell> {
+        val image = ImagePlus(imagePath).duplicate()
+
+        cellSegmentationService.preprocessImage(image, preprocessingParameters)
+        cellSegmentationService.segmentImage(image)
+
+        return cellSegmentationService.identifyCells(image)
+    }
+
+    private fun displayOutput(numCells: Int, file: String) {
+        if (outputDestination == OutputDestination.DISPLAY) {
+            val output = ImageJTableCounterOutput(uiService)
+            output.addCountForFile(numCells, file)
+            output.show()
+        } else if (outputDestination == OutputDestination.CSV) {
+            val output = CSVCounterOutput(outputFile!!)
+            output.addCountForFile(numCells, file)
+            output.save()
+        }
     }
 
     companion object {
@@ -177,7 +192,7 @@ class SimpleCellCounter : Command {
 
             ij.launch()
 
-            val file: File = ij.ui().chooseFile(null, "open")
+            val file: File = ij.ui().chooseFile(null, FileWidget.OPEN_STYLE)
             val imp = IJ.openImage(file.path)
             imp.show()
             ij.command().run(SimpleCellCounter::class.java, true)
