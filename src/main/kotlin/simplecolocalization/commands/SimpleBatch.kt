@@ -95,9 +95,9 @@ class SimpleBatch : Command {
         val file = File(path)
 
         val outputPath = if (outputFileName.isBlank()) {
-            "$path${file.name}.csv";
+            "$path${file.name}.csv"
         } else {
-            "$path$outputFileName.csv";
+            "$path$outputFileName.csv"
         }
 
         if (!file.exists()) {
