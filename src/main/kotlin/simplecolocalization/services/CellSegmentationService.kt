@@ -1,6 +1,9 @@
 package simplecolocalization.services
 
+import de.biomedical_imaging.ij.steger.LineDetector
 import ij.ImagePlus
+import ij.gui.PolygonRoi
+import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
 import ij.plugin.filter.BackgroundSubtracter
@@ -9,7 +12,9 @@ import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.ParticleAnalyzer
 import ij.plugin.filter.RankFilters
 import ij.process.AutoThresholder
+import ij.process.FloatPolygon
 import ij.process.ImageConverter
+import java.awt.Color
 import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
@@ -84,6 +89,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
             RankFilters().rank(image.channelProcessor, params.despeckleRadius, RankFilters.MEDIAN)
         }
 
+        removeAxons(image, detectAxons(image))
+
         if (params.shouldGaussianBlur) {
             // Apply Gaussian Blur to group larger speckles.
             image.channelProcessor.blurGaussian(params.gaussianBlurSigma)
@@ -92,6 +99,47 @@ class CellSegmentationService : AbstractService(), ImageJService {
         // Threshold image again to remove blur.
         image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
         image.processor.autoThreshold()
+    }
+
+    /**
+     * Detect axons/dendrites within an image and return them as Rois.
+     *
+     * Uses Ridge Detection plugin's LineDetector.
+     */
+    private fun detectAxons(image: ImagePlus): List<Roi> {
+        // Empirically, the values of sigma, upperThresh and lowerThresh
+        // proved the most effective on test images.
+        // TODO: Investigate optimum parameters for Line Detector
+        val contours = LineDetector().detectLines(
+            image.processor, 1.61, 15.0, 5.0,
+            0.0, 0.0, false, true, true, true
+        )
+        val axons = mutableListOf<Roi>()
+        // Convert to Rois.
+        for (c in contours) {
+            // Generate one Roi per contour.
+            val p = FloatPolygon(c.xCoordinates, c.yCoordinates, c.number)
+            val r = PolygonRoi(p, Roi.FREELINE)
+            r.position = c.frame
+            // Set the line width of Roi based on the average width of axon.
+            var sumWidths = 0.0
+            for (j in c.lineWidthL.indices) {
+                sumWidths += c.lineWidthL[j] + c.lineWidthR[j]
+            }
+            r.strokeWidth = (sumWidths / (c.xCoordinates.size)).toFloat()
+            axons.add(r)
+        }
+        return axons
+    }
+
+    /** Remove axon rois from the (thresholded) image. */
+    private fun removeAxons(image: ImagePlus, axons: List<Roi>) {
+        // The background post-thresholding will be black
+        // therefore we want the brush to be black
+        image.setColor(Color.BLACK)
+        for (axon in axons) {
+            axon.drawPixels(image.processor)
+        }
     }
 
     /**

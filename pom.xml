@@ -50,6 +50,11 @@
             <version>3.3.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>de.biomedical-imaging.imagej</groupId>
+            <artifactId>ij_ridge_detect</artifactId>
+            <version>1.4.1</version>
+        </dependency>
     </dependencies>
     <!-- Inherit from the SciJava base POM. -->
     <parent>
