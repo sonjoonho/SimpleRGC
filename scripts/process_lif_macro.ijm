@@ -1,17 +1,21 @@
-
 /*
  * Macro to process LIF images, deconstructing them and saving each series as a .tif
  * Assumes the Bio-Formats plugin is already installed.
+ * Takes as argument pipe separated string: LifPath|OutputDirPath
  */
 
-processLIF();
+args = getArgument()
+argList = split(args, "|")
+
+print(argList[0])
+print(argList[1])
+
+processLIF(argList[0], argList[1]);
 
 // Function to open and save LIF as series of TIFFs
-function processLIF() {
+function processLIF(inputfile, outputdir) {
 	requires("1.43d");
 	suffix = ".lif";
-	inputfile = File.openDialog("Choose a .lif file to process.");
-	outputdir = getDirectory();
 
 	// Ensure no GUI windows pop up.
 	setBatchMode(true);
