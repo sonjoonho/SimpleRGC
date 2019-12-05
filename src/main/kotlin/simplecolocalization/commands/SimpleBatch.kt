@@ -3,6 +3,7 @@ package simplecolocalization.commands
 import de.siegmar.fastcsv.writer.CsvWriter
 import ij.IJ
 import ij.ImagePlus
+import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
@@ -139,20 +140,51 @@ class SimpleBatch : Command {
 
         val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
 
-        val tifs = files.filter { it.extension == "tif" || it.extension == "tiff" }
+        val tifs = files.filter { it.extension == "tif" || it.extension == "tiff" }.toMutableList()
         val lifs = files.filter { it.extension == "lif" }
 
         if (lifs.isNotEmpty()) {
-            GenericDialog(".LIF Files Found").apply {
-                addMessage("""
-                    We found ${lifs.size} file(s) with the .LIF extension. 
-                    Please note that this plugin will skip over files in the .LIF format. 
-                    Please refer to this plugin's documentation on how to automatically batch convert .LIF files to the accepted .TIF extension.
-                    """.trimIndent()
+
+            // Check if bioformats is installed.
+
+            val allCommands = ij.Menus.getCommands().keys().toList()
+
+            if (allCommands.contains("Bio-Formats")) {
+                // If installed Process lifs:
+                // Create temporary folder to store tifs
+                val tmp = createTempDir()
+                for (lif in lifs) {
+                    // Run bioformats opener
+                    val pluginResult = IJ.runPlugIn(
+                        "Bio-Formats Importer",
+                        "open=[$lif] color_mode=Composite rois_import=[ROI manager] open_all_series view=Hyperstack stack_order=XYCZT"
+                    )
+                    // Iterate through open images, saving each one as tiff.
+                    val imagesTitles = WindowManager.getImageTitles().toList()
+                    for (title in imagesTitles) {
+                        IJ.saveAsTiff(WindowManager.getImage(title), tmp.canonicalPath + title + ".tif")
+                    }
+                }
+                // Add all created tifs to the tifs folder to process.
+                tifs.addAll(tmp.listFiles { file -> file.extension == "tif" })
+            } else {
+
+                // If Bio-Formats not installed, display message below.
+                val dialog = GenericDialog(".LIF Files Found")
+
+                dialog.addMessage(
+                    """
+                We found ${lifs.size} file(s) with the .LIF extension. 
+                Please note that it is required to have the Bio-Formats plugin installed to process .LIF files. 
+                Instructions on how to install the plugin can be found at https://docs.openmicroscopy.org/bio-formats/5.8.2/users/imagej/installing.html.
+                """.trimIndent()
                 )
-                addMessage("Continue to process only .TIF images in your input directory.")
-                showDialog()
-                if (wasCanceled()) {
+
+                dialog.addMessage("Continue to process only .TIF images in your input directory.")
+
+                dialog.showDialog()
+
+                if (dialog.wasCanceled()) {
                     return
                 }
             }
