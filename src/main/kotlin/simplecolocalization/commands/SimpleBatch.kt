@@ -4,6 +4,7 @@ import ij.IJ
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import java.io.File
+import java.io.IOException
 import net.imagej.ImageJ
 import org.scijava.Context
 import org.scijava.command.Command
@@ -15,7 +16,6 @@ import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.counter.output.CSVCounterOutput
-import java.io.IOException
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
 class SimpleBatch : Command {
