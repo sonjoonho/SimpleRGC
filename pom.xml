@@ -22,7 +22,7 @@
         <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>Auto_Local_Threshold</artifactId>
-            <version>1.10.1</version>
+            <version>1.10.0</version>
         </dependency>
 
         <dependency>
