@@ -17,11 +17,6 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import java.io.IOException
 
-object PluginChoice {
-    const val SIMPLE_CELL_COUNTER = "SimpleCellCounter"
-    const val SIMPLE_COLOCALIZATION = "SimpleColocalization"
-}
-
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
 class SimpleBatch : Command {
 
@@ -43,6 +38,11 @@ class SimpleBatch : Command {
         const val CSV = "Save as CSV file"
     }
     private var outputDestination = OutputDestination.CSV
+
+    object PluginChoice {
+        const val SIMPLE_CELL_COUNTER = "SimpleCellCounter"
+        const val SIMPLE_COLOCALIZATION = "SimpleColocalization"
+    }
 
     @Parameter(
         label = "Which plugin do you want to run in batch mode?",
@@ -99,8 +99,8 @@ class SimpleBatch : Command {
         // Validate output file extension
         when (outputDestination) {
             OutputDestination.CSV -> {
-                if (!outputDestination.endsWith(".csv", ignoreCase = true)) {
-                    outputDestination = "$outputDestination.csv"
+                if (!outputFile.path.endsWith(".csv", ignoreCase = true)) {
+                    outputFile = File("${outputFile.path}.csv")
                 }
             }
         }
