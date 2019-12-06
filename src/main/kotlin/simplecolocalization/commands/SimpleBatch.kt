@@ -9,6 +9,7 @@ import ij.plugin.ChannelSplitter
 import ij.plugin.ZProjector
 import java.io.File
 import java.io.IOException
+import java.nio.charset.StandardCharsets
 import net.imagej.ImageJ
 import org.scijava.Context
 import org.scijava.command.Command
@@ -20,7 +21,6 @@ import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.counter.output.CSVCounterOutput
-import java.nio.charset.StandardCharsets
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
 class SimpleBatch : Command {
@@ -228,7 +228,7 @@ class SimpleBatch : Command {
                 MessageDialog(
                     IJ.getInstance(),
                     "Error",
-                    "Transduced channel {${transducedChannel} does not exist in ${image.originalFileInfo.fileName}. There are ${imageChannels.size} channels available."
+                    "Transduced channel {$transducedChannel does not exist in ${image.originalFileInfo.fileName}. There are ${imageChannels.size} channels available."
                 )
                 return
             }
@@ -236,10 +236,10 @@ class SimpleBatch : Command {
             simpleColocalization.analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
         }
 
-        val fileNameAndAnalysis = tifs.map{it.name}.zip(analyses)
+        val fileNameAndAnalysis = tifs.map { it.name }.zip(analyses)
         val csvWriter = CsvWriter()
         val outputData = mutableListOf(arrayOf("File Name", "Total Target Cells", "Total Transduced Target Cells"))
-        outputData.addAll(fileNameAndAnalysis.map{
+        outputData.addAll(fileNameAndAnalysis.map {
             // TODO(Kelvin): The total target cells here should be the result of cell counting, not transduction.
             // This needs a major change in ColocalizationResult.
             val totalTargetCells = (it.second.partitionedCells.overlapping.size + it.second.partitionedCells.disjoint.size).toString()
