@@ -30,6 +30,7 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
+import simplecolocalization.services.colocalizer.TransductionAnalysis
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
@@ -139,6 +140,8 @@ class SimpleColocalization : Command {
     )
     private var largestCellDiameter = 30.0
 
+    data class ColocalizationResult(val targetCellAnalyses: Array<CellColocalizationService.CellAnalysis>, val partitionedCells: TransductionAnalysis)
+
     override fun run() {
         var image = WindowManager.getCurrentImage()
         if (image != null) {
@@ -183,36 +186,17 @@ class SimpleColocalization : Command {
             MessageDialog(
                 IJ.getInstance(),
                 "Error",
-                "Tranduced channel selected does not exist. There are %d channels available.".format(imageChannels.size)
+                "Transduced channel selected does not exist. There are %d channels available.".format(imageChannels.size)
             )
             return
         }
 
-        val targetChannel = imageChannels[targetChannel - 1]
-        val transducedChannel = imageChannels[transducedChannel - 1]
-
-        logService.info("Starting extraction")
-        val targetCells = extractCells(targetChannel)
-        val transducedCells = filterCellsByIntensity(extractCells(transducedChannel), transducedChannel)
-
-        logService.info("Starting analysis")
-
-        val transductionAnalysis = BucketedNaiveColocalizer(
-            largestCellDiameter.toInt(),
-            targetChannel.width,
-            targetChannel.height,
-            PixelCellComparator(threshold = 0.01f)
-        ).analyseTransduction(targetCells, transducedCells)
-
-        val targetCellTransductionAnalysis = cellColocalizationService.analyseCellIntensity(
-            transducedChannel,
-            transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
-        )
+        val result = analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
 
         if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableColocalizationOutput(targetCellTransductionAnalysis, uiService).output()
+            ImageJTableColocalizationOutput(result.targetCellAnalyses, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
-            CSVColocalizationOutput(targetCellTransductionAnalysis, outputFile!!).output()
+            CSVColocalizationOutput(result.targetCellAnalyses, outputFile!!).output()
         }
 
         // The colocalization results are clearly displayed if the output
@@ -227,8 +211,31 @@ class SimpleColocalization : Command {
         }
 
         image.show()
-        showHistogram(targetCellTransductionAnalysis)
-        addToRoiManager(transductionAnalysis.overlapping)
+        showHistogram(result.targetCellAnalyses)
+        addToRoiManager(result.partitionedCells.overlapping)
+    }
+
+    fun analyseColocalization(targetChannel: ImagePlus, transducedChannel: ImagePlus): ColocalizationResult {
+        logService.info("Starting extraction")
+        val targetCells = extractCells(targetChannel)
+        val transducedCells = filterCellsByIntensity(extractCells(transducedChannel), transducedChannel)
+
+        logService.info("Starting analysis")
+
+        val transductionAnalysis = BucketedNaiveColocalizer(
+            largestCellDiameter.toInt(),
+            targetChannel.width,
+            targetChannel.height,
+            PixelCellComparator(threshold = 0.01f)
+        ).analyseTransduction(targetCells, transducedCells)
+
+        return ColocalizationResult(
+            targetCellAnalyses = cellColocalizationService.analyseCellIntensity(
+                transducedChannel,
+                transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
+            ),
+            partitionedCells = transductionAnalysis
+        )
     }
 
     /**
