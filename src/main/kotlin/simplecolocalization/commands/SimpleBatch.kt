@@ -1,8 +1,12 @@
 package simplecolocalization.commands
 
+import de.siegmar.fastcsv.writer.CsvWriter
 import ij.IJ
+import ij.ImagePlus
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
+import ij.plugin.ChannelSplitter
+import ij.plugin.ZProjector
 import java.io.File
 import java.io.IOException
 import net.imagej.ImageJ
@@ -16,6 +20,7 @@ import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.counter.output.CSVCounterOutput
+import java.nio.charset.StandardCharsets
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
 class SimpleBatch : Command {
@@ -82,6 +87,33 @@ class SimpleBatch : Command {
         persist = false
     )
     private var largestCellDiameter = 30.0
+
+    /**
+     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
+     * the channels available at the parameter initiation stage.
+     * By default this is 1 (red) channel.
+     */
+    @Parameter(
+        label = "Target Cell Channel (Colocalization Only)",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    private var targetChannel = 1
+
+    /**
+     * Specify the channel for the transduced cells.
+     * By default this is the 2 (green) channel.
+     */
+    @Parameter(
+        label = "Transduced Cell Channel (Colocalization Only)",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    private var transducedChannel = 2
 
     @Parameter(
         label = "Batch process files in nested sub-folders?",
@@ -171,7 +203,50 @@ class SimpleBatch : Command {
     }
 
     private fun processSimpleColocalization(tifs: List<File>, outputFile: File) {
-        // TODO("Batch SimpleColocalization unimplemented")
+        val simpleColocalization = SimpleColocalization()
+        context.inject(simpleColocalization)
+
+        val analyses = tifs.map {
+            var image = ImagePlus(it.absolutePath)
+            if (image.nSlices > 1) {
+                // Flatten slices of the image. This step should probably be done during the preprocessing step - however
+                // this operation is not done in-place but creates a new image, which makes this hard.
+                image = ZProjector.run(image, "max")
+            }
+
+            val imageChannels = ChannelSplitter.split(image)
+            if (targetChannel < 1 || targetChannel > imageChannels.size) {
+                MessageDialog(
+                    IJ.getInstance(),
+                    "Error",
+                    "Target channel {$targetChannel} does not exist in ${image.originalFileInfo.fileName}. There are ${imageChannels.size} channels available."
+                )
+                return
+            }
+
+            if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
+                MessageDialog(
+                    IJ.getInstance(),
+                    "Error",
+                    "Transduced channel {${transducedChannel} does not exist in ${image.originalFileInfo.fileName}. There are ${imageChannels.size} channels available."
+                )
+                return
+            }
+
+            simpleColocalization.analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
+        }
+
+        val fileNameAndAnalysis = tifs.map{it.name}.zip(analyses)
+        val csvWriter = CsvWriter()
+        val outputData = mutableListOf(arrayOf("File Name", "Total Target Cells", "Total Transduced Target Cells"))
+        outputData.addAll(fileNameAndAnalysis.map{
+            // TODO(Kelvin): The total target cells here should be the result of cell counting, not transduction.
+            // This needs a major change in ColocalizationResult.
+            val totalTargetCells = (it.second.partitionedCells.overlapping.size + it.second.partitionedCells.disjoint.size).toString()
+            val totalTransducedTargetCells = it.second.partitionedCells.overlapping.size.toString()
+            arrayOf(it.first, totalTargetCells, totalTransducedTargetCells)
+        })
+        csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
     }
 
     companion object {
