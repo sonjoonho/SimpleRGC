@@ -140,7 +140,8 @@ class SimpleColocalization : Command {
     )
     private var largestCellDiameter = 30.0
 
-    data class ColocalizationResult(val targetCellAnalyses: Array<CellColocalizationService.CellAnalysis>, val partitionedCells: TransductionAnalysis)
+    // TODO: Discuss whether we want to use targetCellCount in the single colocalisation plugin
+    data class ColocalizationResult(val targetCellCount: Int, val targetCellAnalyses: Array<CellColocalizationService.CellAnalysis>, val partitionedCells: TransductionAnalysis)
 
     override fun run() {
         var image = WindowManager.getCurrentImage()
@@ -230,6 +231,7 @@ class SimpleColocalization : Command {
         ).analyseTransduction(targetCells, transducedCells)
 
         return ColocalizationResult(
+            targetCellCount = targetCells.size,
             targetCellAnalyses = cellColocalizationService.analyseCellIntensity(
                 transducedChannel,
                 transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
