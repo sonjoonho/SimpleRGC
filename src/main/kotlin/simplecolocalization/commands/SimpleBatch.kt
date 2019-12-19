@@ -146,9 +146,7 @@ class SimpleBatch : Command {
         if (lifs.isNotEmpty()) {
 
             // Check if bioformats is installed.
-
             val allCommands = ij.Menus.getCommands().keys().toList()
-
             if (allCommands.contains("Bio-Formats")) {
                 // If installed Process lifs:
                 // Create temporary folder to store tifs
