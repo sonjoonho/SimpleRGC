@@ -16,7 +16,7 @@ class BatchableColocalizer(private val targetChannel: Int, private val transduce
         val simpleColocalization = SimpleColocalization()
         context.inject(simpleColocalization)
 
-        val analyses = inputFiles.map {
+        val analyses = inputFiles.mapNotNull {
             var image = ImagePlus(it.absolutePath)
             if (image.nSlices > 1) {
                 // Flatten slices of the image. This step should probably be done during the preprocessing step - however
@@ -29,21 +29,21 @@ class BatchableColocalizer(private val targetChannel: Int, private val transduce
                 MessageDialog(
                     IJ.getInstance(),
                     "Error",
-                    "Target channel $targetChannel does not exist in ${image.originalFileInfo.fileName}. There are ${imageChannels.size} channels available."
+                    "Target channel $targetChannel does not exist in ${image.fileInfo.fileName}. There are ${imageChannels.size} channels available."
                 )
-                return
+                return@mapNotNull null
             }
 
             if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
                 MessageDialog(
                     IJ.getInstance(),
                     "Error",
-                    "Transduced channel $transducedChannel does not exist in ${image.originalFileInfo.fileName}. There are ${imageChannels.size} channels available."
+                    "Transduced channel $transducedChannel does not exist in ${image.fileInfo.fileName}. There are ${imageChannels.size} channels available."
                 )
-                return
+                return@mapNotNull null
             }
 
-            simpleColocalization.analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
+            return@mapNotNull simpleColocalization.analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
         }
 
         val fileNameAndAnalysis = inputFiles.map { it.name }.zip(analyses)
