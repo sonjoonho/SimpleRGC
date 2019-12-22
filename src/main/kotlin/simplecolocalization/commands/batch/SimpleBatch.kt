@@ -3,7 +3,6 @@ package simplecolocalization.commands.batch
 import ij.IJ
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
-import io.minio.errors.InvalidArgumentException
 import java.io.File
 import net.imagej.ImageJ
 import org.scijava.Context
@@ -154,7 +153,7 @@ class SimpleBatch : Command {
         val strategy = when (pluginChoice) {
             PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(largestCellDiameter, outputFormat, context)
             PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, context)
-            else -> throw InvalidArgumentException("Invalid plugin choice provided")
+            else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
 
         strategy.process(tifs, outputFile)
