@@ -189,9 +189,9 @@ class SimpleCellCounter : Command {
         }
     }
 
-    private fun displayErrorDialog(fileTypeError: String) {
+    private fun displayErrorDialog(fileType: String) {
         GenericDialog("Error").apply {
-            addMessage("Unable to save results to "+ fileTypeError +" file. Ensure the output file is not currently open by other programs and try again.")
+            addMessage("Unable to save results to "+ fileType +" file. Ensure the output file is not currently open by other programs and try again.")
             hideCancelButton()
             showDialog()
         }

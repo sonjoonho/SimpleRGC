@@ -34,6 +34,9 @@ import simplecolocalization.services.colocalizer.TransductionAnalysis
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
+import simplecolocalization.services.colocalizer.output.XMLColocalizationOutput
+import java.io.IOException
+import javax.xml.transform.TransformerException
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -193,10 +196,19 @@ class SimpleColocalization : Command {
 
         val result = analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
 
-        if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableColocalizationOutput(result.targetCellAnalyses, uiService).output()
-        } else if (outputDestination == OutputDestination.CSV) {
-            CSVColocalizationOutput(result.targetCellAnalyses, outputFile!!).output()
+        val output = when (outputDestination) {
+            OutputDestination.DISPLAY -> ImageJTableColocalizationOutput(result.targetCellAnalyses, uiService)
+            OutputDestination.CSV -> CSVColocalizationOutput(result.targetCellAnalyses, outputFile!!)
+            OutputDestination.XML -> XMLColocalizationOutput(result.targetCellAnalyses, outputFile!!)
+            else -> throw IllegalArgumentException("Invalid output type provided")
+        }
+
+        try {
+            output.output()
+        } catch (te: TransformerException) {
+            displayErrorDialog("XML")
+        } catch (ioe: IOException) {
+            displayErrorDialog("")
         }
 
         // The colocalization results are clearly displayed if the output
@@ -213,6 +225,14 @@ class SimpleColocalization : Command {
         image.show()
         showHistogram(result.targetCellAnalyses)
         addToRoiManager(result.partitionedCells.overlapping)
+    }
+
+    private fun displayErrorDialog(fileType: String) {
+        GenericDialog("Error").apply {
+            addMessage("Unable to save results to "+ fileType+" file. Ensure the output file is not currently open by other programs and try again.")
+            hideCancelButton()
+            showDialog()
+        }
     }
 
     fun analyseColocalization(targetChannel: ImagePlus, transducedChannel: ImagePlus): ColocalizationResult {
