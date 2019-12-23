@@ -15,6 +15,10 @@ class ImageJTableCounterOutput(private val uiService: UIService) : CounterOutput
         // TODO: Implement storing and displaying filenames
     }
 
+    override fun output() {
+        show()
+    }
+
     fun show() {
         table.add(countColumn)
         table.setColumnHeader(0, "Count")

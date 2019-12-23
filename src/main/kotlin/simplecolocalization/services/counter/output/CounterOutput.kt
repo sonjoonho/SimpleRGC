@@ -5,4 +5,6 @@ package simplecolocalization.services.counter.output
  */
 abstract class CounterOutput {
     abstract fun addCountForFile(count: Int, file: String)
+
+    abstract fun output()
 }

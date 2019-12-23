@@ -19,6 +19,11 @@ class XMLCounterOutput(private val outputFile: File) : CounterOutput() {
         fileNameAndCountList.add(Pair(file, count))
     }
 
+    override fun output() {
+        val doc = createXML()
+        writeXML(doc)
+    }
+
     /***
      *  Creates XML doc with the schema:
      *  <counts>
@@ -50,33 +55,19 @@ class XMLCounterOutput(private val outputFile: File) : CounterOutput() {
             // Add count as value inside count element
             count.appendChild(doc.createTextNode(it.second.toString()))
         }
-
-        // TODO: tiger-cross, handle any exceptions here?
         return doc
     }
 
+    @Throws(TransformerException::class, IOException::class)
     private fun writeXML(doc: Document?) {
-        try {
-            // Create transformer and set output properties
-            val tr = TransformerFactory.newInstance().newTransformer()
-            tr.setOutputProperty(OutputKeys.INDENT, "yes")
-            tr.setOutputProperty(OutputKeys.METHOD, "xml")
-            tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
-            tr.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "roles.dtd")
-            tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4")
-            // Send output file to file output stream.
-            tr.transform(DOMSource(doc), StreamResult(FileOutputStream(outputFile)))
-        } catch (te: TransformerException) {
-            // TODO: tiger-cross, add error dialogues here.
-            println(te.message)
-        } catch (ioe: IOException) {
-            println(ioe.message)
-        }
-    }
-
-    fun save() {
-        val doc = createXML()
-
-        writeXML(doc)
+        // Create transformer and set output properties
+        val tr = TransformerFactory.newInstance().newTransformer()
+        tr.setOutputProperty(OutputKeys.INDENT, "yes")
+        tr.setOutputProperty(OutputKeys.METHOD, "xml")
+        tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
+        tr.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "roles.dtd")
+        tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4")
+        // Send output file to file output stream.
+        tr.transform(DOMSource(doc), StreamResult(FileOutputStream(outputFile)))
     }
 }

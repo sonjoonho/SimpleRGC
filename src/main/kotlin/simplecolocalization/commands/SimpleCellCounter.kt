@@ -24,6 +24,9 @@ import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
+import simplecolocalization.services.counter.output.XMLCounterOutput
+import java.io.IOException
+import javax.xml.transform.TransformerException
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -87,6 +90,7 @@ class SimpleCellCounter : Command {
     object OutputDestination {
         const val DISPLAY = "Display in table"
         const val CSV = "Save as CSV file"
+        const val XML = "Save as XML file"
     }
 
     @Parameter(
@@ -166,14 +170,30 @@ class SimpleCellCounter : Command {
     }
 
     private fun displayOutput(numCells: Int, file: String) {
-        if (outputDestination == OutputDestination.DISPLAY) {
-            val output = ImageJTableCounterOutput(uiService)
-            output.addCountForFile(numCells, file)
-            output.show()
-        } else if (outputDestination == OutputDestination.CSV) {
-            val output = CSVCounterOutput(outputFile!!)
-            output.addCountForFile(numCells, file)
-            output.save()
+
+        val output = when (outputDestination) {
+            OutputDestination.DISPLAY -> ImageJTableCounterOutput(uiService)
+            OutputDestination.CSV -> CSVCounterOutput(outputFile!!)
+            OutputDestination.XML -> XMLCounterOutput(outputFile!!)
+            else -> throw IllegalArgumentException("Invalid output type provided")
+        }
+
+        output.addCountForFile(numCells, file)
+
+        try {
+            output.output()
+        } catch (te: TransformerException) {
+            displayErrorDialog("XML")
+        } catch (ioe: IOException) {
+            displayErrorDialog("")
+        }
+    }
+
+    private fun displayErrorDialog(fileTypeError: String) {
+        GenericDialog("Error").apply {
+            addMessage("Unable to save results to "+ fileTypeError +" file. Ensure the output file is not currently open by other programs and try again.")
+            hideCancelButton()
+            showDialog()
         }
     }
 
