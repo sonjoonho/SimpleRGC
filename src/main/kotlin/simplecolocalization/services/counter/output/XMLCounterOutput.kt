@@ -26,11 +26,11 @@ class XMLCounterOutput(private val outputFile: File) : CounterOutput() {
 
     /***
      *  Creates XML doc with the schema:
-     *  <counts>
+     *  <countresult>
      *      <count file=inputfilename>countvalue</count>
      *      ...
      *      <count file=inputfilename>countvalue</count>
-     *  </counts>
+     *  </countresult>
      */
     private fun createXML(): Document? {
         // Create xml factory, builder and document
@@ -39,7 +39,7 @@ class XMLCounterOutput(private val outputFile: File) : CounterOutput() {
         val doc = dBuilder.newDocument()
 
         // root <counts> element
-        val rootElement = doc.createElement("counts")
+        val rootElement = doc.createElement("countresult")
         doc.appendChild(rootElement)
 
         fileNameAndCountList.forEach {

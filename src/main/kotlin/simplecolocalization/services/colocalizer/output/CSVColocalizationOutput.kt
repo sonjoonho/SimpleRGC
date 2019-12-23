@@ -12,7 +12,7 @@ import simplecolocalization.services.CellColocalizationService
  */
 class CSVColocalizationOutput(
     private val analysis: Array<CellColocalizationService.CellAnalysis>,
-    private val file: File
+    private val outputFile: File
 ) : ColocalizationOutput() {
 
     override fun output() {
@@ -20,6 +20,6 @@ class CSVColocalizationOutput(
         val outputData = ArrayList<Array<String>>()
         outputData.add(arrayOf("Area", "Median", "Mean"))
         analysis.forEach { outputData.add(arrayOf(it.area.toString(), it.median.toString(), it.mean.toString())) }
-        csvWriter.write(file, StandardCharsets.UTF_8, outputData)
+        csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
     }
 }

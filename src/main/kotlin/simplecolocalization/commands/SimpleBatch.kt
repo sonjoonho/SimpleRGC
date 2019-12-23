@@ -220,7 +220,7 @@ class SimpleBatch : Command {
                 val output = CSVCounterOutput(outputFile)
                 imageAndCount.forEach { output.addCountForFile(it.second, it.first.name) }
                 try {
-                    output.save()
+                    output.output()
                 } catch (e: IOException) {
                     GenericDialog("Error").apply {
                         addMessage("Unable to save results to CSV file. Ensure the output file is not currently open by other programs and try again.")
