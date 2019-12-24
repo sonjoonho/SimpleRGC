@@ -50,9 +50,7 @@ class BatchableColocalizer(private val targetChannel: Int, private val transduce
         val csvWriter = CsvWriter()
         val outputData = mutableListOf(arrayOf("File Name", "Total Target Cells", "Total Transduced Target Cells"))
         outputData.addAll(fileNameAndAnalysis.map {
-            // TODO(Kelvin): The total target cells here should be the result of cell counting, not transduction.
-            // This needs a major change in ColocalizationResult.
-            val totalTargetCells = (it.second.partitionedCells.overlapping.size + it.second.partitionedCells.disjoint.size).toString()
+            val totalTargetCells = it.second.targetCellCount.toString()
             val totalTransducedTargetCells = it.second.partitionedCells.overlapping.size.toString()
             arrayOf(it.first, totalTargetCells, totalTransducedTargetCells)
         })
