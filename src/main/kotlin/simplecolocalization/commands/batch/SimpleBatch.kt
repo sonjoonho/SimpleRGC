@@ -1,15 +1,9 @@
-package simplecolocalization.commands
+package simplecolocalization.commands.batch
 
-import de.siegmar.fastcsv.writer.CsvWriter
 import ij.IJ
-import ij.ImagePlus
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
-import ij.plugin.ChannelSplitter
-import ij.plugin.ZProjector
 import java.io.File
-import java.io.IOException
-import java.nio.charset.StandardCharsets
 import net.imagej.ImageJ
 import org.scijava.Context
 import org.scijava.command.Command
@@ -18,9 +12,7 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
-import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
-import simplecolocalization.services.counter.output.CSVCounterOutput
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
 class SimpleBatch : Command {
@@ -39,10 +31,10 @@ class SimpleBatch : Command {
      *
      * TODO(Arjun): Reinstate a parameter for this once display output is built
      */
-    object OutputDestination {
+    object OutputFormat {
         const val CSV = "Save as CSV file"
     }
-    private var outputDestination = OutputDestination.CSV
+    private var outputFormat = OutputFormat.CSV
 
     object PluginChoice {
         const val SIMPLE_CELL_COUNTER = "SimpleCellCounter"
@@ -129,8 +121,8 @@ class SimpleBatch : Command {
         }
 
         // Validate output file extension
-        when (outputDestination) {
-            OutputDestination.CSV -> {
+        when (outputFormat) {
+            OutputFormat.CSV -> {
                 if (!outputFile.path.endsWith(".csv", ignoreCase = true)) {
                     outputFile = File("${outputFile.path}.csv")
                 }
@@ -158,7 +150,13 @@ class SimpleBatch : Command {
             }
         }
 
-        process(tifs, outputFile)
+        val strategy = when (pluginChoice) {
+            PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(largestCellDiameter, outputFormat, context)
+            PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, context)
+            else -> throw IllegalArgumentException("Invalid plugin choice provided")
+        }
+
+        strategy.process(tifs, outputFile)
     }
 
     private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
@@ -167,84 +165,6 @@ class SimpleBatch : Command {
         } else {
             file.listFiles()?.toList() ?: listOf(file)
         }
-    }
-
-    private fun process(tifs: List<File>, outputFile: File) {
-        when (pluginChoice) {
-            PluginChoice.SIMPLE_CELL_COUNTER -> processSimpleCellCounter(tifs, outputFile)
-            PluginChoice.SIMPLE_COLOCALIZATION -> processSimpleColocalization(tifs, outputFile)
-        }
-    }
-
-    private fun processSimpleCellCounter(tifs: List<File>, outputFile: File) {
-        val simpleCellCounter = SimpleCellCounter()
-        context.inject(simpleCellCounter)
-
-        val preprocessingParameters = PreprocessingParameters(largestCellDiameter = largestCellDiameter)
-
-        val numCellsList = tifs.map { simpleCellCounter.countCells(it.absolutePath, preprocessingParameters).size }
-        val imageAndCount = tifs.zip(numCellsList)
-
-        when (outputDestination) {
-            OutputDestination.CSV -> {
-                val output = CSVCounterOutput(outputFile)
-                imageAndCount.forEach { output.addCountForFile(it.second, it.first.name) }
-                try {
-                    output.save()
-                } catch (e: IOException) {
-                    GenericDialog("Error").apply {
-                        addMessage("Unable to save results to CSV file. Ensure the output file is not currently open by other programs and try again.")
-                        hideCancelButton()
-                        showDialog()
-                    }
-                }
-            }
-        }
-    }
-
-    private fun processSimpleColocalization(tifs: List<File>, outputFile: File) {
-        val simpleColocalization = SimpleColocalization()
-        context.inject(simpleColocalization)
-
-        val analyses = tifs.map {
-            var image = ImagePlus(it.absolutePath)
-            if (image.nSlices > 1) {
-                // Flatten slices of the image. This step should probably be done during the preprocessing step - however
-                // this operation is not done in-place but creates a new image, which makes this hard.
-                image = ZProjector.run(image, "max")
-            }
-
-            val imageChannels = ChannelSplitter.split(image)
-            if (targetChannel < 1 || targetChannel > imageChannels.size) {
-                MessageDialog(
-                    IJ.getInstance(),
-                    "Error",
-                    "Target channel {$targetChannel} does not exist in ${image.originalFileInfo.fileName}. There are ${imageChannels.size} channels available."
-                )
-                return
-            }
-
-            if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
-                MessageDialog(
-                    IJ.getInstance(),
-                    "Error",
-                    "Transduced channel {$transducedChannel does not exist in ${image.originalFileInfo.fileName}. There are ${imageChannels.size} channels available."
-                )
-                return
-            }
-
-            simpleColocalization.analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
-        }
-
-        val fileNameAndAnalysis = tifs.map { it.name }.zip(analyses)
-        val csvWriter = CsvWriter()
-        val outputData = mutableListOf(arrayOf("File Name", "Total Target Cells", "Total Transduced Target Cells"))
-        outputData.addAll(fileNameAndAnalysis.map {
-            val totalTargetCells = it.second.targetCellCount.toString()
-            val totalTransducedTargetCells = it.second.partitionedCells.overlapping.size.toString()
-            arrayOf(it.first, totalTargetCells, totalTransducedTargetCells)
-        })
-        csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
     }
 
     companion object {
