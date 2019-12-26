@@ -148,11 +148,11 @@ class SimpleBatch : Command {
             // Check if bioformats is installed.
             val allCommands = ij.Menus.getCommands().keys().toList()
             if (allCommands.contains("Bio-Formats")) {
-                // If installed Process lifs:
-                // Create temporary folder to store tifs
+                // If installed process lifs:
+                // Create temporary folder to store tifs.
                 val tmp = createTempDir()
                 for (lif in lifs) {
-                    // Run bioformats opener
+                    // Run bioformats opener.
                     val pluginResult = IJ.runPlugIn(
                         "Bio-Formats Importer",
                         "open=[$lif] color_mode=Composite rois_import=[ROI manager] open_all_series view=Hyperstack stack_order=XYCZT"
