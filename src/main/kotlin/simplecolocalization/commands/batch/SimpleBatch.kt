@@ -1,7 +1,6 @@
 package simplecolocalization.commands.batch
 
 import ij.IJ
-import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
@@ -125,7 +124,7 @@ class SimpleBatch : Command {
             return
         }
 
-        // Validate output file extension
+        // Validate output file extension.
         when (outputFormat) {
             OutputFormat.CSV -> {
                 if (!outputFile.path.endsWith(".csv", ignoreCase = true)) {
@@ -136,7 +135,7 @@ class SimpleBatch : Command {
 
         val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
 
-        val tifs = files.filter { it.extension == "tif" || it.extension == "tiff" }
+        val tifs = files.filter { it.extension == "tif" || it.extension == "tiff" }.toMutableList()
         val lifs = files.filter { it.extension == "lif" }
 
         if (lifs.isNotEmpty()) {
@@ -146,11 +145,11 @@ class SimpleBatch : Command {
             val allCommands = ij.Menus.getCommands().keys().toList()
 
             if (allCommands.contains("Bio-Formats")) {
-                // If installed Process lifs:
-                // Create temporary folder to store tifs
+                // If installed process lifs:
+                // Create temporary folder to store tifs.
                 val tmp = createTempDir()
                 for (lif in lifs) {
-                    // Run bioformats opener
+                    // Run bioformats opener.
                     val pluginResult = IJ.runPlugIn(
                         "Bio-Formats Importer",
                         "open=[$lif] color_mode=Composite rois_import=[ROI manager] open_all_series view=Hyperstack stack_order=XYCZT"
