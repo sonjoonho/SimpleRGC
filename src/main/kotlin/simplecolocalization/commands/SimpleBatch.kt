@@ -129,7 +129,7 @@ class SimpleBatch : Command {
             return
         }
 
-        // Validate output file extension
+        // Validate output file extension.
         when (outputDestination) {
             OutputDestination.CSV -> {
                 if (!outputFile.path.endsWith(".csv", ignoreCase = true)) {
