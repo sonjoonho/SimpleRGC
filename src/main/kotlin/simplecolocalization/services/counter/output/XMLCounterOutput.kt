@@ -24,7 +24,7 @@ class XMLCounterOutput(private val outputFile: File) : CounterOutput() {
         writeXML(doc)
     }
 
-    /***
+    /**
      *  Creates XML doc with the schema:
      *  <countresult>
      *      <count file=inputfilename>countvalue</count>

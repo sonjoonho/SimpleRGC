@@ -27,7 +27,7 @@ class XMLColocalizationOutput(
         writeXML(doc)
     }
 
-    /***
+    /**
      *  Creates XML doc with the schema:
      *  <colocalizationresult file=inputfilename>
      *      <colocalizedcell>
