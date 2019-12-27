@@ -190,6 +190,7 @@ class SimpleBatch : Command {
             }
 
             strategy.process(tifs, outputFile)
+        // TODO: (tiger-cross) figure out if we need to delete the tmp folder and it's contents.
         }
 
         private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
