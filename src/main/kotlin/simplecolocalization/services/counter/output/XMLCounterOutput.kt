@@ -33,26 +33,25 @@ class XMLCounterOutput(private val outputFile: File) : CounterOutput() {
      *  </countresult>
      */
     private fun createXML(): Document? {
-        // Create xml factory, builder and document
+        // Create XML factory, builder and document.
         val dbFactory = DocumentBuilderFactory.newInstance()
         val dBuilder = dbFactory.newDocumentBuilder()
         val doc = dBuilder.newDocument()
 
-        // root <counts> element
         val rootElement = doc.createElement("countresult")
         doc.appendChild(rootElement)
 
         fileNameAndCountList.forEach {
-            // Create a <count> element for each file counted
+            // Create a <count> element for each file counted.
             val count = doc.createElement("count")
             rootElement.appendChild(count)
 
-            // Create attribute for file
+            // Create attribute for file.
             val fileAttr = doc.createAttribute("file")
             fileAttr.setValue(it.first)
             count.setAttributeNode(fileAttr)
 
-            // Add count as value inside count element
+            // Add count as value inside count element.
             count.appendChild(doc.createTextNode(it.second.toString()))
         }
         return doc
@@ -60,7 +59,7 @@ class XMLCounterOutput(private val outputFile: File) : CounterOutput() {
 
     @Throws(TransformerException::class, IOException::class)
     private fun writeXML(doc: Document?) {
-        // Create transformer and set output properties
+        // Create transformer and set output properties.
         val tr = TransformerFactory.newInstance().newTransformer()
         tr.setOutputProperty(OutputKeys.INDENT, "yes")
         tr.setOutputProperty(OutputKeys.METHOD, "xml")

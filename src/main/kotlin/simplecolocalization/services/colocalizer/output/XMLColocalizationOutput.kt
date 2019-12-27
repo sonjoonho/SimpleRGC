@@ -40,23 +40,22 @@ class XMLColocalizationOutput(
      *  </colocalizationresult>
      */
     private fun createXML(): Document? {
-        // Create xml factory, builder and document
+        // Create XML factory, builder and document.
         val dbFactory = DocumentBuilderFactory.newInstance()
         val dBuilder = dbFactory.newDocumentBuilder()
         val doc = dBuilder.newDocument()
 
-        // root <colocalizationresult> element
         val rootElement = doc.createElement("colocalizationresult")
         doc.appendChild(rootElement)
 
-        // TODO: tiger-cross find way to get input filename.
+        // TODO: (tiger-cross) find way to get input filename.
         // // Create attribute for file
         // val fileAttr = doc.createAttribute("file")
         // fileAttr.value = file.name
         // rootElement.setAttributeNode(fileAttr)
 
         analysis.forEach {
-            // Create a <colocalisedcell> element for each cell detected in both channels
+            // Create a <colocalisedcell> element for each cell detected in both channels.
             val colocalizedCell = doc.createElement("colocalizedcell")
             rootElement.appendChild(colocalizedCell)
 
@@ -69,7 +68,7 @@ class XMLColocalizationOutput(
     }
 
     private fun addColocalizedCellAttribute(attrName: String, attrVal: String, parent: Element, doc: Document) {
-        // Create a <attrName> element for each colocalizedcell
+        // Create a <attrName> element with a textnode value for each colocalizedcell.
         val elem = doc.createElement(attrName)
         parent.appendChild(elem)
         elem.appendChild(doc.createTextNode(attrVal))
@@ -77,7 +76,7 @@ class XMLColocalizationOutput(
 
     @Throws(TransformerException::class, IOException::class)
     private fun writeXML(doc: Document?) {
-        // Create transformer and set output properties
+        // Create transformer and set output properties.
         val tr = TransformerFactory.newInstance().newTransformer()
         tr.setOutputProperty(OutputKeys.INDENT, "yes")
         tr.setOutputProperty(OutputKeys.METHOD, "xml")
