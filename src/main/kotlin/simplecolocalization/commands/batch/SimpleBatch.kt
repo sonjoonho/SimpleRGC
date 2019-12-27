@@ -160,8 +160,9 @@ class SimpleBatch : Command {
                         IJ.saveAsTiff(WindowManager.getImage(title), tmp.canonicalPath + title + ".tif")
                     }
                 }
+                val tmpTifs = tmp.listFiles()!!.filter { it.extension == "tif" || it.extension == "tiff" }
                 // Add all created tifs to the tifs folder to process.
-                tifs.addAll(tmp.listFiles { file -> file.extension == "tif" })
+                tifs.addAll(tmpTifs)
             } else {
 
                 // If Bio-Formats not installed, display message below.
