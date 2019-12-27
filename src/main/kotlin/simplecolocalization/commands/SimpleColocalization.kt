@@ -206,9 +206,9 @@ class SimpleColocalization : Command {
         try {
             output.output()
         } catch (te: TransformerException) {
-            displayErrorDialog("XML")
+            displayErrorDialog(fileType="XML")
         } catch (ioe: IOException) {
-            displayErrorDialog("")
+            displayErrorDialog()
         }
 
         // The colocalization results are clearly displayed if the output
@@ -227,7 +227,7 @@ class SimpleColocalization : Command {
         addToRoiManager(result.partitionedCells.overlapping)
     }
 
-    private fun displayErrorDialog(fileType: String) {
+    private fun displayErrorDialog(fileType: String = "") {
         GenericDialog("Error").apply {
             addMessage("Unable to save results to $fileType file. Ensure the output file is not currently open by other programs and try again.")
             hideCancelButton()
