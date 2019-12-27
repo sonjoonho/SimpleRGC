@@ -67,8 +67,11 @@ class XMLColocalizationOutput(
         return doc
     }
 
+    /**
+     * Create a <attrName> element with the value as a Text Node for each colocalized cell.
+     * Current possible attrName values are "area", "median" and "mean".
+     */
     private fun addColocalizedCellAttribute(attrName: String, attrVal: String, parent: Element, doc: Document) {
-        // Create a <attrName> element with a textnode value for each colocalizedcell.
         val elem = doc.createElement(attrName)
         parent.appendChild(elem)
         elem.appendChild(doc.createTextNode(attrVal))
