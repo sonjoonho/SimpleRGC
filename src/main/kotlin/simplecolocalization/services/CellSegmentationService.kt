@@ -94,11 +94,11 @@ class CellSegmentationService : AbstractService(), ImageJService {
         if (params.shouldGaussianBlur) {
             // Apply Gaussian Blur to group larger speckles.
             image.channelProcessor.blurGaussian(params.gaussianBlurSigma)
-        }
 
-        // Threshold image again to remove blur.
-        image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
-        image.processor.autoThreshold()
+            // Threshold image again to remove blur.
+            image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
+            image.processor.autoThreshold()
+        }
     }
 
     /**
