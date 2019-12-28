@@ -1,6 +1,7 @@
 # Simple Colocalization
 
 [![Build Status](https://travis-ci.com/sonjoonho/simple-colocalization.svg?token=qFf5VdpqfSMd2gygFDZQ&branch=master)](https://travis-ci.com/sonjoonho/simple-colocalization)
+[![CodeFactor](https://www.codefactor.io/repository/github/sonjoonho/simple-colocalization/badge?s=16a1349a8a3de97b30f4f069bab6887f272adac9)](https://www.codefactor.io/repository/github/sonjoonho/simple-colocalization)
 
 ## Overview
 
