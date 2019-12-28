@@ -31,14 +31,8 @@ import simplecolocalization.services.colocalizer.PositionedCell
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
 
-    data class CellAnalysis(val area: Int, val channels: List<ChannelAnalysis>)
-    data class ChannelAnalysis(val name: String, val mean: Int, val min: Int, val max: Int)
-
     /** Perform pre-processing on the image to remove background and set cells to white. */
-    fun preprocessImage(
-        image: ImagePlus,
-        params: PreprocessingParameters
-    ) {
+    fun preprocessImage(image: ImagePlus, params: PreprocessingParameters) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
 
@@ -102,6 +96,21 @@ class CellSegmentationService : AbstractService(), ImageJService {
     }
 
     /**
+     * Extract a list of cells from the specified image.
+     */
+    fun extractCells(
+        image: ImagePlus,
+        preprocessingParameters: PreprocessingParameters
+    ): List<PositionedCell> {
+        val mutableImage = image.duplicate()
+
+        preprocessImage(mutableImage, preprocessingParameters)
+        segmentImage(mutableImage)
+
+        return identifyCells(mutableImage)
+    }
+
+    /**
      * Detect axons/dendrites within an image and return them as Rois.
      *
      * Uses Ridge Detection plugin's LineDetector.
@@ -109,7 +118,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
     private fun detectAxons(image: ImagePlus): List<Roi> {
         // Empirically, the values of sigma, upperThresh and lowerThresh
         // proved the most effective on test images.
-        // TODO: Investigate optimum parameters for Line Detector
+        // TODO(willburr): Investigate optimum parameters for Line Detector
         val contours = LineDetector().detectLines(
             image.processor, 1.61, 15.0, 5.0,
             0.0, 0.0, false, true, true, true

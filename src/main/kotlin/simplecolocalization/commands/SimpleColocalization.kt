@@ -218,8 +218,10 @@ class SimpleColocalization : Command {
 
     fun analyseColocalization(targetChannel: ImagePlus, transducedChannel: ImagePlus): ColocalizationResult {
         logService.info("Starting extraction")
-        val targetCells = extractCells(targetChannel)
-        val transducedCells = filterCellsByIntensity(extractCells(transducedChannel), transducedChannel)
+        // TODO(#77)
+        val preprocessingParameters = PreprocessingParameters(largestCellDiameter)
+        val targetCells = cellSegmentationService.extractCells(targetChannel, preprocessingParameters)
+        val transducedCells = filterCellsByIntensity(cellSegmentationService.extractCells(transducedChannel, preprocessingParameters), transducedChannel)
 
         logService.info("Starting analysis")
 
@@ -261,22 +263,6 @@ class SimpleColocalization : Command {
             }
         }
         return thresholdedCells
-    }
-
-    /**
-     * Extract an array of cells (as ROIs) from the specified image.
-     */
-    private fun extractCells(image: ImagePlus): List<PositionedCell> {
-        val mutableImage = image.duplicate()
-
-        // Process the target image.
-        cellSegmentationService.preprocessImage(
-            mutableImage,
-            PreprocessingParameters(largestCellDiameter = largestCellDiameter)
-        )
-        cellSegmentationService.segmentImage(mutableImage)
-
-        return cellSegmentationService.identifyCells(mutableImage)
     }
 
     /**

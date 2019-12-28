@@ -177,6 +177,13 @@ class SimpleCellCounter : Command {
         }
     }
 
+    /** Processes single image. */
+    fun process(image: ImagePlus, preprocessingParams: PreprocessingParameters): CounterResult {
+
+        val cells = cellSegmentationService.extractCells(image, preprocessingParams)
+        return CounterResult(cells.size, cells)
+    }
+
     companion object {
         /**
          * Entry point to directly open the plugin, used for debugging purposes.
