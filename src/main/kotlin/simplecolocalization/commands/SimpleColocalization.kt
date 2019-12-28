@@ -103,7 +103,7 @@ class SimpleColocalization : Command {
         required = true,
         persist = false
     )
-    private var targetChannel = 1
+    var targetChannel = 1
 
     /**
      * Specify the channel for the transduced cells.
@@ -116,7 +116,7 @@ class SimpleColocalization : Command {
         required = true,
         persist = false
     )
-    private var transducedChannel = 2
+    var transducedChannel = 2
 
     @Parameter(
         label = "Preprocessing Parameters:",

@@ -1,9 +1,10 @@
 package simplecolocalization.commands.batch
 
 import ij.IJ
-import ij.WindowManager
-import ij.gui.GenericDialog
+import ij.ImagePlus
 import ij.gui.MessageDialog
+import ij.io.Opener
+import ij.plugin.ZProjector
 import java.io.File
 import net.imagej.ImageJ
 import org.scijava.Context
@@ -13,6 +14,7 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
+import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
@@ -135,63 +137,14 @@ class SimpleBatch : Command {
 
         val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
 
-        val tifs = files.filter { it.extension == "tif" || it.extension == "tiff" }.toMutableList()
-        val lifs = files.filter { it.extension == "lif" }
-
-        if (lifs.isNotEmpty()) {
-
-            // Check if bioformats is installed.
-
-            val allCommands = ij.Menus.getCommands().keys().toList()
-
-            if (allCommands.contains("Bio-Formats")) {
-                // If installed process lifs:
-                // Create temporary folder to store tifs.
-                val tmp = createTempDir()
-                for (lif in lifs) {
-                    // Run bioformats opener.
-                    val pluginResult = IJ.runPlugIn(
-                        "Bio-Formats Importer",
-                        "open=[$lif] color_mode=Composite rois_import=[ROI manager] open_all_series view=Hyperstack stack_order=XYCZT"
-                    )
-                    // Iterate through open images, saving each one as tiff.
-                    val imagesTitles = WindowManager.getImageTitles().toList()
-                    for (title in imagesTitles) {
-                        IJ.saveAsTiff(WindowManager.getImage(title), tmp.canonicalPath + title + ".tif")
-                    }
-                }
-                val tmpTifs = tmp.listFiles()!!.filter { it.extension == "tif" || it.extension == "tiff" }
-                // Add all created tifs to the tifs folder to process.
-                tifs.addAll(tmpTifs)
-            } else {
-
-                // If Bio-Formats not installed, display message below.
-                GenericDialog(".LIF Files Found").apply {
-                    addMessage(
-                        """
-                We found ${lifs.size} file(s) with the .LIF extension.
-            Please note that it is required to have the Bio-Formats plugin installed to process .LIF files.
-            Instructions on how to install the plugin can be found at https://docs.openmicroscopy.org/bio-formats/5.8.2/users/imagej/installing.html.
-            """.trimIndent()
-                    )
-                    addMessage("Continue to process only .TIF images in your input directory.")
-                    showDialog()
-                    if (wasCanceled()) {
-                        return
-                    }
-                }
-            }
+        val strategy = when (pluginChoice) {
+            PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(outputFormat, context)
+            PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, context)
+            else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
 
-            val strategy = when (pluginChoice) {
-                PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(largestCellDiameter, outputFormat, context)
-                PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, context)
-                else -> throw IllegalArgumentException("Invalid plugin choice provided")
-            }
-
-            strategy.process(tifs, outputFile)
-        // TODO: (tiger-cross) figure out if we need to delete the tmp folder and it's contents.
-        }
+        strategy.process(openFiles(files), outputFile, PreprocessingParameters(largestCellDiameter))
+    }
 
         private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
             return if (shouldProcessFilesInNestedFolders) {
@@ -200,6 +153,24 @@ class SimpleBatch : Command {
                 file.listFiles()?.toList() ?: listOf(file)
             }
         }
+
+    private fun openFiles(inputFiles: List<File>): List<ImagePlus> {
+        val opener = Opener()
+
+        return inputFiles.mapNotNull {
+            val image: ImagePlus? = opener.openImage(it.absolutePath) ?: return@mapNotNull null
+
+            val flatImage = if (image!!.nSlices > 1) {
+                // Flatten slices of the image. This step should probably be done during the preprocessing step - however
+                // this operation is not done in-place but creates a new image, which makes this hard.
+                ZProjector.run(image, "max")
+            } else {
+                image
+            }
+
+            return@mapNotNull flatImage
+        }
+    }
 
         companion object {
             /**
