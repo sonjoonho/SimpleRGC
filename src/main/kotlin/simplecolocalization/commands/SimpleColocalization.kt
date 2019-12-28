@@ -145,21 +145,17 @@ class SimpleColocalization : Command {
 
     override fun run() {
         var image = WindowManager.getCurrentImage()
-        if (image != null) {
-            if (image.nSlices > 1) {
-                // Flatten slices of the image. This step should probably be done during the preprocessing step - however
-                // this operation is not done in-place but creates a new image, which makes this hard.
-                image = ZProjector.run(image, "max")
-            }
-
-            process(image)
-        } else {
+        if (image == null) {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+            return
         }
-    }
 
-    /** Processes single image. */
-    private fun process(image: ImagePlus) {
+        if (image.nSlices > 1) {
+            // Flatten slices of the image. This step should probably be done during the preprocessing step - however
+            // this operation is not done in-place but creates a new image, which makes this hard.
+            image = ZProjector.run(image, "max")
+        }
+
         // TODO(sonjoonho): Remove duplication in this code fragment.
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
@@ -173,27 +169,21 @@ class SimpleColocalization : Command {
             }
         }
 
-        val imageChannels = ChannelSplitter.split(image)
-        if (targetChannel < 1 || targetChannel > imageChannels.size) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error",
-                "Target channel selected does not exist. There are %d channels available.".format(imageChannels.size)
-            )
+        val result = try {
+            process(image)
+        } catch (e: NoSuchElementException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
             return
         }
 
-        if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error",
-                "Transduced channel selected does not exist. There are %d channels available.".format(imageChannels.size)
-            )
-            return
-        }
+        writeOutput(result)
 
-        val result = analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
+        image.show()
+        addToRoiManager(result.partitionedCells.overlapping)
+        showHistogram(result.targetCellAnalyses)
+    }
 
+    private fun writeOutput(result: ColocalizationResult) {
         if (outputDestination == OutputDestination.DISPLAY) {
             ImageJTableColocalizationOutput(result.targetCellAnalyses, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
@@ -210,10 +200,21 @@ class SimpleColocalization : Command {
                 "The colocalization results have successfully been saved to the specified file."
             )
         }
+    }
 
-        image.show()
-        showHistogram(result.targetCellAnalyses)
-        addToRoiManager(result.partitionedCells.overlapping)
+    /** Processes single image. */
+    @Throws(NoSuchElementException::class)
+    fun process(image: ImagePlus): ColocalizationResult {
+        val imageChannels = ChannelSplitter.split(image)
+        if (targetChannel < 1 || targetChannel > imageChannels.size) {
+            throw NoSuchElementException("Target channel selected does not exist. There are ${imageChannels.size} channels available")
+        }
+
+        if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
+            throw NoSuchElementException("Transduced channel selected does not exist. There are ${imageChannels.size} channels available")
+        }
+
+        return analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
     }
 
     fun analyseColocalization(targetChannel: ImagePlus, transducedChannel: ImagePlus): ColocalizationResult {
