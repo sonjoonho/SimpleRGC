@@ -138,7 +138,7 @@ class SimpleBatch : Command {
         val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
 
         val strategy = when (pluginChoice) {
-            PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(outputFormat, context)
+            PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(context)
             PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, context)
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
@@ -158,9 +158,9 @@ class SimpleBatch : Command {
         val opener = Opener()
 
         return inputFiles.mapNotNull {
-            val image: ImagePlus? = opener.openImage(it.absolutePath) ?: return@mapNotNull null
+            val image = opener.openImage(it.absolutePath) ?: return@mapNotNull null
 
-            val flatImage = if (image!!.nSlices > 1) {
+            val flatImage = if (image.nSlices > 1) {
                 // Flatten slices of the image. This step should probably be done during the preprocessing step - however
                 // this operation is not done in-place but creates a new image, which makes this hard.
                 ZProjector.run(image, "max")
