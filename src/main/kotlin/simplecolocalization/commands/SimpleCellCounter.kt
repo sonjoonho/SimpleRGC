@@ -100,24 +100,22 @@ class SimpleCellCounter : Command {
 
     private var outputFile: File? = null
 
+    data class CounterResult(val count: Int, val cells: List<PositionedCell>)
+
     /** Runs after the parameters above are populated. */
     override fun run() {
         var image = WindowManager.getCurrentImage()
-        if (image != null) {
-            if (image.nSlices > 1) {
-                // Flatten slices of the image. This step should probably be done during the preprocessing step - however
-                // this operation is not done in-place but creates a new image, which makes this hard.
-                image = ZProjector.run(image, "max")
-            }
-
-            process(image)
-        } else {
+        if (image == null) {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+            return
         }
-    }
 
-    /** Processes single image. */
-    private fun process(image: ImagePlus) {
+        if (image.nSlices > 1) {
+            // Flatten slices of the image. This step should probably be done during the preprocessing step - however
+            // this operation is not done in-place but creates a new image, which makes this hard.
+            image = ZProjector.run(image, "max")
+        }
+
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
             val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
@@ -131,41 +129,21 @@ class SimpleCellCounter : Command {
         }
 
         val preprocessingParams = if (tuneParams) {
-                tuneParameters(largestCellDiameter) ?: return
-            } else {
-                PreprocessingParameters(largestCellDiameter = largestCellDiameter)
-            }
-
-        val path = image.originalFileInfo.directory + image.originalFileInfo.fileName
-        val cells = countCells(path, preprocessingParams)
-
-        displayOutput(cells.size, image.title)
-
-        // The colocalization results are clearly displayed if the output
-        // destination is set to DISPLAY, however, a visual confirmation
-        // is useful if the output is saved to file.
-        if (outputDestination != OutputDestination.DISPLAY) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Saved",
-                "The cell counting results have successfully been saved to the specified file."
-            )
+            // Quit the plugin if the user cancels.
+            tuneParameters(largestCellDiameter) ?: return
+        } else {
+            PreprocessingParameters(largestCellDiameter)
         }
 
+        val result = process(image, preprocessingParams)
+
+        writeOutput(result.count, image.title)
+
         image.show()
-        addToRoiManager(cells)
+        addToRoiManager(result.cells)
     }
 
-    fun countCells(imagePath: String, preprocessingParameters: PreprocessingParameters): List<PositionedCell> {
-        val image = ImagePlus(imagePath).duplicate()
-
-        cellSegmentationService.preprocessImage(image, preprocessingParameters)
-        cellSegmentationService.segmentImage(image)
-
-        return cellSegmentationService.identifyCells(image)
-    }
-
-    private fun displayOutput(numCells: Int, file: String) {
+    private fun writeOutput(numCells: Int, file: String) {
         if (outputDestination == OutputDestination.DISPLAY) {
             val output = ImageJTableCounterOutput(uiService)
             output.addCountForFile(numCells, file)
@@ -174,6 +152,17 @@ class SimpleCellCounter : Command {
             val output = CSVCounterOutput(outputFile!!)
             output.addCountForFile(numCells, file)
             output.save()
+        }
+
+        // The cell counting results are clearly displayed if the output
+        // destination is set to DISPLAY, however, a visual confirmation
+        // is useful if the output is saved to file.
+        if (outputDestination != OutputDestination.DISPLAY) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Saved",
+                "The cell counting results have successfully been saved to the specified file."
+            )
         }
     }
 
