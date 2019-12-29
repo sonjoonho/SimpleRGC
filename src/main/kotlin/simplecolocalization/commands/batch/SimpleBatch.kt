@@ -1,9 +1,13 @@
 package simplecolocalization.commands.batch
 
 import ij.IJ
-import ij.gui.GenericDialog
+import ij.ImagePlus
 import ij.gui.MessageDialog
+import ij.io.Opener
 import java.io.File
+import loci.formats.UnknownFormatException
+import loci.plugins.BF
+import loci.plugins.`in`.ImporterOptions
 import net.imagej.ImageJ
 import org.scijava.Context
 import org.scijava.command.Command
@@ -12,6 +16,7 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
+import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
@@ -34,6 +39,7 @@ class SimpleBatch : Command {
     object OutputFormat {
         const val CSV = "Save as CSV file"
     }
+
     private var outputFormat = OutputFormat.CSV
 
     object PluginChoice {
@@ -115,12 +121,14 @@ class SimpleBatch : Command {
 
     override fun run() {
         if (!inputFolder.exists()) {
-            MessageDialog(IJ.getInstance(), "Error",
-                "The input folder could not be opened. Please create it if it does not already exist")
+            MessageDialog(
+                IJ.getInstance(), "Error",
+                "The input folder could not be opened. Please create it if it does not already exist"
+            )
             return
         }
 
-        // Validate output file extension
+        // Validate output file extension.
         when (outputFormat) {
             OutputFormat.CSV -> {
                 if (!outputFile.path.endsWith(".csv", ignoreCase = true)) {
@@ -131,57 +139,86 @@ class SimpleBatch : Command {
 
         val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
 
-        val tifs = files.filter { it.extension == "tif" || it.extension == "tiff" }
-        val lifs = files.filter { it.extension == "lif" }
-
-        if (lifs.isNotEmpty()) {
-            GenericDialog(".LIF Files Found").apply {
-                addMessage("""
-                    We found ${lifs.size} file(s) with the .LIF extension. 
-                    Please note that this plugin will skip over files in the .LIF format. 
-                    Please refer to this plugin's documentation on how to automatically batch convert .LIF files to the accepted .TIF extension.
-                    """.trimIndent()
-                )
-                addMessage("Continue to process only .TIF images in your input directory.")
-                showDialog()
-                if (wasCanceled()) {
-                    return
-                }
-            }
-        }
-
         val strategy = when (pluginChoice) {
-            PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(largestCellDiameter, outputFormat, context)
+            PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(context)
             PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, context)
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
 
-        strategy.process(tifs, outputFile)
+        strategy.process(openFiles(files), outputFile, PreprocessingParameters(largestCellDiameter))
     }
 
-    private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
-        return if (shouldProcessFilesInNestedFolders) {
-            file.walkTopDown().filter { f -> !f.isDirectory }.toList()
-        } else {
-            file.listFiles()?.toList() ?: listOf(file)
+        private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
+            return if (shouldProcessFilesInNestedFolders) {
+                file.walkTopDown().filter { f -> !f.isDirectory }.toList()
+            } else {
+                file.listFiles()?.toList() ?: listOf(file)
+            }
+        }
+
+    private fun openFiles(inputFiles: List<File>): List<ImagePlus> {
+        /*
+        First, we attempt to use the default ImageJ Opener. The ImageJ Opener falls back to a plugin called
+        HandleExtraFileTypes when it cannot open a file - which attempts to use Bio-Formats when it encounters a LIF.
+        Unfortunately, the LociImporter (what Bio-Formats uses) opens a dialog box when it does this. It does
+        support a "windowless" option, but it's not possible to pass this option (or any of our desired options) through
+        HandleExtraFileTypes. So instead, we limit the scope of possible file types by supporting native ImageJ formats
+        (Opener.types), preventing HandleExtraFileTypes from being triggered, and failing this fall back to calling the
+        Bio-Formats Importer manually. This handles the most common file types we expect to encounter.
+
+        Also, note that Opener returns null when it fails to open a file, whereas the Bio-Formats Importer throws an
+        UnknownFormatException`. To simplify the logic, an UnknownFormatException is thrown when Opener returns null.
+        */
+        val opener = Opener()
+        val inputImages = mutableListOf<ImagePlus>()
+
+        for (file in inputFiles) {
+
+            try {
+                if (Opener.types.contains(file.extension)) {
+                    val image = opener.openImage(file.absolutePath) ?: throw UnknownFormatException()
+                    inputImages.add(image)
+                } else {
+                    val options = ImporterOptions()
+                    options.id = file.path
+                    options.isWindowless = true
+                    options.colorMode = ImporterOptions.COLOR_MODE_COMPOSITE
+                    options.isAutoscale = true
+                    options.setOpenAllSeries(true)
+
+                    // Note that the call to BF.openImagePlus returns an array of images because a single LIF file can
+                    // contain multiple series.
+                    inputImages.addAll(BF.openImagePlus(options))
+                }
+            } catch (e: UnknownFormatException) {
+                logService.warn("Skipping file with unsupported type \"${file.name}\"")
+            } catch (e: NoClassDefFoundError) {
+                MessageDialog(IJ.getInstance(), "Error",
+                    """
+                    It appears that the Bio-Formats plugin is not installed.
+                    Please enable the Fiji update site in order to enable this functionality.
+                    """.trimIndent())
+            }
+        }
+
+        return inputImages
+    }
+
+        companion object {
+            /**
+             * Entry point to directly open the plugin, used for debugging purposes.
+             *
+             * @throws Exception
+             */
+            @Throws(Exception::class)
+            @JvmStatic
+            fun main(args: Array<String>) {
+                val ij = ImageJ()
+
+                ij.context().inject(CellSegmentationService())
+                ij.launch()
+
+                ij.command().run(SimpleBatch::class.java, true)
+            }
         }
     }
-
-    companion object {
-        /**
-         * Entry point to directly open the plugin, used for debugging purposes.
-         *
-         * @throws Exception
-         */
-        @Throws(Exception::class)
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val ij = ImageJ()
-
-            ij.context().inject(CellSegmentationService())
-            ij.launch()
-
-            ij.command().run(SimpleBatch::class.java, true)
-        }
-    }
-}

@@ -7,7 +7,6 @@ import ij.gui.GenericDialog
 import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
-import ij.plugin.ZProjector
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
 import java.io.File
@@ -103,7 +102,7 @@ class SimpleColocalization : Command {
         required = true,
         persist = false
     )
-    private var targetChannel = 1
+    var targetChannel = 1
 
     /**
      * Specify the channel for the transduced cells.
@@ -116,7 +115,7 @@ class SimpleColocalization : Command {
         required = true,
         persist = false
     )
-    private var transducedChannel = 2
+    var transducedChannel = 2
 
     @Parameter(
         label = "Preprocessing Parameters:",
@@ -144,22 +143,12 @@ class SimpleColocalization : Command {
     data class ColocalizationResult(val targetCellCount: Int, val targetCellAnalyses: Array<CellColocalizationService.CellAnalysis>, val partitionedCells: TransductionAnalysis)
 
     override fun run() {
-        var image = WindowManager.getCurrentImage()
-        if (image != null) {
-            if (image.nSlices > 1) {
-                // Flatten slices of the image. This step should probably be done during the preprocessing step - however
-                // this operation is not done in-place but creates a new image, which makes this hard.
-                image = ZProjector.run(image, "max")
-            }
-
-            process(image)
-        } else {
+        val image = WindowManager.getCurrentImage()
+        if (image == null) {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+            return
         }
-    }
 
-    /** Processes single image. */
-    private fun process(image: ImagePlus) {
         // TODO(sonjoonho): Remove duplication in this code fragment.
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
@@ -173,27 +162,21 @@ class SimpleColocalization : Command {
             }
         }
 
-        val imageChannels = ChannelSplitter.split(image)
-        if (targetChannel < 1 || targetChannel > imageChannels.size) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error",
-                "Target channel selected does not exist. There are %d channels available.".format(imageChannels.size)
-            )
+        val result = try {
+            process(image)
+        } catch (e: ChannelDoesNotExistException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
             return
         }
 
-        if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error",
-                "Transduced channel selected does not exist. There are %d channels available.".format(imageChannels.size)
-            )
-            return
-        }
+        writeOutput(result)
 
-        val result = analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
+        image.show()
+        addToRoiManager(result.partitionedCells.overlapping)
+        showHistogram(result.targetCellAnalyses)
+    }
 
+    private fun writeOutput(result: ColocalizationResult) {
         if (outputDestination == OutputDestination.DISPLAY) {
             ImageJTableColocalizationOutput(result.targetCellAnalyses, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
@@ -210,16 +193,29 @@ class SimpleColocalization : Command {
                 "The colocalization results have successfully been saved to the specified file."
             )
         }
+    }
 
-        image.show()
-        showHistogram(result.targetCellAnalyses)
-        addToRoiManager(result.partitionedCells.overlapping)
+    /** Processes single image. */
+    @Throws(ChannelDoesNotExistException::class)
+    fun process(image: ImagePlus): ColocalizationResult {
+        val imageChannels = ChannelSplitter.split(image)
+        if (targetChannel < 1 || targetChannel > imageChannels.size) {
+            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
+        }
+
+        if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
+            throw ChannelDoesNotExistException("Transduced channel selected ()$transducedChannel does not exist. There are ${imageChannels.size} channels available")
+        }
+
+        return analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
     }
 
     fun analyseColocalization(targetChannel: ImagePlus, transducedChannel: ImagePlus): ColocalizationResult {
         logService.info("Starting extraction")
-        val targetCells = extractCells(targetChannel)
-        val transducedCells = filterCellsByIntensity(extractCells(transducedChannel), transducedChannel)
+        // TODO(#77)
+        val preprocessingParameters = PreprocessingParameters(largestCellDiameter)
+        val targetCells = cellSegmentationService.extractCells(targetChannel, preprocessingParameters)
+        val transducedCells = filterCellsByIntensity(cellSegmentationService.extractCells(transducedChannel, preprocessingParameters), transducedChannel)
 
         logService.info("Starting analysis")
 
@@ -264,22 +260,6 @@ class SimpleColocalization : Command {
     }
 
     /**
-     * Extract an array of cells (as ROIs) from the specified image.
-     */
-    private fun extractCells(image: ImagePlus): List<PositionedCell> {
-        val mutableImage = image.duplicate()
-
-        // Process the target image.
-        cellSegmentationService.preprocessImage(
-            mutableImage,
-            PreprocessingParameters(largestCellDiameter = largestCellDiameter)
-        )
-        cellSegmentationService.segmentImage(mutableImage)
-
-        return cellSegmentationService.identifyCells(mutableImage)
-    }
-
-    /**
      * Displays the resulting colocalization results as a histogram.
      */
     private fun showHistogram(analysis: Array<CellColocalizationService.CellAnalysis>) {
@@ -318,3 +298,5 @@ class SimpleColocalization : Command {
         }
     }
 }
+
+class ChannelDoesNotExistException(message: String) : Exception(message)
