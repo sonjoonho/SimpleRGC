@@ -157,10 +157,20 @@ class SimpleBatch : Command {
         }
 
     private fun openFiles(inputFiles: List<File>): List<ImagePlus> {
+        /*
+        First, we attempt to use the default ImageJ Opener. The ImageJ Opener falls back to a plugin called
+        HandleExtraFileTypes when it cannot open a file - which attempts to use Bio-Formats when it encounters a LIF.
+        Unfortunately, the LociImporter (what Bio-Formats uses) opens a dialog box when it does this. It does
+        support a "windowless" option, but it's not possible to pass this option (or any of our desired options) through
+        HandleExtraFileTypes. So instead, we limit the scope of possible file types by supporting native ImageJ formats
+        (Opener.types), preventing HandleExtraFileTypes from being triggered, and failing this fall back to calling the
+        Bio-Formats Importer manually. This handles the most common file types we expect to encounter.
+
+        Also, note that Opener returns null when it fails to open a file, whereas the Bio-Formats Importer throws an
+        UnknownFormatException`. To simplify the logic, an UnknownFormatException is thrown when Opener returns null.
+        */
         val opener = Opener()
         val inputImages = mutableListOf<ImagePlus>()
-
-        // TODO(sonjoonho): Document with comments
 
         for (file in inputFiles) {
 
@@ -176,7 +186,8 @@ class SimpleBatch : Command {
                     options.isAutoscale = true
                     options.setOpenAllSeries(true)
 
-                    // Note that this returns an array of images because a single LIF file can contain multiple series.
+                    // Note that the call to BF.openImagePlus returns an array of images because a single LIF file can
+                    // contain multiple series.
                     inputImages.addAll(BF.openImagePlus(options))
                 }
             } catch (e: UnknownFormatException) {
@@ -185,7 +196,7 @@ class SimpleBatch : Command {
                 MessageDialog(IJ.getInstance(), "Error",
                     """
                     It appears that the Bio-Formats plugin is not installed.
-                    Please enable the Bio-Formats update site in order to enable this functionality.
+                    Please enable the Fiji update site in order to enable this functionality.
                     """.trimIndent())
             }
         }
