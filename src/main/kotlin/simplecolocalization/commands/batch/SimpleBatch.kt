@@ -4,8 +4,10 @@ import ij.IJ
 import ij.ImagePlus
 import ij.gui.MessageDialog
 import ij.io.Opener
-import ij.plugin.ZProjector
 import java.io.File
+import loci.formats.UnknownFormatException
+import loci.plugins.BF
+import loci.plugins.`in`.ImporterOptions
 import net.imagej.ImageJ
 import org.scijava.Context
 import org.scijava.command.Command
@@ -156,20 +158,39 @@ class SimpleBatch : Command {
 
     private fun openFiles(inputFiles: List<File>): List<ImagePlus> {
         val opener = Opener()
+        val inputImages = mutableListOf<ImagePlus>()
 
-        return inputFiles.mapNotNull {
-            val image = opener.openImage(it.absolutePath) ?: return@mapNotNull null
+        // TODO(sonjoonho): Document with comments
 
-            val flatImage = if (image.nSlices > 1) {
-                // Flatten slices of the image. This step should probably be done during the preprocessing step - however
-                // this operation is not done in-place but creates a new image, which makes this hard.
-                ZProjector.run(image, "max")
-            } else {
-                image
+        for (file in inputFiles) {
+
+            try {
+                if (Opener.types.contains(file.extension)) {
+                    val image = opener.openImage(file.absolutePath) ?: throw UnknownFormatException()
+                    inputImages.add(image)
+                } else {
+                    val options = ImporterOptions()
+                    options.id = file.path
+                    options.isWindowless = true
+                    options.colorMode = ImporterOptions.COLOR_MODE_COMPOSITE
+                    options.isAutoscale = true
+                    options.setOpenAllSeries(true)
+
+                    // Note that this returns an array of images because a single LIF file can contain multiple series.
+                    inputImages.addAll(BF.openImagePlus(options))
+                }
+            } catch (e: UnknownFormatException) {
+                logService.warn("Skipping file with unsupported type \"${file.name}\"")
+            } catch (e: NoClassDefFoundError) {
+                MessageDialog(IJ.getInstance(), "Error",
+                    """
+                    It appears that the Bio-Formats plugin is not installed.
+                    Please enable the Bio-Formats update site in order to enable this functionality.
+                    """.trimIndent())
             }
-
-            return@mapNotNull flatImage
         }
+
+        return inputImages
     }
 
         companion object {

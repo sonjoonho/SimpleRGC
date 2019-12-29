@@ -6,6 +6,7 @@ import ij.gui.PolygonRoi
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
+import ij.plugin.ZProjector
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
@@ -40,7 +41,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             // Remove background.
             BackgroundSubtracter().rollingBallBackground(
                 image.channelProcessor,
-                params.largestCellDiameter.toDouble(),
+                params.largestCellDiameter,
                 false,
                 false,
                 false,
@@ -102,7 +103,13 @@ class CellSegmentationService : AbstractService(), ImageJService {
         image: ImagePlus,
         preprocessingParameters: PreprocessingParameters
     ): List<PositionedCell> {
-        val mutableImage = image.duplicate()
+        val mutableImage = if (image.nSlices > 1) {
+            // Flatten slices of the image. This step should probably be done during inside the pre-processing step -
+            // however this operation is not done in-place but creates a new image, which makes this hard.
+            ZProjector.run(image, "max")
+        } else {
+            image.duplicate()
+        }
 
         preprocessImage(mutableImage, preprocessingParameters)
         segmentImage(mutableImage)
@@ -155,9 +162,9 @@ class CellSegmentationService : AbstractService(), ImageJService {
      * Segment the image into individual cells, overlaying outlines for cells in the image.
      *
      * Uses ImageJ's Euclidean Distance Map plugin for performing the watershed algorithm.
-     * Used as a simple starting point that'd allow for cell counting.
+     * Appropriate pre-processing is expected before calling this.
      */
-    fun segmentImage(image: ImagePlus) {
+    private fun segmentImage(image: ImagePlus) {
         // Preprocessing is good enough that watershed is sufficient to segment here.
         EDM().toWatershed(image.channelProcessor)
     }
