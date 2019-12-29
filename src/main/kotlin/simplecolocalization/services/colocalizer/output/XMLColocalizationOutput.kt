@@ -27,7 +27,7 @@ class XMLColocalizationOutput(
         writeXML(doc)
     }
 
-    /***
+    /**
      *  Creates XML doc with the schema:
      *  <colocalizationresult file=inputfilename>
      *      <colocalizedcell>
@@ -40,23 +40,22 @@ class XMLColocalizationOutput(
      *  </colocalizationresult>
      */
     private fun createXML(): Document? {
-        // Create xml factory, builder and document
+        // Create XML factory, builder and document.
         val dbFactory = DocumentBuilderFactory.newInstance()
         val dBuilder = dbFactory.newDocumentBuilder()
         val doc = dBuilder.newDocument()
 
-        // root <colocalizationresult> element
         val rootElement = doc.createElement("colocalizationresult")
         doc.appendChild(rootElement)
 
-        // TODO: tiger-cross find way to get input filename.
+        // TODO: (tiger-cross) find way to get input filename.
         // // Create attribute for file
         // val fileAttr = doc.createAttribute("file")
         // fileAttr.value = file.name
         // rootElement.setAttributeNode(fileAttr)
 
         analysis.forEach {
-            // Create a <colocalisedcell> element for each cell detected in both channels
+            // Create a <colocalisedcell> element for each cell detected in both channels.
             val colocalizedCell = doc.createElement("colocalizedcell")
             rootElement.appendChild(colocalizedCell)
 
@@ -68,8 +67,11 @@ class XMLColocalizationOutput(
         return doc
     }
 
+    /**
+     * Create a <attrName> element with the value as a Text Node for each colocalized cell.
+     * Current possible attrName values are "area", "median" and "mean".
+     */
     private fun addColocalizedCellAttribute(attrName: String, attrVal: String, parent: Element, doc: Document) {
-        // Create a <attrName> element for each colocalizedcell
         val elem = doc.createElement(attrName)
         parent.appendChild(elem)
         elem.appendChild(doc.createTextNode(attrVal))
@@ -77,7 +79,7 @@ class XMLColocalizationOutput(
 
     @Throws(TransformerException::class, IOException::class)
     private fun writeXML(doc: Document?) {
-        // Create transformer and set output properties
+        // Create transformer and set output properties.
         val tr = TransformerFactory.newInstance().newTransformer()
         tr.setOutputProperty(OutputKeys.INDENT, "yes")
         tr.setOutputProperty(OutputKeys.METHOD, "xml")
