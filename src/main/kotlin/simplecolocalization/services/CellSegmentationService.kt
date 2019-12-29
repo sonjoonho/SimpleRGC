@@ -6,6 +6,7 @@ import ij.gui.PolygonRoi
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
+import ij.plugin.ZProjector
 import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
@@ -31,14 +32,8 @@ import simplecolocalization.services.colocalizer.PositionedCell
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
 
-    data class CellAnalysis(val area: Int, val channels: List<ChannelAnalysis>)
-    data class ChannelAnalysis(val name: String, val mean: Int, val min: Int, val max: Int)
-
     /** Perform pre-processing on the image to remove background and set cells to white. */
-    fun preprocessImage(
-        image: ImagePlus,
-        params: PreprocessingParameters
-    ) {
+    fun preprocessImage(image: ImagePlus, params: PreprocessingParameters) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
 
@@ -46,7 +41,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             // Remove background.
             BackgroundSubtracter().rollingBallBackground(
                 image.channelProcessor,
-                params.largestCellDiameter.toDouble(),
+                params.largestCellDiameter,
                 false,
                 false,
                 false,
@@ -94,11 +89,32 @@ class CellSegmentationService : AbstractService(), ImageJService {
         if (params.shouldGaussianBlur) {
             // Apply Gaussian Blur to group larger speckles.
             image.channelProcessor.blurGaussian(params.gaussianBlurSigma)
+
+            // Threshold image again to remove blur.
+            image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
+            image.processor.autoThreshold()
+        }
+    }
+
+    /**
+     * Extract a list of cells from the specified image.
+     */
+    fun extractCells(
+        image: ImagePlus,
+        preprocessingParameters: PreprocessingParameters
+    ): List<PositionedCell> {
+        val mutableImage = if (image.nSlices > 1) {
+            // Flatten slices of the image. This step should probably be done during inside the pre-processing step -
+            // however this operation is not done in-place but creates a new image, which makes this hard.
+            ZProjector.run(image, "max")
+        } else {
+            image.duplicate()
         }
 
-        // Threshold image again to remove blur.
-        image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
-        image.processor.autoThreshold()
+        preprocessImage(mutableImage, preprocessingParameters)
+        segmentImage(mutableImage)
+
+        return identifyCells(mutableImage)
     }
 
     /**
@@ -109,7 +125,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
     private fun detectAxons(image: ImagePlus): List<Roi> {
         // Empirically, the values of sigma, upperThresh and lowerThresh
         // proved the most effective on test images.
-        // TODO: Investigate optimum parameters for Line Detector
+        // TODO(willburr): Investigate optimum parameters for Line Detector
         val contours = LineDetector().detectLines(
             image.processor, 1.61, 15.0, 5.0,
             0.0, 0.0, false, true, true, true
@@ -146,9 +162,9 @@ class CellSegmentationService : AbstractService(), ImageJService {
      * Segment the image into individual cells, overlaying outlines for cells in the image.
      *
      * Uses ImageJ's Euclidean Distance Map plugin for performing the watershed algorithm.
-     * Used as a simple starting point that'd allow for cell counting.
+     * Appropriate pre-processing is expected before calling this.
      */
-    fun segmentImage(image: ImagePlus) {
+    private fun segmentImage(image: ImagePlus) {
         // Preprocessing is good enough that watershed is sufficient to segment here.
         EDM().toWatershed(image.channelProcessor)
     }

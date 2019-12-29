@@ -1,6 +1,7 @@
 # Simple Colocalization
 
 [![Build Status](https://travis-ci.com/sonjoonho/simple-colocalization.svg?token=qFf5VdpqfSMd2gygFDZQ&branch=master)](https://travis-ci.com/sonjoonho/simple-colocalization)
+[![CodeFactor](https://www.codefactor.io/repository/github/sonjoonho/simple-colocalization/badge?s=16a1349a8a3de97b30f4f069bab6887f272adac9)](https://www.codefactor.io/repository/github/sonjoonho/simple-colocalization)
 
 ## Overview
 
@@ -14,10 +15,10 @@ The plugin can be added via the [update site](https://imagej.net/Update_Sites):
 ```
 https://sites.imagej.net/Sonjoonho/
 ```
-This will install the plugin itself, along with the Kotlin standard library which it depends upon.
+This will install the plugin itself, along with the Kotlin standard library which it depends upon. You must have the **Fiji** and **Java 8** update sites enabled in order for this plugin to work. If you are using Fiji, these should be enabled by default, so don't worry.
 
 Alternatively, the `.jar` can be compiled using Maven and installed in the `jars/`
- directory under your ImageJ/Fiji installation.
+ directory under your ImageJ/Fiji installation. However, this requires manual installation of dependencies.
  
 After installing, the plugin can be found in the ImageJ menu under `Plugins > Simple Cells`.
 

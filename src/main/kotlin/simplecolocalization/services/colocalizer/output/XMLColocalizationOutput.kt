@@ -1,9 +1,6 @@
 package simplecolocalization.services.colocalizer.output
 
-import org.w3c.dom.Document
-import org.w3c.dom.Element
 import java.io.File
-import simplecolocalization.services.CellColocalizationService
 import java.io.FileOutputStream
 import java.io.IOException
 import javax.xml.parsers.DocumentBuilderFactory
@@ -12,6 +9,9 @@ import javax.xml.transform.TransformerException
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
+import org.w3c.dom.Document
+import org.w3c.dom.Element
+import simplecolocalization.services.CellColocalizationService
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -87,5 +87,4 @@ class XMLColocalizationOutput(
         // Send output file to file output stream.
         tr.transform(DOMSource(doc), StreamResult(FileOutputStream(outputFile)))
     }
-
 }
