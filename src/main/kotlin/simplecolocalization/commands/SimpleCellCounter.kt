@@ -104,16 +104,10 @@ class SimpleCellCounter : Command {
 
     /** Runs after the parameters above are populated. */
     override fun run() {
-        var image = WindowManager.getCurrentImage()
+        val image = WindowManager.getCurrentImage()
         if (image == null) {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
             return
-        }
-
-        if (image.nSlices > 1) {
-            // Flatten slices of the image. This step should probably be done during the preprocessing step - however
-            // this operation is not done in-place but creates a new image, which makes this hard.
-            image = ZProjector.run(image, "max")
         }
 
         if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
