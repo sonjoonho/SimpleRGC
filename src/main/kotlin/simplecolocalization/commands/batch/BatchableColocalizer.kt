@@ -7,6 +7,7 @@ import ij.gui.MessageDialog
 import java.io.File
 import java.nio.charset.StandardCharsets
 import org.scijava.Context
+import simplecolocalization.commands.ChannelDoesNotExistException
 import simplecolocalization.commands.SimpleColocalization
 import simplecolocalization.preprocessing.PreprocessingParameters
 
@@ -22,7 +23,7 @@ class BatchableColocalizer(private val targetChannel: Int, private val transduce
         val analyses = inputImages.mapNotNull {
             try {
                 simpleColocalization.process(it)
-            } catch (e: NoSuchElementException) {
+            } catch (e: ChannelDoesNotExistException) {
                 MessageDialog(IJ.getInstance(), "Error", e.message)
                 null
             }

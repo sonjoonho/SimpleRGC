@@ -164,7 +164,7 @@ class SimpleColocalization : Command {
 
         val result = try {
             process(image)
-        } catch (e: ArrayIndexOutOfBoundsException) {
+        } catch (e: ChannelDoesNotExistException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
         }
@@ -196,15 +196,15 @@ class SimpleColocalization : Command {
     }
 
     /** Processes single image. */
-    @Throws(ArrayIndexOutOfBoundsException::class)
+    @Throws(ChannelDoesNotExistException::class)
     fun process(image: ImagePlus): ColocalizationResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
-            throw ArrayIndexOutOfBoundsException("Target channel selected does not exist. There are ${imageChannels.size} channels available")
+            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
         }
 
         if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
-            throw ArrayIndexOutOfBoundsException("Transduced channel selected does not exist. There are ${imageChannels.size} channels available")
+            throw ChannelDoesNotExistException("Transduced channel selected ()$transducedChannel does not exist. There are ${imageChannels.size} channels available")
         }
 
         return analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
@@ -298,3 +298,5 @@ class SimpleColocalization : Command {
         }
     }
 }
+
+class ChannelDoesNotExistException(message: String) : Exception(message)
