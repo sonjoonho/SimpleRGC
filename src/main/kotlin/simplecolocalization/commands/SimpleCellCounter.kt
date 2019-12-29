@@ -5,7 +5,6 @@ import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
-import ij.plugin.ZProjector
 import java.io.File
 import net.imagej.ImageJ
 import org.apache.commons.io.FilenameUtils

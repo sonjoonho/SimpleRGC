@@ -7,7 +7,6 @@ import ij.gui.GenericDialog
 import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
-import ij.plugin.ZProjector
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
 import java.io.File
@@ -165,7 +164,7 @@ class SimpleColocalization : Command {
 
         val result = try {
             process(image)
-        } catch (e: NoSuchElementException) {
+        } catch (e: ArrayIndexOutOfBoundsException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
         }
@@ -197,15 +196,15 @@ class SimpleColocalization : Command {
     }
 
     /** Processes single image. */
-    @Throws(NoSuchElementException::class)
+    @Throws(ArrayIndexOutOfBoundsException::class)
     fun process(image: ImagePlus): ColocalizationResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
-            throw NoSuchElementException("Target channel selected does not exist. There are ${imageChannels.size} channels available")
+            throw ArrayIndexOutOfBoundsException("Target channel selected does not exist. There are ${imageChannels.size} channels available")
         }
 
         if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
-            throw NoSuchElementException("Transduced channel selected does not exist. There are ${imageChannels.size} channels available")
+            throw ArrayIndexOutOfBoundsException("Transduced channel selected does not exist. There are ${imageChannels.size} channels available")
         }
 
         return analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
