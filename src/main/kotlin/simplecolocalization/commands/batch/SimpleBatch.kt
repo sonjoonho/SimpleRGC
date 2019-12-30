@@ -87,7 +87,6 @@ class SimpleBatch : Command {
     )
     private var largestCellDiameter = 30.0
 
-
     @Parameter(
         label = "<html><div align=\"right\">\nWhen performing batch colocalization, ensure that <br />all input images have the same channel ordering as<br />specified below.</div></html>",
         visibility = ItemVisibility.MESSAGE,
