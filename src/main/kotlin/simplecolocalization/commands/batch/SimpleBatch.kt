@@ -10,6 +10,7 @@ import loci.plugins.BF
 import loci.plugins.`in`.ImporterOptions
 import net.imagej.ImageJ
 import org.scijava.Context
+import org.scijava.ItemVisibility
 import org.scijava.command.Command
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
@@ -85,6 +86,14 @@ class SimpleBatch : Command {
         persist = false
     )
     private var largestCellDiameter = 30.0
+
+
+    @Parameter(
+        label = "<html><div align=\"right\">\nWhen performing batch colocalization, ensure that <br />all input images have the same channel ordering as<br />specified below.</div></html>",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private var colocalizationInstruction = ""
 
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
