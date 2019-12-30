@@ -34,7 +34,7 @@ class BatchableColocalizer(private val targetChannel: Int, private val transduce
         val outputData = mutableListOf(arrayOf("File Name", "Total Target Cells", "Total Transduced Target Cells"))
         outputData.addAll(fileNameAndAnalysis.map {
             val totalTargetCells = it.second.targetCellCount.toString()
-            val totalTransducedTargetCells = it.second.partitionedCells.overlapping.size.toString()
+            val totalTransducedTargetCells = it.second.overlappingTargetTransducedCells.size.toString()
             arrayOf(it.first, totalTargetCells, totalTransducedTargetCells)
         })
         csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)

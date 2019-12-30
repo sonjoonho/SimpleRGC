@@ -28,7 +28,6 @@ import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
-import simplecolocalization.services.colocalizer.ColocalizationAnalysis
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
@@ -139,8 +138,19 @@ class SimpleColocalization : Command {
     )
     private var largestCellDiameter = 30.0
 
-    // TODO: Discuss whether we want to use targetCellCount in the single colocalisation plugin
-    data class TransductionResult(val targetCellCount: Int, val targetCellAnalyses: Array<CellColocalizationService.CellAnalysis>, val partitionedCells: ColocalizationAnalysis)
+    /**
+     * Result of transduction analysis for output.
+     * @property targetCellCount Number of red channel cells.
+     * @property transducedCellAnalyses Quantification of each green channel cell.
+     * @property overlappingTargetTransducedCells List of cells which overlap two channels.
+     *
+     * TODO(tc): Discuss whether we want to use targetCellCount in the single colocalisation plugin
+     */
+    data class TransductionResult(
+        val targetCellCount: Int, // Number of red cells
+        val transducedCellAnalyses: Array<CellColocalizationService.CellAnalysis>,
+        val overlappingTargetTransducedCells: List<PositionedCell>
+    )
 
     override fun run() {
         val image = WindowManager.getCurrentImage()
@@ -172,15 +182,15 @@ class SimpleColocalization : Command {
         writeOutput(result)
 
         image.show()
-        addToRoiManager(result.partitionedCells.overlapping)
-        showHistogram(result.targetCellAnalyses)
+        addToRoiManager(result.overlappingTargetTransducedCells)
+        showHistogram(result.transducedCellAnalyses)
     }
 
     private fun writeOutput(result: TransductionResult) {
         if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableColocalizationOutput(result.targetCellAnalyses, uiService).output()
+            ImageJTableColocalizationOutput(result.transducedCellAnalyses, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
-            CSVColocalizationOutput(result.targetCellAnalyses, outputFile!!).output()
+            CSVColocalizationOutput(result.transducedCellAnalyses, outputFile!!).output()
         }
 
         // The colocalization results are clearly displayed if the output
@@ -228,11 +238,11 @@ class SimpleColocalization : Command {
 
         return TransductionResult(
             targetCellCount = targetCells.size,
-            targetCellAnalyses = cellColocalizationService.analyseCellIntensity(
+            transducedCellAnalyses = cellColocalizationService.analyseCellIntensity(
                 transducedChannel,
                 colocalizationAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
             ),
-            partitionedCells = colocalizationAnalysis
+            overlappingTargetTransducedCells = colocalizationAnalysis.overlapping
         )
     }
 
