@@ -58,36 +58,12 @@ class SimpleColocalization : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Output Parameters:",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var outputParametersHeader: String
-
-    /**
-     * The user can optionally output the results to a file.
-     */
-    object OutputDestination {
-        const val DISPLAY = "Display in table"
-        const val CSV = "Save as CSV file"
-        const val XML = "Save as XML file"
-    }
-
-    @Parameter(
-        label = "Results Output:",
-        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
+        label = "Manually Tune Parameters?",
         required = true,
-        persist = false,
-        style = "radioButtonVertical"
+        persist = false
     )
-    private var outputDestination = OutputDestination.DISPLAY
-
-    @Parameter(
-        label = "Output File (if saving):",
-        style = "save",
-        required = false
-    )
-    private var outputFile: File? = null
+    private var tuneParams = false
+    // TODO(#84): Unimplemented!
 
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
@@ -154,6 +130,38 @@ class SimpleColocalization : Command {
         persist = false
     )
     private var largestCellDiameter = 30.0
+
+    @Parameter(
+        label = "Output Parameters:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var outputParametersHeader: String
+
+    /**
+     * The user can optionally output the results to a file.
+     */
+    object OutputDestination {
+        const val DISPLAY = "Display in table"
+        const val CSV = "Save as CSV file"
+        const val XML = "Save as XML file"
+    }
+
+    @Parameter(
+        label = "Results Output:",
+        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
+        required = true,
+        persist = false,
+        style = "radioButtonVertical"
+    )
+    private var outputDestination = OutputDestination.DISPLAY
+
+    @Parameter(
+        label = "Output File (if saving):",
+        style = "save",
+        required = false
+    )
+    private var outputFile: File? = null
 
     /**
      * Result of transduction analysis for output.
