@@ -29,7 +29,6 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
-import simplecolocalization.services.colocalizer.TransductionAnalysis
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
@@ -139,8 +138,19 @@ class SimpleColocalization : Command {
     )
     private var largestCellDiameter = 30.0
 
-    // TODO: Discuss whether we want to use targetCellCount in the single colocalisation plugin
-    data class ColocalizationResult(val targetCellCount: Int, val targetCellAnalyses: Array<CellColocalizationService.CellAnalysis>, val partitionedCells: TransductionAnalysis)
+    /**
+     * Result of transduction analysis for output.
+     * @property targetCellCount Number of red channel cells.
+     * @property transducedCellAnalyses Quantification of each green channel cell.
+     * @property overlappingTargetTransducedCells List of cells which overlap two channels.
+     *
+     * TODO(tc): Discuss whether we want to use targetCellCount in the single colocalisation plugin
+     */
+    data class TransductionResult(
+        val targetCellCount: Int, // Number of red cells
+        val transducedCellAnalyses: Array<CellColocalizationService.CellAnalysis>,
+        val overlappingTargetTransducedCells: List<PositionedCell>
+    )
 
     override fun run() {
         val image = WindowManager.getCurrentImage()
@@ -172,15 +182,15 @@ class SimpleColocalization : Command {
         writeOutput(result)
 
         image.show()
-        addToRoiManager(result.partitionedCells.overlapping)
-        showHistogram(result.targetCellAnalyses)
+        addToRoiManager(result.overlappingTargetTransducedCells)
+        showHistogram(result.transducedCellAnalyses)
     }
 
-    private fun writeOutput(result: ColocalizationResult) {
+    private fun writeOutput(result: TransductionResult) {
         if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableColocalizationOutput(result.targetCellAnalyses, uiService).output()
+            ImageJTableColocalizationOutput(result.transducedCellAnalyses, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
-            CSVColocalizationOutput(result.targetCellAnalyses, outputFile!!).output()
+            CSVColocalizationOutput(result.transducedCellAnalyses, outputFile!!).output()
         }
 
         // The colocalization results are clearly displayed if the output
@@ -197,7 +207,7 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     @Throws(ChannelDoesNotExistException::class)
-    fun process(image: ImagePlus): ColocalizationResult {
+    fun process(image: ImagePlus): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
@@ -207,10 +217,10 @@ class SimpleColocalization : Command {
             throw ChannelDoesNotExistException("Transduced channel selected ()$transducedChannel does not exist. There are ${imageChannels.size} channels available")
         }
 
-        return analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
+        return analyseTransduction(imageChannels[targetChannel], imageChannels[transducedChannel])
     }
 
-    fun analyseColocalization(targetChannel: ImagePlus, transducedChannel: ImagePlus): ColocalizationResult {
+    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
         val preprocessingParameters = PreprocessingParameters(largestCellDiameter)
@@ -219,20 +229,20 @@ class SimpleColocalization : Command {
 
         logService.info("Starting analysis")
 
-        val transductionAnalysis = BucketedNaiveColocalizer(
+        val colocalizationAnalysis = BucketedNaiveColocalizer(
             largestCellDiameter.toInt(),
             targetChannel.width,
             targetChannel.height,
             PixelCellComparator(threshold = 0.01f)
-        ).analyseTransduction(targetCells, transducedCells)
+        ).analyseColocalization(targetCells, transducedCells)
 
-        return ColocalizationResult(
+        return TransductionResult(
             targetCellCount = targetCells.size,
-            targetCellAnalyses = cellColocalizationService.analyseCellIntensity(
+            transducedCellAnalyses = cellColocalizationService.analyseCellIntensity(
                 transducedChannel,
-                transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
+                colocalizationAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
             ),
-            partitionedCells = transductionAnalysis
+            overlappingTargetTransducedCells = colocalizationAnalysis.overlapping
         )
     }
 
