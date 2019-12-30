@@ -31,7 +31,7 @@ class BatchableColocalizer(private val targetChannel: Int, private val transduce
 
         val fileNameAndAnalysis = inputImages.map { it.title }.zip(analyses)
         val csvWriter = CsvWriter()
-        val outputData = mutableListOf(arrayOf("File Name", "Total Target Cells", "Total Transduced Target Cells"))
+        val outputData = mutableListOf(arrayOf("File Name", "Total Target Cells", "Total Transduced Target Cells", ""))
         outputData.addAll(fileNameAndAnalysis.map {
             val totalTargetCells = it.second.targetCellCount.toString()
             val totalTransducedTargetCells = it.second.overlappingTwoChannelCells.size.toString()

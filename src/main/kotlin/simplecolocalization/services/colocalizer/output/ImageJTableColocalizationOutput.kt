@@ -1,12 +1,10 @@
 package simplecolocalization.services.colocalizer.output
 
-import org.scijava.table.CharColumn
 import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import simplecolocalization.commands.SimpleColocalization
-import simplecolocalization.services.CellColocalizationService
 
 /**
  * Displays a table for a transduction analysis with the result of
