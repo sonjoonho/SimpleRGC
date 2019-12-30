@@ -28,8 +28,8 @@ import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
+import simplecolocalization.services.colocalizer.ColocalizationAnalysis
 import simplecolocalization.services.colocalizer.PositionedCell
-import simplecolocalization.services.colocalizer.TransductionAnalysis
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
@@ -140,7 +140,7 @@ class SimpleColocalization : Command {
     private var largestCellDiameter = 30.0
 
     // TODO: Discuss whether we want to use targetCellCount in the single colocalisation plugin
-    data class ColocalizationResult(val targetCellCount: Int, val targetCellAnalyses: Array<CellColocalizationService.CellAnalysis>, val partitionedCells: TransductionAnalysis)
+    data class TransductionResult(val targetCellCount: Int, val targetCellAnalyses: Array<CellColocalizationService.CellAnalysis>, val partitionedCells: ColocalizationAnalysis)
 
     override fun run() {
         val image = WindowManager.getCurrentImage()
@@ -176,7 +176,7 @@ class SimpleColocalization : Command {
         showHistogram(result.targetCellAnalyses)
     }
 
-    private fun writeOutput(result: ColocalizationResult) {
+    private fun writeOutput(result: TransductionResult) {
         if (outputDestination == OutputDestination.DISPLAY) {
             ImageJTableColocalizationOutput(result.targetCellAnalyses, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
@@ -197,7 +197,7 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     @Throws(ChannelDoesNotExistException::class)
-    fun process(image: ImagePlus): ColocalizationResult {
+    fun process(image: ImagePlus): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
@@ -207,10 +207,10 @@ class SimpleColocalization : Command {
             throw ChannelDoesNotExistException("Transduced channel selected ()$transducedChannel does not exist. There are ${imageChannels.size} channels available")
         }
 
-        return analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
+        return analyseTransduction(imageChannels[targetChannel], imageChannels[transducedChannel])
     }
 
-    fun analyseColocalization(targetChannel: ImagePlus, transducedChannel: ImagePlus): ColocalizationResult {
+    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
         val preprocessingParameters = PreprocessingParameters(largestCellDiameter)
@@ -219,20 +219,20 @@ class SimpleColocalization : Command {
 
         logService.info("Starting analysis")
 
-        val transductionAnalysis = BucketedNaiveColocalizer(
+        val colocalizationAnalysis = BucketedNaiveColocalizer(
             largestCellDiameter.toInt(),
             targetChannel.width,
             targetChannel.height,
             PixelCellComparator(threshold = 0.01f)
-        ).analyseTransduction(targetCells, transducedCells)
+        ).analyseColocalization(targetCells, transducedCells)
 
-        return ColocalizationResult(
+        return TransductionResult(
             targetCellCount = targetCells.size,
             targetCellAnalyses = cellColocalizationService.analyseCellIntensity(
                 transducedChannel,
-                transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
+                colocalizationAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
             ),
-            partitionedCells = transductionAnalysis
+            partitionedCells = colocalizationAnalysis
         )
     }
 
