@@ -202,7 +202,6 @@ class SimpleBatch : Command {
                 } else {
                     val options = ImporterOptions()
                     options.id = file.path
-                    options.isWindowless = true
                     options.colorMode = ImporterOptions.COLOR_MODE_COMPOSITE
                     options.isAutoscale = true
                     options.setOpenAllSeries(true)
