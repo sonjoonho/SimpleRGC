@@ -116,6 +116,23 @@ class SimpleColocalization : Command {
     )
     var transducedChannel = 2
 
+    /**
+     * Specify the channel for the all cells channel.
+     * By default this is the 0 (disabled).
+     */
+    @Parameter(
+        label = "All Cells Channel (0 to disable):",
+        min = "0",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    var allCellsChannel = 0
+
+    private fun isAllCellsEnabled(): Boolean {
+        return allCellsChannel > 0
+    }
+
     @Parameter(
         label = "Preprocessing Parameters:",
         visibility = ItemVisibility.MESSAGE,
@@ -141,15 +158,17 @@ class SimpleColocalization : Command {
     /**
      * Result of transduction analysis for output.
      * @property targetCellCount Number of red channel cells.
-     * @property transducedCellAnalyses Quantification of each green channel cell.
-     * @property overlappingTargetTransducedCells List of cells which overlap two channels.
+     * @property overlappingTransducedCellAnalyses Quantification of each transduced cell overlapping target cells.
+     * @property overlappingTwoChannelCells List of cells which overlap two channels.
+     * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
      *
      * TODO(tc): Discuss whether we want to use targetCellCount in the single colocalisation plugin
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
-        val transducedCellAnalyses: Array<CellColocalizationService.CellAnalysis>,
-        val overlappingTargetTransducedCells: List<PositionedCell>
+        val overlappingTransducedCellAnalyses: Array<CellColocalizationService.CellAnalysis>,
+        val overlappingTwoChannelCells: List<PositionedCell>,
+        val overlappingThreeChannelCells: List<PositionedCell>?
     )
 
     override fun run() {
@@ -182,15 +201,15 @@ class SimpleColocalization : Command {
         writeOutput(result)
 
         image.show()
-        addToRoiManager(result.overlappingTargetTransducedCells)
-        showHistogram(result.transducedCellAnalyses)
+        addToRoiManager(result.overlappingTwoChannelCells)
+        showHistogram(result.overlappingTransducedCellAnalyses)
     }
 
     private fun writeOutput(result: TransductionResult) {
         if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableColocalizationOutput(result.transducedCellAnalyses, uiService).output()
+            ImageJTableColocalizationOutput(result, uiService).output()
         } else if (outputDestination == OutputDestination.CSV) {
-            CSVColocalizationOutput(result.transducedCellAnalyses, outputFile!!).output()
+            CSVColocalizationOutput(result, outputFile!!).output()
         }
 
         // The colocalization results are clearly displayed if the output
@@ -214,35 +233,55 @@ class SimpleColocalization : Command {
         }
 
         if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
-            throw ChannelDoesNotExistException("Transduced channel selected ()$transducedChannel does not exist. There are ${imageChannels.size} channels available")
+            throw ChannelDoesNotExistException("Transduced channel selected ($transducedChannel) does not exist. There are ${imageChannels.size} channels available")
         }
 
-        return analyseTransduction(imageChannels[targetChannel], imageChannels[transducedChannel])
+        if (isAllCellsEnabled() && allCellsChannel > imageChannels.size) {
+            throw ChannelDoesNotExistException("All cells channel selected ($allCellsChannel) does not exist. There are ${imageChannels.size} channels available")
+        }
+
+        return analyseTransduction(
+            imageChannels[targetChannel - 1],
+            imageChannels[transducedChannel - 1],
+            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null
+        )
     }
 
-    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus): TransductionResult {
+    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus?): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
         val preprocessingParameters = PreprocessingParameters(largestCellDiameter)
         val targetCells = cellSegmentationService.extractCells(targetChannel, preprocessingParameters)
         val transducedCells = filterCellsByIntensity(cellSegmentationService.extractCells(transducedChannel, preprocessingParameters), transducedChannel)
+        val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(allCellsChannel, preprocessingParameters) else null
 
         logService.info("Starting analysis")
 
-        val colocalizationAnalysis = BucketedNaiveColocalizer(
+        val targetTransducedAnalysis = BucketedNaiveColocalizer(
             largestCellDiameter.toInt(),
             targetChannel.width,
             targetChannel.height,
             PixelCellComparator(threshold = 0.01f)
         ).analyseColocalization(targetCells, transducedCells)
 
+        var overlappingAllCells: List<PositionedCell>? = null
+        if (allCells != null) {
+            overlappingAllCells = BucketedNaiveColocalizer(
+                largestCellDiameter.toInt(),
+                allCellsChannel!!.width,
+                allCellsChannel.height,
+                PixelCellComparator(threshold = 0.01f)
+            ).analyseColocalization(targetTransducedAnalysis.overlapping, allCells).overlapping
+        }
+
         return TransductionResult(
             targetCellCount = targetCells.size,
-            transducedCellAnalyses = cellColocalizationService.analyseCellIntensity(
+            overlappingTransducedCellAnalyses = cellColocalizationService.analyseCellIntensity(
                 transducedChannel,
-                colocalizationAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
+                targetTransducedAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
             ),
-            overlappingTargetTransducedCells = colocalizationAnalysis.overlapping
+            overlappingTwoChannelCells = targetTransducedAnalysis.overlapping,
+            overlappingThreeChannelCells = overlappingAllCells
         )
     }
 
