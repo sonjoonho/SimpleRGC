@@ -113,6 +113,19 @@ class SimpleBatch : Command {
     )
     private var transducedChannel = 2
 
+    /**
+     * Specify the channel for the all cells channel.
+     * By default this is the 0 (disabled).
+     */
+    @Parameter(
+        label = "All Cells Channel (Colocalization Only, 0 to disable):",
+        min = "0",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    var allCellsChannel = 0
+
     @Parameter(
         label = "Batch process files in nested sub-folders?",
         required = true
@@ -141,7 +154,7 @@ class SimpleBatch : Command {
 
         val strategy = when (pluginChoice) {
             PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(context)
-            PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, context)
+            PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, allCellsChannel, context)
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
 
