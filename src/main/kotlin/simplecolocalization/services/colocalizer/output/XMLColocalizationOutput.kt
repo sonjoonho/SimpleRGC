@@ -30,7 +30,7 @@ class XMLColocalizationOutput(
 
     /**
      *  Creates XML doc with the schema:
-     *  <colocalizationresult file=inputfilename>
+     *  <colocalizationresult>
      *      <colocalizedcell>
      *          <area></area>
      *          <median></median>
@@ -48,12 +48,6 @@ class XMLColocalizationOutput(
 
         val rootElement = doc.createElement("colocalizationresult")
         doc.appendChild(rootElement)
-
-        // TODO: (tiger-cross) find way to get input filename.
-        // // Create attribute for file
-        // val fileAttr = doc.createAttribute("file")
-        // fileAttr.value = file.name
-        // rootElement.setAttributeNode(fileAttr)
 
         analysis.forEach {
             // Create a <colocalisedcell> element for each cell detected in both channels.
