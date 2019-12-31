@@ -5,6 +5,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.ArrayList
 import simplecolocalization.services.CellColocalizationService
+import simplecolocalization.services.SimpleOutput
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -13,7 +14,7 @@ import simplecolocalization.services.CellColocalizationService
 class CSVColocalizationOutput(
     private val analysis: Array<CellColocalizationService.CellAnalysis>,
     private val outputFile: File
-) : ColocalizationOutput() {
+) : SimpleOutput() {
 
     override fun output() {
         val csvWriter = CsvWriter()

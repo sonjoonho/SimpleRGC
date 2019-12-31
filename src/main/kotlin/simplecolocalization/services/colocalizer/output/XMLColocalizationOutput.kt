@@ -12,6 +12,7 @@ import javax.xml.transform.stream.StreamResult
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import simplecolocalization.services.CellColocalizationService
+import simplecolocalization.services.SimpleOutput
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -20,7 +21,7 @@ import simplecolocalization.services.CellColocalizationService
 class XMLColocalizationOutput(
     private val analysis: Array<CellColocalizationService.CellAnalysis>,
     private val outputFile: File
-) : ColocalizationOutput() {
+) : SimpleOutput() {
 
     override fun output() {
         val doc = createXML()

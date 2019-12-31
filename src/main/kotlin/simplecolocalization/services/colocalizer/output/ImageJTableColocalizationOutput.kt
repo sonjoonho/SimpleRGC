@@ -4,6 +4,7 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import simplecolocalization.services.CellColocalizationService
+import simplecolocalization.services.SimpleOutput
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -12,7 +13,7 @@ import simplecolocalization.services.CellColocalizationService
 class ImageJTableColocalizationOutput(
     val analysis: Array<CellColocalizationService.CellAnalysis>,
     val uiService: UIService
-) : ColocalizationOutput() {
+) : SimpleOutput() {
 
     override fun output() {
         val table = DefaultGenericTable()
