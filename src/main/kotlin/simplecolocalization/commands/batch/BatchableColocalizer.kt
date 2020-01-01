@@ -122,7 +122,7 @@ class BatchableColocalizer(
         }
     }
 
-    // TODO: Reduce duplication in the below 3 functions.
+    // TODO: (tiger-cross) Reduce duplication in the below 3 functions.
     private fun displayErrorDialog(fileType: String = "") {
         GenericDialog("Error").apply {
             addMessage("Unable to save results to $fileType file. Ensure the output file is not currently in use by other programs and try again.")
