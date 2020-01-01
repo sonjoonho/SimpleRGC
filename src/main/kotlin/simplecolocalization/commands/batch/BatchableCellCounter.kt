@@ -46,7 +46,7 @@ class BatchableCellCounter(private val context: Context) : Batchable {
         )
     }
 
-    // TODO: (tiger-cross) Reduce duplication here.
+    // TODO(tiger-cross): Reduce duplication here.
     private fun displayErrorDialog(fileType: String = "") {
         GenericDialog("Error").apply {
             addMessage("Unable to save results to $fileType file. Ensure the output file is not currently open by other programs and try again.")
