@@ -31,7 +31,6 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.PositionedCell
-import simplecolocalization.services.colocalizer.TransductionAnalysis
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
@@ -60,6 +59,80 @@ class SimpleColocalization : Command {
      */
     @Parameter
     private lateinit var uiService: UIService
+
+    @Parameter(
+        label = "Manually Tune Parameters?",
+        required = true,
+        persist = false
+    )
+    private var tuneParams = false
+    // TODO(#84): Unimplemented!
+
+    /**
+     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
+     * the channels available at the parameter initiation stage.
+     * By default this is 1 (red) channel.
+     */
+    @Parameter(
+        label = "Target Cell Channel:",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    var targetChannel = 1
+
+    /**
+     * Specify the channel for the transduced cells.
+     * By default this is the 2 (green) channel.
+     */
+    @Parameter(
+        label = "Transduced Cell Channel:",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    var transducedChannel = 2
+
+    /**
+     * Specify the channel for the all cells channel.
+     * By default this is the 0 (disabled).
+     */
+    @Parameter(
+        label = "All Cells Channel (0 to disable):",
+        min = "0",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    var allCellsChannel = 0
+
+    private fun isAllCellsEnabled(): Boolean {
+        return allCellsChannel > 0
+    }
+
+    @Parameter(
+        label = "Preprocessing Parameters:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var preprocessingParamsHeader: String
+
+    /**
+     * Used during the cell segmentation stage to reduce overlapping cells
+     * being grouped into a single cell and perform local thresholding or
+     * background subtraction.
+     */
+    @Parameter(
+        label = "Largest Cell Diameter",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var largestCellDiameter = 30.0
 
     @Parameter(
         label = "Output Parameters:",
@@ -94,56 +167,20 @@ class SimpleColocalization : Command {
     private var outputFile: File? = null
 
     /**
-     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
-     * the channels available at the parameter initiation stage.
-     * By default this is 1 (red) channel.
+     * Result of transduction analysis for output.
+     * @property targetCellCount Number of red channel cells.
+     * @property overlappingTransducedCellAnalyses Quantification of each transduced cell overlapping target cells.
+     * @property overlappingTwoChannelCells List of cells which overlap two channels.
+     * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
+     *
+     * TODO(tc): Discuss whether we want to use targetCellCount in the single colocalisation plugin
      */
-    @Parameter(
-        label = "Target Cell Channel:",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = false
+    data class TransductionResult(
+        val targetCellCount: Int, // Number of red cells
+        val overlappingTransducedCellAnalyses: Array<CellColocalizationService.CellAnalysis>,
+        val overlappingTwoChannelCells: List<PositionedCell>,
+        val overlappingThreeChannelCells: List<PositionedCell>?
     )
-    var targetChannel = 1
-
-    /**
-     * Specify the channel for the transduced cells.
-     * By default this is the 2 (green) channel.
-     */
-    @Parameter(
-        label = "Transduced Cell Channel:",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = false
-    )
-    var transducedChannel = 2
-
-    @Parameter(
-        label = "Preprocessing Parameters:",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var preprocessingParamsHeader: String
-
-    /**
-     * Used during the cell segmentation stage to reduce overlapping cells
-     * being grouped into a single cell and perform local thresholding or
-     * background subtraction.
-     */
-    @Parameter(
-        label = "Largest Cell Diameter",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var largestCellDiameter = 30.0
-
-    // TODO: Discuss whether we want to use targetCellCount in the single colocalisation plugin
-    data class ColocalizationResult(val targetCellCount: Int, val targetCellAnalyses: Array<CellColocalizationService.CellAnalysis>, val partitionedCells: TransductionAnalysis)
 
     override fun run() {
         val image = WindowManager.getCurrentImage()
@@ -175,15 +212,15 @@ class SimpleColocalization : Command {
         writeOutput(result)
 
         image.show()
-        addToRoiManager(result.partitionedCells.overlapping)
-        showHistogram(result.targetCellAnalyses)
+        addToRoiManager(result.overlappingTwoChannelCells)
+        showHistogram(result.overlappingTransducedCellAnalyses)
     }
 
-    private fun writeOutput(result: ColocalizationResult) {
+    private fun writeOutput(result: TransductionResult) {
         val output = when (outputDestination) {
-            OutputDestination.DISPLAY -> ImageJTableColocalizationOutput(result.targetCellAnalyses, uiService)
-            OutputDestination.CSV -> CSVColocalizationOutput(result.targetCellAnalyses, outputFile!!)
-            OutputDestination.XML -> XMLColocalizationOutput(result.targetCellAnalyses, outputFile!!)
+            OutputDestination.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
+            OutputDestination.CSV -> CSVColocalizationOutput(result, outputFile!!)
+            OutputDestination.XML -> XMLColocalizationOutput(result, outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
@@ -209,7 +246,7 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     @Throws(ChannelDoesNotExistException::class)
-    fun process(image: ImagePlus): ColocalizationResult {
+    fun process(image: ImagePlus): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
@@ -219,7 +256,15 @@ class SimpleColocalization : Command {
             throw ChannelDoesNotExistException("Transduced channel selected ($transducedChannel) does not exist. There are ${imageChannels.size} channels available")
         }
 
-        return analyseColocalization(imageChannels[targetChannel], imageChannels[transducedChannel])
+        if (isAllCellsEnabled() && allCellsChannel > imageChannels.size) {
+            throw ChannelDoesNotExistException("All cells channel selected ($allCellsChannel) does not exist. There are ${imageChannels.size} channels available")
+        }
+
+        return analyseTransduction(
+            imageChannels[targetChannel - 1],
+            imageChannels[transducedChannel - 1],
+            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null
+        )
     }
 
     private fun displayErrorDialog(fileType: String = "") {
@@ -230,29 +275,41 @@ class SimpleColocalization : Command {
         }
     }
 
-    fun analyseColocalization(targetChannel: ImagePlus, transducedChannel: ImagePlus): ColocalizationResult {
+    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus?): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
         val preprocessingParameters = PreprocessingParameters(largestCellDiameter)
         val targetCells = cellSegmentationService.extractCells(targetChannel, preprocessingParameters)
         val transducedCells = filterCellsByIntensity(cellSegmentationService.extractCells(transducedChannel, preprocessingParameters), transducedChannel)
+        val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(allCellsChannel, preprocessingParameters) else null
 
         logService.info("Starting analysis")
 
-        val transductionAnalysis = BucketedNaiveColocalizer(
+        val targetTransducedAnalysis = BucketedNaiveColocalizer(
             largestCellDiameter.toInt(),
             targetChannel.width,
             targetChannel.height,
             PixelCellComparator(threshold = 0.01f)
-        ).analyseTransduction(targetCells, transducedCells)
+        ).analyseColocalization(targetCells, transducedCells)
 
-        return ColocalizationResult(
+        var overlappingAllCells: List<PositionedCell>? = null
+        if (allCells != null) {
+            overlappingAllCells = BucketedNaiveColocalizer(
+                largestCellDiameter.toInt(),
+                allCellsChannel!!.width,
+                allCellsChannel.height,
+                PixelCellComparator(threshold = 0.01f)
+            ).analyseColocalization(targetTransducedAnalysis.overlapping, allCells).overlapping
+        }
+
+        return TransductionResult(
             targetCellCount = targetCells.size,
-            targetCellAnalyses = cellColocalizationService.analyseCellIntensity(
+            overlappingTransducedCellAnalyses = cellColocalizationService.analyseCellIntensity(
                 transducedChannel,
-                transductionAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
+                targetTransducedAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
             ),
-            partitionedCells = transductionAnalysis
+            overlappingTwoChannelCells = targetTransducedAnalysis.overlapping,
+            overlappingThreeChannelCells = overlappingAllCells
         )
     }
 

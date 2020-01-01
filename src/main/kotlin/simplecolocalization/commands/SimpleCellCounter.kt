@@ -101,6 +101,11 @@ class SimpleCellCounter : Command {
     )
     private var outputDestination = OutputDestination.DISPLAY
 
+    @Parameter(
+        label = "Output File (if saving):",
+        style = "save",
+        required = false
+    )
     private var outputFile: File? = null
 
     data class CounterResult(val count: Int, val cells: List<PositionedCell>)
