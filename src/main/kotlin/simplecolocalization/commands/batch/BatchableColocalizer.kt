@@ -150,21 +150,21 @@ class BatchableColocalizer(
         doc: Document,
         root: Element
     ) {
-        val summary = doc.createElement("summary")
+        val summary = doc.createElement("Summary")
         root.appendChild(summary)
-        val fileAttr = doc.createAttribute("file")
+        val fileAttr = doc.createAttribute("File")
         fileAttr.setValue(fileName)
         summary.setAttributeNode(fileAttr)
-        addAttribute("totaltargetcellcount", result.targetCellCount.toString(), summary, doc)
+        addAttribute("TotalTargetCellCount", result.targetCellCount.toString(), summary, doc)
         addAttribute(
-            "numtransducedcellsoverlappingtarget",
+            "NumTransducedCellsOverlappingTarget",
             result.overlappingTwoChannelCells.size.toString(),
             summary,
             doc
         )
         if (result.overlappingThreeChannelCells != null) {
             addAttribute(
-                "numcellsoverlappingthreechannels",
+                "NumCellsOverlappingThreeChannels",
                 result.overlappingThreeChannelCells.size.toString(),
                 summary,
                 doc

@@ -30,20 +30,22 @@ class XMLColocalizationOutput(
 
     /**
      *  Creates XML doc with the schema:
-     *  <colocalizationresult>
-     *      <summary>
-     *          <totaltargetcellcount></totaltargetcellcount>
-     *          <numtransducedcellsoverlappingtarget></numtransducedcellsoverlappingtarget>
-     *          <numcellsoverlappingthreechannels></numcellsoverlappingthreechannels>
-     *      </summary>
-     *      <colocalizedcell>
-     *          <area></area>
-     *          <median></median>
-     *          <mean></mean>
-     *      </colocalizedcell>
+     *  <ColocalizationResult>
+     *      <Summary>
+     *          <TotalTargetCellCount></TotalTargetCellCount>
+     *          <NumTransducedCellsOverlappingTarget></NumTransducedCellsOverlappingTarget>
+     *          <NumCellsOverlappingThreeChannels></NumCellsOverlappingThreeChannels>
+     *      </Summary>
+     *      <ColocalizedCell>
+     *          <Area></Area>
+     *          <Median></Median>
+     *          <Mean></Mean>
+     *      </ColocalizedCell>
      *      ...
-     *      <colocalizedcell>...</>
-     *  </colocalizationresult>
+     *      <ColocalizedCell>
+     *          ...
+     *      </ColocalizedCell>
+     *  </ColocalizationResult>
      */
     private fun createXML(): Document? {
         // Create XML factory, builder and document.
@@ -51,19 +53,19 @@ class XMLColocalizationOutput(
         val dBuilder = dbFactory.newDocumentBuilder()
         val doc = dBuilder.newDocument()
 
-        val rootElement = doc.createElement("colocalizationresult")
+        val rootElement = doc.createElement("ColocalizationResult")
         doc.appendChild(rootElement)
 
         addSummary(doc, rootElement)
 
         result.overlappingTransducedCellAnalyses.forEach {
-            // Create a <colocalisedcell> element for each cell detected in both channels.
-            val colocalizedCell = doc.createElement("colocalizedcell")
+            // Create a <ColocalizedCell> element for each cell detected in both channels.
+            val colocalizedCell = doc.createElement("ColocalizedCell")
             rootElement.appendChild(colocalizedCell)
 
-            addAttribute("area", it.area.toString(), colocalizedCell, doc)
-            addAttribute("median", it.median.toString(), colocalizedCell, doc)
-            addAttribute("mean", it.mean.toString(), colocalizedCell, doc)
+            addAttribute("Area", it.area.toString(), colocalizedCell, doc)
+            addAttribute("Median", it.median.toString(), colocalizedCell, doc)
+            addAttribute("Mean", it.mean.toString(), colocalizedCell, doc)
         }
 
         return doc
@@ -71,7 +73,7 @@ class XMLColocalizationOutput(
 
     /**
      * Create a <attrName> element with the value as a Text Node for a given parent element.
-     * Current possible attrName values are "area", "median" and "mean" for a colocalisaed cell.
+     * Current possible attrName values are "Area", "Median" and "Mean" for a colocalisaed cell.
      * Also used for creating the summary attributes.
      */
     private fun addAttribute(attrName: String, attrVal: String, parent: Element, doc: Document) {
@@ -84,18 +86,18 @@ class XMLColocalizationOutput(
      * Adds a summary section to the XML output.
      */
     private fun addSummary(doc: Document, root: Element) {
-        val summary = doc.createElement("summary")
+        val summary = doc.createElement("Summary")
         root.appendChild(summary)
-        addAttribute("totaltargetcellcount", result.targetCellCount.toString(), summary, doc)
+        addAttribute("TotalTargetCellCount", result.targetCellCount.toString(), summary, doc)
         addAttribute(
-            "numtransducedcellsoverlappingtarget",
+            "NumTransducedCellsOverlappingTarget",
             result.overlappingTwoChannelCells.size.toString(),
             summary,
             doc
         )
         if (result.overlappingThreeChannelCells != null) {
             addAttribute(
-                "numcellsoverlappingthreechannels",
+                "NumCellsOverlappingThreeChannels",
                 result.overlappingThreeChannelCells.size.toString(),
                 summary,
                 doc

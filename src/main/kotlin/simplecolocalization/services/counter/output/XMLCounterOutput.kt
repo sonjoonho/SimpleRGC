@@ -26,11 +26,11 @@ class XMLCounterOutput(private val outputFile: File) : CounterOutput() {
 
     /**
      *  Creates XML doc with the schema:
-     *  <countresult>
-     *      <count file=inputfilename>countvalue</count>
+     *  <CountResult>
+     *      <Count File=inputfilename>countvalue</Count>
      *      ...
-     *      <count file=inputfilename>countvalue</count>
-     *  </countresult>
+     *      <Count File=inputfilename>countvalue</Count>
+     *  </CountResult>
      */
     private fun createXML(): Document? {
         // Create XML factory, builder and document.
@@ -38,16 +38,16 @@ class XMLCounterOutput(private val outputFile: File) : CounterOutput() {
         val dBuilder = dbFactory.newDocumentBuilder()
         val doc = dBuilder.newDocument()
 
-        val rootElement = doc.createElement("countresult")
+        val rootElement = doc.createElement("CountResult")
         doc.appendChild(rootElement)
 
         fileNameAndCountList.forEach {
             // Create a <count> element for each file counted.
-            val count = doc.createElement("count")
+            val count = doc.createElement("Count")
             rootElement.appendChild(count)
 
             // Create attribute for file.
-            val fileAttr = doc.createAttribute("file")
+            val fileAttr = doc.createAttribute("File")
             fileAttr.setValue(it.first)
             count.setAttributeNode(fileAttr)
 
