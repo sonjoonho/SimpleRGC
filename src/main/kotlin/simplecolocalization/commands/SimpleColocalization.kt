@@ -144,7 +144,7 @@ class SimpleColocalization : Command {
     /**
      * The user can optionally output the results to a file.
      */
-    object OutputDestination {
+    object OutputFormat {
         const val DISPLAY = "Display in table"
         const val CSV = "Save as CSV file"
         const val XML = "Save as XML file"
@@ -152,12 +152,12 @@ class SimpleColocalization : Command {
 
     @Parameter(
         label = "Results Output:",
-        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
+        choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
         required = true,
         persist = false,
         style = "radioButtonVertical"
     )
-    private var outputDestination = OutputDestination.DISPLAY
+    private var outputFormat = OutputFormat.DISPLAY
 
     @Parameter(
         label = "Output File (if saving):",
@@ -190,7 +190,7 @@ class SimpleColocalization : Command {
         }
 
         // TODO(sonjoonho): Remove duplication in this code fragment.
-        if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
+        if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
             val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
             outputFile = File(path + name)
@@ -217,10 +217,10 @@ class SimpleColocalization : Command {
     }
 
     private fun writeOutput(result: TransductionResult) {
-        val output = when (outputDestination) {
-            OutputDestination.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputDestination.CSV -> CSVColocalizationOutput(result, outputFile!!)
-            OutputDestination.XML -> XMLColocalizationOutput(result, outputFile!!)
+        val output = when (outputFormat) {
+            OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
+            OutputFormat.CSV -> CSVColocalizationOutput(result, outputFile!!)
+            OutputFormat.XML -> XMLColocalizationOutput(result, outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
@@ -235,7 +235,7 @@ class SimpleColocalization : Command {
         // The colocalization results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation
         // is useful if the output is saved to file.
-        if (outputDestination != OutputDestination.DISPLAY) {
+        if (outputFormat != OutputFormat.DISPLAY) {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
