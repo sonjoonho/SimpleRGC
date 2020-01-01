@@ -162,14 +162,6 @@ class SimpleCellCounter : Command {
         } catch (ioe: IOException) {
             displayErrorDialog()
         }
-    }
-
-    private fun displayErrorDialog(fileType: String = "") {
-        GenericDialog("Error").apply {
-            addMessage("Unable to save results to $fileType file. Ensure the output file is not currently open by other programs and try again.")
-            hideCancelButton()
-            showDialog()
-        }
 
         // The cell counting results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation
@@ -180,6 +172,14 @@ class SimpleCellCounter : Command {
                 "Saved",
                 "The cell counting results have successfully been saved to the specified file."
             )
+        }
+    }
+
+    private fun displayErrorDialog(fileType: String = "") {
+        GenericDialog("Error").apply {
+            addMessage("Unable to save results to $fileType file. Ensure the output file is not currently open by other programs and try again.")
+            hideCancelButton()
+            showDialog()
         }
     }
 
