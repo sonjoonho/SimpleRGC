@@ -275,13 +275,23 @@ class SimpleColocalization : Command {
         }
     }
 
-    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus?): TransductionResult {
+    fun analyseTransduction(
+        targetChannel: ImagePlus,
+        transducedChannel: ImagePlus,
+        allCellsChannel: ImagePlus?
+    ): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
         val preprocessingParameters = PreprocessingParameters(largestCellDiameter)
         val targetCells = cellSegmentationService.extractCells(targetChannel, preprocessingParameters)
-        val transducedCells = filterCellsByIntensity(cellSegmentationService.extractCells(transducedChannel, preprocessingParameters), transducedChannel)
-        val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(allCellsChannel, preprocessingParameters) else null
+        val transducedCells = filterCellsByIntensity(
+            cellSegmentationService.extractCells(transducedChannel, preprocessingParameters),
+            transducedChannel
+        )
+        val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(
+            allCellsChannel,
+            preprocessingParameters
+        ) else null
 
         logService.info("Starting analysis")
 

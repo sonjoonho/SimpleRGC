@@ -39,8 +39,16 @@ class SimpleBatch : Command {
      */
     object OutputFormat {
         const val CSV = "Save as CSV file"
+        const val XML = "Save as XML file"
     }
 
+    @Parameter(
+        label = "Results Output:",
+        choices = [OutputFormat.CSV, OutputFormat.XML],
+        required = true,
+        persist = false,
+        style = "radioButtonVertical"
+    )
     private var outputFormat = OutputFormat.CSV
 
     object PluginChoice {
@@ -65,7 +73,7 @@ class SimpleBatch : Command {
     private lateinit var inputFolder: File
 
     @Parameter(
-        label = "Output file (CSV):",
+        label = "Output file:",
         required = true,
         persist = false,
         style = "save"
@@ -166,7 +174,7 @@ class SimpleBatch : Command {
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
 
-        strategy.process(openFiles(files), outputFile, PreprocessingParameters(largestCellDiameter))
+        strategy.process(openFiles(files), outputFormat, outputFile, PreprocessingParameters(largestCellDiameter))
     }
 
         private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {

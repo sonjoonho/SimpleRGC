@@ -87,9 +87,19 @@ class XMLColocalizationOutput(
         val summary = doc.createElement("summary")
         root.appendChild(summary)
         addAttribute("totaltargetcellcount", result.targetCellCount.toString(), summary, doc)
-        addAttribute("numtransducedcellsoverlappingtarget", result.overlappingTwoChannelCells.size.toString(), summary, doc)
+        addAttribute(
+            "numtransducedcellsoverlappingtarget",
+            result.overlappingTwoChannelCells.size.toString(),
+            summary,
+            doc
+        )
         if (result.overlappingThreeChannelCells != null) {
-            addAttribute("numcellsoverlappingthreechannels", result.overlappingThreeChannelCells.size.toString(), summary, doc)
+            addAttribute(
+                "numcellsoverlappingthreechannels",
+                result.overlappingThreeChannelCells.size.toString(),
+                summary,
+                doc
+            )
         }
     }
 
