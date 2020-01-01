@@ -4,8 +4,8 @@ import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.ArrayList
-import simplecolocalization.services.SimpleOutput
 import simplecolocalization.commands.SimpleColocalization.TransductionResult
+import simplecolocalization.services.SimpleOutput
 
 /**
  * Displays a table for a transduction analysis with the result of

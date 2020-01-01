@@ -5,7 +5,6 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import simplecolocalization.commands.SimpleColocalization
-import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.SimpleOutput
 
 /**

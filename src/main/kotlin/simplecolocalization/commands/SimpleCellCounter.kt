@@ -158,7 +158,7 @@ class SimpleCellCounter : Command {
         try {
             output.output()
         } catch (te: TransformerException) {
-            displayErrorDialog(fileType="XML")
+            displayErrorDialog(fileType = "XML")
         } catch (ioe: IOException) {
             displayErrorDialog()
         }
