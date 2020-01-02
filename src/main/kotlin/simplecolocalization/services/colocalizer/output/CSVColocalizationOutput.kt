@@ -4,16 +4,17 @@ import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.ArrayList
-import simplecolocalization.commands.SimpleColocalization
+import simplecolocalization.commands.SimpleColocalization.TransductionResult
+import simplecolocalization.services.SimpleOutput
 
 /**
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
 class CSVColocalizationOutput(
-    private val result: SimpleColocalization.TransductionResult,
+    private val result: TransductionResult,
     private val file: File
-) : ColocalizationOutput() {
+) : SimpleOutput() {
 
     override fun output() {
         val csvWriter = CsvWriter()

@@ -12,7 +12,10 @@ class CSVCounterOutput(private val outputFile: File) : CounterOutput() {
         fileNameAndCountList.add(Pair(file, count))
     }
 
-    fun save() {
+    /**
+     * Saves count results into csv file at specified output path.
+     */
+    override fun output() {
         val csvWriter = CsvWriter()
 
         val outputData = fileNameAndCountList.map { arrayOf(it.first, it.second.toString()) }

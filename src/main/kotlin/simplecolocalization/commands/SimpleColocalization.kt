@@ -10,6 +10,8 @@ import ij.plugin.ChannelSplitter
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
 import java.io.File
+import java.io.IOException
+import javax.xml.transform.TransformerException
 import kotlin.math.max
 import kotlin.math.min
 import net.imagej.ImageJ
@@ -34,6 +36,7 @@ import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
+import simplecolocalization.services.colocalizer.output.XMLColocalizationOutput
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -143,7 +146,7 @@ class SimpleColocalization : Command {
     /**
      * The user can optionally output the results to a file.
      */
-    object OutputDestination {
+    object OutputFormat {
         const val DISPLAY = "Display in table"
         const val CSV = "Save as CSV file"
         const val XML = "Save as XML file"
@@ -151,12 +154,12 @@ class SimpleColocalization : Command {
 
     @Parameter(
         label = "Results Output:",
-        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
+        choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
         required = true,
         persist = false,
         style = "radioButtonVertical"
     )
-    private var outputDestination = OutputDestination.DISPLAY
+    private var outputFormat = OutputFormat.DISPLAY
 
     @Parameter(
         label = "Output File (if saving):",
@@ -189,7 +192,7 @@ class SimpleColocalization : Command {
         }
 
         // TODO(sonjoonho): Remove duplication in this code fragment.
-        if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
+        if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
             val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
             outputFile = File(path + name)
@@ -216,16 +219,25 @@ class SimpleColocalization : Command {
     }
 
     private fun writeOutput(result: TransductionResult) {
-        if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableColocalizationOutput(result, uiService).output()
-        } else if (outputDestination == OutputDestination.CSV) {
-            CSVColocalizationOutput(result, outputFile!!).output()
+        val output = when (outputFormat) {
+            OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
+            OutputFormat.CSV -> CSVColocalizationOutput(result, outputFile!!)
+            OutputFormat.XML -> XMLColocalizationOutput(result, outputFile!!)
+            else -> throw IllegalArgumentException("Invalid output type provided")
+        }
+
+        try {
+            output.output()
+        } catch (te: TransformerException) {
+            displayErrorDialog(fileType = "XML")
+        } catch (ioe: IOException) {
+            displayErrorDialog()
         }
 
         // The colocalization results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation
         // is useful if the output is saved to file.
-        if (outputDestination != OutputDestination.DISPLAY) {
+        if (outputFormat != OutputFormat.DISPLAY) {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
@@ -257,13 +269,31 @@ class SimpleColocalization : Command {
         )
     }
 
-    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus?): TransductionResult {
+    private fun displayErrorDialog(fileType: String = "") {
+        GenericDialog("Error").apply {
+            addMessage("Unable to save results to $fileType file. Ensure the output file is not currently in use by other programs and try again.")
+            hideCancelButton()
+            showDialog()
+        }
+    }
+
+    fun analyseTransduction(
+        targetChannel: ImagePlus,
+        transducedChannel: ImagePlus,
+        allCellsChannel: ImagePlus?
+    ): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
         val preprocessingParameters = PreprocessingParameters(largestCellDiameter)
         val targetCells = cellSegmentationService.extractCells(targetChannel, preprocessingParameters)
-        val transducedCells = filterCellsByIntensity(cellSegmentationService.extractCells(transducedChannel, preprocessingParameters), transducedChannel)
-        val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(allCellsChannel, preprocessingParameters) else null
+        val transducedCells = filterCellsByIntensity(
+            cellSegmentationService.extractCells(transducedChannel, preprocessingParameters),
+            transducedChannel
+        )
+        val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(
+            allCellsChannel,
+            preprocessingParameters
+        ) else null
 
         logService.info("Starting analysis")
 
