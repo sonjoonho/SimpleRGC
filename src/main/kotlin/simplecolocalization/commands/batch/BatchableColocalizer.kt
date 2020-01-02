@@ -23,7 +23,7 @@ class BatchableColocalizer(private val targetChannel: Int, private val transduce
 
         val analyses = inputImages.mapNotNull {
             try {
-                simpleColocalization.process(it)
+                simpleColocalization.process(it, preprocessingParameters)
             } catch (e: ChannelDoesNotExistException) {
                 MessageDialog(IJ.getInstance(), "Error", e.message)
                 null
