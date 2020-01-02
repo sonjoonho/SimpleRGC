@@ -61,12 +61,18 @@ class SimpleColocalization : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Manually Tune Parameters?",
+        label = "Manually Tune Pre-Processing Parameters?",
         required = true,
         persist = false
     )
     private var tuneParams = false
-    // TODO(#84): Unimplemented!
+
+    @Parameter(
+        label = "Select Channels To Use:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var channelSelectionHeader: String
 
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
@@ -74,7 +80,7 @@ class SimpleColocalization : Command {
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Target Cell Channel:",
+        label = "Cell Morphology Channel 1:",
         min = "1",
         stepSize = "1",
         required = true,
@@ -83,24 +89,11 @@ class SimpleColocalization : Command {
     var targetChannel = 1
 
     /**
-     * Specify the channel for the transduced cells.
-     * By default this is the 2 (green) channel.
-     */
-    @Parameter(
-        label = "Transduced Cell Channel:",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = false
-    )
-    var transducedChannel = 2
-
-    /**
      * Specify the channel for the all cells channel.
      * By default this is the 0 (disabled).
      */
     @Parameter(
-        label = "All Cells Channel (0 to disable):",
+        label = "Cell Morphology Channel 2 (0 to disable):",
         min = "0",
         stepSize = "1",
         required = true,
@@ -111,6 +104,19 @@ class SimpleColocalization : Command {
     private fun isAllCellsEnabled(): Boolean {
         return allCellsChannel > 0
     }
+
+    /**
+     * Specify the channel for the transduced cells.
+     * By default this is the 2 (green) channel.
+     */
+    @Parameter(
+        label = "Transduction Channel:",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    var transducedChannel = 2
 
     @Parameter(
         label = "Preprocessing Parameters:",
