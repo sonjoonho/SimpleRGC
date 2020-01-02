@@ -21,12 +21,13 @@ class CSVColocalizationOutput(
         outputData.add(arrayOf("Label", "Count", "Area", "Median", "Mean"))
 
         // Summaries
+        outputData.add(arrayOf("--- Summary ---", "", "", ""))
         outputData.add(arrayOf("Total no. target cells", result.targetCellCount.toString(), "", "", ""))
         outputData.add(arrayOf("No. transduced cells overlapping target cells", result.overlappingTwoChannelCells.size.toString(), "", "", ""))
         if (result.overlappingThreeChannelCells != null) {
             outputData.add(arrayOf("No. cells overlapping all three channels", result.overlappingThreeChannelCells.size.toString(), "", "", ""))
         }
-        outputData.add(arrayOf("Quantification of each transduced cells overlapping target cells below --", "", "", ""))
+        outputData.add(arrayOf("--- Transduced Channel Analysis, Colocalized Cells ---", "", "", ""))
 
         // Per-cell analysis
         result.overlappingTransducedIntensityAnalysis.forEach { outputData.add(arrayOf("", "1", it.area.toString(), it.median.toString(), it.mean.toString())) }

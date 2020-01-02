@@ -25,7 +25,7 @@ class ImageJTableColocalizationOutput(
         val meanColumn = IntColumn()
 
         // Summary columns
-        labelColumn.add("--- Overall Summary ---")
+        labelColumn.add("--- Summary ---")
         countColumn.add(result.targetCellCount)
         areaColumn.add(0)
         medianColumn.add(0)
