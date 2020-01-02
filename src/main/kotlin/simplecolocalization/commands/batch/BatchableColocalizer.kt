@@ -79,9 +79,9 @@ class BatchableColocalizer(
         val outputData = mutableListOf(
             arrayOf(
                 "File Name",
-                "Total Target Cells",
-                "Total Transduced Target Cells",
-                "Cells Overlapping All Three Channels"
+                "Total number of cells in cell morphology channel 1",
+                "Transduced cells in channel 1",
+                "Transduced cells in both morphology channels"
             )
         )
         outputData.addAll(fileNameAndAnalysis.map {
