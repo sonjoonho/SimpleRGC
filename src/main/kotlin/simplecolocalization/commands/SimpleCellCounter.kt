@@ -6,6 +6,8 @@ import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import java.io.File
+import java.io.IOException
+import javax.xml.transform.TransformerException
 import net.imagej.ImageJ
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
@@ -24,6 +26,7 @@ import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.resetRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
+import simplecolocalization.services.counter.output.XMLCounterOutput
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -84,19 +87,20 @@ class SimpleCellCounter : Command {
     /**
      * The user can optionally output the results to a file.
      */
-    object OutputDestination {
+    object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
         const val CSV = "Save as CSV file"
+        const val XML = "Save as XML file"
     }
 
     @Parameter(
         label = "Results Output:",
-        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
+        choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
         required = true,
         persist = false,
         style = "radioButtonVertical"
     )
-    private var outputDestination = OutputDestination.DISPLAY
+    private var outputFormat = OutputFormat.DISPLAY
 
     @Parameter(
         label = "Output File (if saving):",
@@ -115,7 +119,7 @@ class SimpleCellCounter : Command {
             return
         }
 
-        if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
+        if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
             val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
             outputFile = File(path + name)
@@ -145,25 +149,40 @@ class SimpleCellCounter : Command {
     }
 
     private fun writeOutput(numCells: Int, file: String) {
-        if (outputDestination == OutputDestination.DISPLAY) {
-            val output = ImageJTableCounterOutput(uiService)
-            output.addCountForFile(numCells, file)
-            output.show()
-        } else if (outputDestination == OutputDestination.CSV) {
-            val output = CSVCounterOutput(outputFile!!)
-            output.addCountForFile(numCells, file)
-            output.save()
+        val output = when (outputFormat) {
+            OutputFormat.DISPLAY -> ImageJTableCounterOutput(uiService)
+            OutputFormat.CSV -> CSVCounterOutput(outputFile!!)
+            OutputFormat.XML -> XMLCounterOutput(outputFile!!)
+            else -> throw IllegalArgumentException("Invalid output type provided")
+        }
+
+        output.addCountForFile(numCells, file)
+
+        try {
+            output.output()
+        } catch (te: TransformerException) {
+            displayErrorDialog(fileType = "XML")
+        } catch (ioe: IOException) {
+            displayErrorDialog()
         }
 
         // The cell counting results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation
         // is useful if the output is saved to file.
-        if (outputDestination != OutputDestination.DISPLAY) {
+        if (outputFormat != OutputFormat.DISPLAY) {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
                 "The cell counting results have successfully been saved to the specified file."
             )
+        }
+    }
+
+    private fun displayErrorDialog(fileType: String = "") {
+        GenericDialog("Error").apply {
+            addMessage("Unable to save results to $fileType file. Ensure the output file is not currently open by other programs and try again.")
+            hideCancelButton()
+            showDialog()
         }
     }
 
