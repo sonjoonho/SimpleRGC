@@ -145,7 +145,7 @@ class SimpleColocalization : Command {
      * The user can optionally output the results to a file.
      */
     object OutputDestination {
-        const val DISPLAY = "Display in table"
+        const val DISPLAY = "Display in ImageJ"
         const val CSV = "Save as CSV file"
         const val XML = "Save as XML file"
     }
