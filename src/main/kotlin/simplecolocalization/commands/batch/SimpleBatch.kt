@@ -167,6 +167,12 @@ class SimpleBatch : Command {
         }
 
         strategy.process(openFiles(files), outputFile, PreprocessingParameters(largestCellDiameter))
+
+        MessageDialog(
+            IJ.getInstance(),
+            "Saved",
+            "The batch processing results have successfully been saved to the specified file."
+        )
     }
 
         private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
