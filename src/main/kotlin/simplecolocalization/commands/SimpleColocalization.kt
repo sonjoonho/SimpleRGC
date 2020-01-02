@@ -26,6 +26,7 @@ import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
+import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
@@ -204,8 +205,15 @@ class SimpleColocalization : Command {
             }
         }
 
+        val preprocessingParams = if (tuneParams) {
+            // Quit the plugin if the user cancels.
+            tuneParameters(largestCellDiameter) ?: return
+        } else {
+            PreprocessingParameters(largestCellDiameter)
+        }
+
         val result = try {
-            process(image)
+            process(image, preprocessingParams)
         } catch (e: ChannelDoesNotExistException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -248,7 +256,7 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     @Throws(ChannelDoesNotExistException::class)
-    fun process(image: ImagePlus): TransductionResult {
+    fun process(image: ImagePlus, preprocessingParams: PreprocessingParameters): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
@@ -265,7 +273,8 @@ class SimpleColocalization : Command {
         return analyseTransduction(
             imageChannels[targetChannel - 1],
             imageChannels[transducedChannel - 1],
-            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null
+            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null,
+            preprocessingParams
         )
     }
 
@@ -280,11 +289,11 @@ class SimpleColocalization : Command {
     fun analyseTransduction(
         targetChannel: ImagePlus,
         transducedChannel: ImagePlus,
-        allCellsChannel: ImagePlus?
+        allCellsChannel: ImagePlus?,
+        preprocessingParameters: PreprocessingParameters
     ): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
-        val preprocessingParameters = PreprocessingParameters(largestCellDiameter)
         val targetCells = cellSegmentationService.extractCells(targetChannel, preprocessingParameters)
         val transducedCells = filterCellsByIntensity(
             cellSegmentationService.extractCells(transducedChannel, preprocessingParameters),
