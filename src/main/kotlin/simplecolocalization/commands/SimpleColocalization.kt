@@ -27,6 +27,7 @@ import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
+import simplecolocalization.services.cellcomparator.SubsetPixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.ColocalizationAnalysis
 import simplecolocalization.services.colocalizer.PositionedCell
@@ -271,7 +272,7 @@ class SimpleColocalization : Command {
             largestCellDiameter.toInt(),
             targetChannel.width,
             targetChannel.height,
-            PixelCellComparator(threshold = 0.01f)
+            SubsetPixelCellComparator(threshold = 0.5f)
         ).analyseColocalization(targetCells, transducedCells)
 
         val transductionIntensityAnalysis = cellColocalizationService.analyseCellIntensity(
