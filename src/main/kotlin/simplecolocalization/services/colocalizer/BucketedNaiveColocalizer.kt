@@ -52,9 +52,14 @@ class BucketedNaiveColocalizer(var bucketLength: Int, val imageWidth: Int, val i
         }
 
         // Reconcile the transduction results.
-        val overlapping = colocalizationAnalyses.flatMap { analysis -> analysis.overlapping }.toHashSet()
-        val disjoint = colocalizationAnalyses.flatMap { analysis -> analysis.disjoint }.toHashSet() subtract overlapping
-        return ColocalizationAnalysis(overlapping.toList(), disjoint.toList())
+        val overlappingBase = colocalizationAnalyses.flatMap { analysis -> analysis.overlappingBase }.toHashSet()
+        val overlappingOverlaid = colocalizationAnalyses.flatMap { analysis -> analysis.overlappingOverlaid }.toHashSet()
+        val disjoint = colocalizationAnalyses.flatMap { analysis -> analysis.disjoint }.toHashSet() subtract overlappingOverlaid
+        return ColocalizationAnalysis(
+            overlappingBase = overlappingBase.toList(),
+            overlappingOverlaid = overlappingOverlaid.toList(),
+            disjoint = disjoint.toList()
+        )
     }
 
     private fun surroundingBucketsForBucket(bucket: Bucket): Set<Bucket> {

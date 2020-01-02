@@ -28,6 +28,7 @@ import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
+import simplecolocalization.services.colocalizer.ColocalizationAnalysis
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
@@ -166,7 +167,7 @@ class SimpleColocalization : Command {
     /**
      * Result of transduction analysis for output.
      * @property targetCellCount Number of red channel cells.
-     * @property overlappingTransducedCellAnalyses Quantification of each transduced cell overlapping target cells.
+     * @property overlappingTransducedIntensityAnalysis Quantification of each transduced cell overlapping target cells.
      * @property overlappingTwoChannelCells List of cells which overlap two channels.
      * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
      *
@@ -174,7 +175,7 @@ class SimpleColocalization : Command {
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
-        val overlappingTransducedCellAnalyses: Array<CellColocalizationService.CellAnalysis>,
+        val overlappingTransducedIntensityAnalysis: Array<CellColocalizationService.CellAnalysis>,
         val overlappingTwoChannelCells: List<PositionedCell>,
         val overlappingThreeChannelCells: List<PositionedCell>?
     )
@@ -210,7 +211,7 @@ class SimpleColocalization : Command {
 
         image.show()
         addToRoiManager(result.overlappingTwoChannelCells)
-        showHistogram(result.overlappingTransducedCellAnalyses)
+        showHistogram(result.overlappingTransducedIntensityAnalysis)
     }
 
     private fun writeOutput(result: TransductionResult) {
@@ -265,6 +266,7 @@ class SimpleColocalization : Command {
 
         logService.info("Starting analysis")
 
+        // Target layer is based and transduced layer is overlaid.
         val targetTransducedAnalysis = BucketedNaiveColocalizer(
             largestCellDiameter.toInt(),
             targetChannel.width,
@@ -272,24 +274,28 @@ class SimpleColocalization : Command {
             PixelCellComparator(threshold = 0.01f)
         ).analyseColocalization(targetCells, transducedCells)
 
-        var overlappingAllCells: List<PositionedCell>? = null
+        val transductionIntensityAnalysis = cellColocalizationService.analyseCellIntensity(
+            transducedChannel,
+            targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }.toTypedArray()
+        )
+
+        var allCellsAnalysis: ColocalizationAnalysis? = null
         if (allCells != null) {
-            overlappingAllCells = BucketedNaiveColocalizer(
+            allCellsAnalysis = BucketedNaiveColocalizer(
                 largestCellDiameter.toInt(),
                 allCellsChannel!!.width,
                 allCellsChannel.height,
                 PixelCellComparator(threshold = 0.01f)
-            ).analyseColocalization(targetTransducedAnalysis.overlapping, allCells).overlapping
+            ).analyseColocalization(targetTransducedAnalysis.overlappingOverlaid, allCells)
         }
 
+        // We return the overlapping target channel instead of transduced channel as we want to mark the target layer,
+        // not the transduced layer.
         return TransductionResult(
             targetCellCount = targetCells.size,
-            overlappingTransducedCellAnalyses = cellColocalizationService.analyseCellIntensity(
-                transducedChannel,
-                targetTransducedAnalysis.overlapping.map { it.toRoi() }.toTypedArray()
-            ),
-            overlappingTwoChannelCells = targetTransducedAnalysis.overlapping,
-            overlappingThreeChannelCells = overlappingAllCells
+            overlappingTransducedIntensityAnalysis = transductionIntensityAnalysis,
+            overlappingTwoChannelCells = targetTransducedAnalysis.overlappingBase,
+            overlappingThreeChannelCells = allCellsAnalysis?.overlappingBase
         )
     }
 
