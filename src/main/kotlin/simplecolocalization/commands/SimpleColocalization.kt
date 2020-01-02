@@ -211,7 +211,7 @@ class SimpleColocalization : Command {
 
         image.show()
         addToRoiManager(result.overlappingTwoChannelCells)
-        showHistogram(result.overlappingTransducedIntensityAnalysis)
+        // showHistogram(result.overlappingTransducedIntensityAnalysis)
     }
 
     private fun writeOutput(result: TransductionResult) {
