@@ -58,7 +58,7 @@ class XMLColocalizationOutput(
 
         addSummary(doc, rootElement)
 
-        result.overlappingTransducedCellAnalyses.forEach {
+        result.overlappingTransducedIntensityAnalysis.forEach {
             // Create a <ColocalizedCell> element for each cell detected in both channels.
             val colocalizedCell = doc.createElement("ColocalizedCell")
             rootElement.appendChild(colocalizedCell)
