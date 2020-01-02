@@ -135,7 +135,7 @@ class SimpleColocalization : Command {
      * background subtraction.
      */
     @Parameter(
-        label = "Largest Cell Diameter",
+        label = "Largest Cell Diameter for Morphology Channel 1",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -143,6 +143,16 @@ class SimpleColocalization : Command {
         persist = false
     )
     private var largestCellDiameter = 30.0
+
+    @Parameter(
+        label = "Largest Cell Diameter for Morphology Channel 2 (only if enabled)",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var largestAllCellsDiameter = 30.0
 
     @Parameter(
         label = "Output Parameters:",
@@ -214,9 +224,12 @@ class SimpleColocalization : Command {
 
         val preprocessingParams = if (tuneParams) {
             // Quit the plugin if the user cancels.
-            tuneParameters(largestCellDiameter) ?: return
+            tuneParameters(
+                largestCellDiameter,
+                largestAllCellsDiameter = if (isAllCellsEnabled()) largestAllCellsDiameter else null
+            ) ?: return
         } else {
-            PreprocessingParameters(largestCellDiameter)
+            PreprocessingParameters(largestCellDiameter, largestAllCellsDiameter = if (isAllCellsEnabled()) largestAllCellsDiameter else null)
         }
 
         resetRoiManager()
@@ -305,7 +318,8 @@ class SimpleColocalization : Command {
         )
         val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(
             allCellsChannel,
-            preprocessingParameters
+            preprocessingParameters,
+            isAllCellsChannel = true
         ) else null
 
         logService.info("Starting analysis")

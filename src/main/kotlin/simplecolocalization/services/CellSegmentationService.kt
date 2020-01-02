@@ -33,7 +33,7 @@ import simplecolocalization.services.colocalizer.PositionedCell
 class CellSegmentationService : AbstractService(), ImageJService {
 
     /** Perform pre-processing on the image to remove background and set cells to white. */
-    fun preprocessImage(image: ImagePlus, params: PreprocessingParameters) {
+    fun preprocessImage(image: ImagePlus, params: PreprocessingParameters, isAllCellsChannel: Boolean = false) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
 
@@ -41,7 +41,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             // Remove background.
             BackgroundSubtracter().rollingBallBackground(
                 image.channelProcessor,
-                params.largestCellDiameter,
+                if (isAllCellsChannel) params.largestAllCellsDiameter!! else params.largestCellDiameter,
                 false,
                 false,
                 false,
@@ -59,16 +59,16 @@ class CellSegmentationService : AbstractService(), ImageJService {
                 when (params.localThresholdAlgo) {
                     LocalThresholdAlgos.OTSU -> otsu(
                         image,
-                        params.largestCellDiameter.toInt()
+                        if (isAllCellsChannel) params.largestAllCellsDiameter!!.toInt() else params.largestCellDiameter.toInt()
                     )
                     LocalThresholdAlgos.BERNSEN -> bernsen(
                         image,
-                        params.largestCellDiameter.toInt(),
+                        if (isAllCellsChannel) params.largestAllCellsDiameter!!.toInt() else params.largestCellDiameter.toInt(),
                         15.0
                     )
                     LocalThresholdAlgos.NIBLACK -> niblack(
                         image,
-                        params.largestCellDiameter.toInt(),
+                        if (isAllCellsChannel) params.largestAllCellsDiameter!!.toInt() else params.largestCellDiameter.toInt(),
                         0.2,
                         0.0
                     )
@@ -101,7 +101,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
      */
     fun extractCells(
         image: ImagePlus,
-        preprocessingParameters: PreprocessingParameters
+        preprocessingParameters: PreprocessingParameters,
+        isAllCellsChannel: Boolean = false
     ): List<PositionedCell> {
         val mutableImage = if (image.nSlices > 1) {
             // Flatten slices of the image. This step should probably be done during inside the pre-processing step -
@@ -111,7 +112,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             image.duplicate()
         }
 
-        preprocessImage(mutableImage, preprocessingParameters)
+        preprocessImage(mutableImage, preprocessingParameters, isAllCellsChannel)
         segmentImage(mutableImage)
 
         return identifyCells(mutableImage)
