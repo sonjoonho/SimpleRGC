@@ -6,7 +6,7 @@ import simplecolocalization.services.cellcomparator.CellComparator
  * Colocalization analysis contains the list of overlaid cells which overlap base cells and a list of overlaid
  * cells which do not overlap base cells.
  */
-data class ColocalizationAnalysis(val overlapping: List<PositionedCell>, val disjoint: List<PositionedCell>)
+data class ColocalizationAnalysis(val overlappingBase: List<PositionedCell>, val overlappingOverlaid: List<PositionedCell>, val disjoint: List<PositionedCell>)
 
 /**
  * Analyses the colocalization between cells which are intended to be the
