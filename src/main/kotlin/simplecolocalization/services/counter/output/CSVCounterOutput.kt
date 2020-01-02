@@ -15,7 +15,7 @@ class CSVCounterOutput(private val outputFile: File) : CounterOutput() {
     fun save() {
         val csvWriter = CsvWriter()
 
-        val outputData = fileNameAndCountList.map { arrayOf(it.first, it.second.toString()) }
+        val outputData = fileNameAndCountList.map { arrayOf(it.first.replace(",", ""), it.second.toString()) }
 
         csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
     }
