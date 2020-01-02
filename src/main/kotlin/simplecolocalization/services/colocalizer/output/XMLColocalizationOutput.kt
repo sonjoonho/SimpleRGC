@@ -66,6 +66,8 @@ class XMLColocalizationOutput(
             addAttribute("Area", it.area.toString(), colocalizedCell, doc)
             addAttribute("Median", it.median.toString(), colocalizedCell, doc)
             addAttribute("Mean", it.mean.toString(), colocalizedCell, doc)
+            addAttribute("IntegratedDensity", (it.mean * it.area).toString(), colocalizedCell, doc)
+            addAttribute("RawIntegratedDensity", it.sum.toString(), colocalizedCell, doc)
         }
 
         return doc
