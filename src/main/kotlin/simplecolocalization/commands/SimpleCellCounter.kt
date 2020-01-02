@@ -66,7 +66,7 @@ class SimpleCellCounter : Command {
      * background subtraction.
      */
     @Parameter(
-        label = "Largest Cell Diameter",
+        label = "Largest Cell Diameter (px)",
         description = "Value we use to apply the rolling ball algorithm to subtract " +
             "the background when thresholding",
             min = "1",

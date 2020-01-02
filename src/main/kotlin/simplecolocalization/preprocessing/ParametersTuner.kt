@@ -30,10 +30,10 @@ data class PreprocessingParameters(
 )
 
 private fun renderParamsDialog(paramsDialog: GenericDialog, defaultParams: PreprocessingParameters) {
-    paramsDialog.addNumericField("Largest Cell Diameter", defaultParams.largestCellDiameter, 0)
+    paramsDialog.addNumericField("Largest Cell Diameter (px)", defaultParams.largestCellDiameter, 0)
     if (defaultParams.largestAllCellsDiameter != null) {
         paramsDialog.addNumericField(
-            "Largest Cell Diameter in Morphology Channel 2",
+            "Largest Cell Diameter in Morphology Channel 2 (px)",
             defaultParams.largestAllCellsDiameter,
             0
         )
@@ -49,9 +49,9 @@ private fun renderParamsDialog(paramsDialog: GenericDialog, defaultParams: Prepr
         LocalThresholdAlgos.NIBLACK
     ), defaultParams.localThresholdAlgo)
     paramsDialog.addCheckbox("Despeckle?", defaultParams.shouldDespeckle)
-    paramsDialog.addNumericField("Despeckle Radius", defaultParams.despeckleRadius, 0)
+    paramsDialog.addNumericField("Despeckle Radius (px)", defaultParams.despeckleRadius, 0)
     paramsDialog.addCheckbox("Gaussian Blur?", defaultParams.shouldGaussianBlur)
-    paramsDialog.addNumericField("Gaussian Blur Sigma", defaultParams.gaussianBlurSigma, 0)
+    paramsDialog.addNumericField("Gaussian Blur Sigma (px)", defaultParams.gaussianBlurSigma, 0)
     paramsDialog.showDialog()
 }
 

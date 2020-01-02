@@ -135,7 +135,7 @@ class SimpleColocalization : Command {
      * background subtraction.
      */
     @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 1",
+        label = "Largest Cell Diameter for Morphology Channel 1 (px)",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -145,7 +145,7 @@ class SimpleColocalization : Command {
     private var largestCellDiameter = 30.0
 
     @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 2 (only if enabled)",
+        label = "Largest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,

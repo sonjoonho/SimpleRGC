@@ -85,7 +85,7 @@ class SimpleBatch : Command {
      * background subtraction.
      */
     @Parameter(
-        label = "Largest Cell Diameter (for Morphology Channel 1)",
+        label = "Largest Cell Diameter (px) (for Morphology Channel 1)",
         description = "Value we use to apply the rolling ball algorithm to subtract the background when thresholding",
         min = "1",
         stepSize = "1",
@@ -96,7 +96,7 @@ class SimpleBatch : Command {
     private var largestCellDiameter = 30.0
 
     @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 2 (colocalization, only if channel enabled)",
+        label = "Largest Cell Diameter for Morphology Channel 2 (px) (colocalization, only if channel enabled)",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
