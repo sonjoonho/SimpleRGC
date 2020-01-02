@@ -25,6 +25,12 @@ class ImageJTableColocalizationOutput(
         val meanColumn = IntColumn()
 
         // Summary columns
+        labelColumn.add("--- Overall Summary ---")
+        countColumn.add(result.targetCellCount)
+        areaColumn.add(0)
+        medianColumn.add(0)
+        meanColumn.add(0)
+
         labelColumn.add("Total no. target cells")
         countColumn.add(result.targetCellCount)
         areaColumn.add(0)
@@ -45,19 +51,19 @@ class ImageJTableColocalizationOutput(
             meanColumn.add(0)
         }
 
-        labelColumn.add("Quantification of each transduced cells overlapping target cells below --")
+        labelColumn.add("--- Transduced Channel Analysis, Colocalized Cells ---")
         countColumn.add(0)
         areaColumn.add(0)
         medianColumn.add(0)
         meanColumn.add(0)
 
         // Construct column values using the channel analysis values.
-        result.overlappingTransducedIntensityAnalysis.forEach {
-            labelColumn.add("")
+        result.overlappingTransducedIntensityAnalysis.forEachIndexed { i, cell ->
+            labelColumn.add("Cell ${i + 1}")
             countColumn.add(1)
-            areaColumn.add(it.area)
-            medianColumn.add(it.median)
-            meanColumn.add(it.mean)
+            areaColumn.add(cell.area)
+            medianColumn.add(cell.median)
+            meanColumn.add(cell.mean)
         }
 
         table.add(labelColumn)
