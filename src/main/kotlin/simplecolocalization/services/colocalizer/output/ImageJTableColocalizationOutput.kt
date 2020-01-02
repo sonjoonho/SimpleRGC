@@ -53,7 +53,7 @@ class ImageJTableColocalizationOutput(
         meanColumn.add(0)
 
         // Construct column values using the channel analysis values.
-        result.overlappingTransducedCellAnalyses.forEach {
+        result.overlappingTransducedIntensityAnalysis.forEach {
             labelColumn.add("")
             countColumn.add(1)
             areaColumn.add(it.area)

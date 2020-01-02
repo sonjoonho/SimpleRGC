@@ -15,10 +15,17 @@ open class NaiveColocalizer(cellComparator: CellComparator) :
         baseCells: List<PositionedCell>,
         overlaidCells: List<PositionedCell>
     ): ColocalizationAnalysis {
-        val overlap = overlaidCells.filter { overlaidCell ->
-            baseCells.any { isOverlapping(overlaidCell, it) }
-        }
+        val overlaidBaseOverlap = overlaidCells.map { overlaidCell ->
+            overlaidCell to baseCells.filter { isOverlapping(overlaidCell, it) }
+        }.toMap()
 
-        return ColocalizationAnalysis(overlap, overlaidCells.minus(overlap))
+        val overlappingBaseCells = overlaidBaseOverlap.values.flatten().toSet()
+        val overlappingOverlaidCells = overlaidBaseOverlap.filter { it.value.isNotEmpty() }.keys
+
+        return ColocalizationAnalysis(
+            overlappingBase = overlappingBaseCells.toList(),
+            overlappingOverlaid = overlappingOverlaidCells.toList(),
+            disjoint = overlaidCells.minus(overlappingOverlaidCells)
+        )
     }
 }

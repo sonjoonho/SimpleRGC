@@ -30,7 +30,7 @@ class CSVColocalizationOutput(
         outputData.add(arrayOf("Quantification of each transduced cells overlapping target cells below --", "", "", ""))
 
         // Per-cell analysis
-        result.overlappingTransducedCellAnalyses.forEach { outputData.add(arrayOf("", "1", it.area.toString(), it.median.toString(), it.mean.toString())) }
+        result.overlappingTransducedIntensityAnalysis.forEach { outputData.add(arrayOf("", "1", it.area.toString(), it.median.toString(), it.mean.toString())) }
 
         csvWriter.write(file, StandardCharsets.UTF_8, outputData)
     }
