@@ -21,6 +21,7 @@ import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
+import simplecolocalization.services.colocalizer.resetRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 
@@ -132,6 +133,8 @@ class SimpleCellCounter : Command {
         } else {
             PreprocessingParameters(largestCellDiameter)
         }
+
+        resetRoiManager()
 
         val result = process(image, preprocessingParams)
 

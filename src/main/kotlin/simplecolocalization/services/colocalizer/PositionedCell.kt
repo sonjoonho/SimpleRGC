@@ -84,6 +84,11 @@ fun addToRoiManager(cells: List<PositionedCell>) {
     cells.forEach { roiManager.addRoi(it.toRoi()) }
 }
 
+fun resetRoiManager() {
+    val roiManager = RoiManager.getRoiManager()
+    roiManager.runCommand("Reset")
+}
+
 /**
  * Draws the given cells on the given image. This method does not add the ROIs to the RoiManager.
  */

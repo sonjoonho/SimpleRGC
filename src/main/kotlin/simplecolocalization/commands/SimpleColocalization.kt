@@ -34,6 +34,7 @@ import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
+import simplecolocalization.services.colocalizer.resetRoiManager
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -207,6 +208,8 @@ class SimpleColocalization : Command {
         } else {
             PreprocessingParameters(largestCellDiameter)
         }
+
+        resetRoiManager()
 
         val result = try {
             process(image, preprocessingParams)
