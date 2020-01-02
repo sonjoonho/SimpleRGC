@@ -31,20 +31,20 @@ class ImageJTableColocalizationOutput(
         medianColumn.add(0)
         meanColumn.add(0)
 
-        labelColumn.add("Total no. target cells")
+        labelColumn.add("Total number of cells in cell morphology channel 1")
         countColumn.add(result.targetCellCount)
         areaColumn.add(0)
         medianColumn.add(0)
         meanColumn.add(0)
 
-        labelColumn.add("No. transduced cells overlapping target cells")
+        labelColumn.add("Transduced cells in channel 1")
         countColumn.add(result.overlappingTwoChannelCells.size)
         areaColumn.add(0)
         medianColumn.add(0)
         meanColumn.add(0)
 
         if (result.overlappingThreeChannelCells != null) {
-            labelColumn.add("No. cells overlapping all three channel cells")
+            labelColumn.add("Transduced cells in both morphology channels")
             countColumn.add(result.overlappingThreeChannelCells.size)
             areaColumn.add(0)
             medianColumn.add(0)

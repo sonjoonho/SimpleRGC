@@ -22,10 +22,10 @@ class CSVColocalizationOutput(
 
         // Summaries
         outputData.add(arrayOf("--- Summary ---", "", "", ""))
-        outputData.add(arrayOf("Total no. target cells", result.targetCellCount.toString(), "", "", ""))
-        outputData.add(arrayOf("No. transduced cells overlapping target cells", result.overlappingTwoChannelCells.size.toString(), "", "", ""))
+        outputData.add(arrayOf("Total number of cells in cell morphology channel 1", result.targetCellCount.toString(), "", "", ""))
+        outputData.add(arrayOf("Transduced cells in channel 1", result.overlappingTwoChannelCells.size.toString(), "", "", ""))
         if (result.overlappingThreeChannelCells != null) {
-            outputData.add(arrayOf("No. cells overlapping all three channels", result.overlappingThreeChannelCells.size.toString(), "", "", ""))
+            outputData.add(arrayOf("Transduced cells in both morphology channels", result.overlappingThreeChannelCells.size.toString(), "", "", ""))
         }
         outputData.add(arrayOf("--- Transduced Channel Analysis, Colocalized Cells ---", "", "", ""))
 
