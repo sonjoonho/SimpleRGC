@@ -23,6 +23,7 @@ import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
+import simplecolocalization.services.colocalizer.resetRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 import simplecolocalization.services.counter.output.XMLCounterOutput
@@ -65,7 +66,7 @@ class SimpleCellCounter : Command {
      * background subtraction.
      */
     @Parameter(
-        label = "Largest Cell Diameter",
+        label = "Largest Cell Diameter (px)",
         description = "Value we use to apply the rolling ball algorithm to subtract " +
             "the background when thresholding",
             min = "1",
@@ -87,7 +88,7 @@ class SimpleCellCounter : Command {
      * The user can optionally output the results to a file.
      */
     object OutputFormat {
-        const val DISPLAY = "Display in table"
+        const val DISPLAY = "Display in ImageJ"
         const val CSV = "Save as CSV file"
         const val XML = "Save as XML file"
     }
@@ -136,6 +137,8 @@ class SimpleCellCounter : Command {
         } else {
             PreprocessingParameters(largestCellDiameter)
         }
+
+        resetRoiManager()
 
         val result = process(image, preprocessingParams)
 

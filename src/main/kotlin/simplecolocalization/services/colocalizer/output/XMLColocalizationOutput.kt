@@ -66,6 +66,8 @@ class XMLColocalizationOutput(
             addAttribute("Area", it.area.toString(), colocalizedCell, doc)
             addAttribute("Median", it.median.toString(), colocalizedCell, doc)
             addAttribute("Mean", it.mean.toString(), colocalizedCell, doc)
+            addAttribute("IntegratedDensity", (it.mean * it.area).toString(), colocalizedCell, doc)
+            addAttribute("RawIntegratedDensity", it.sum.toString(), colocalizedCell, doc)
         }
 
         return doc
@@ -88,16 +90,16 @@ class XMLColocalizationOutput(
     private fun addSummary(doc: Document, root: Element) {
         val summary = doc.createElement("Summary")
         root.appendChild(summary)
-        addAttribute("TotalTargetCellCount", result.targetCellCount.toString(), summary, doc)
+        addAttribute("NumCellsInCellMorphology1", result.targetCellCount.toString(), summary, doc)
         addAttribute(
-            "NumTransducedCellsOverlappingTarget",
+            "TransducedCellsInChannel1",
             result.overlappingTwoChannelCells.size.toString(),
             summary,
             doc
         )
         if (result.overlappingThreeChannelCells != null) {
             addAttribute(
-                "NumCellsOverlappingThreeChannels",
+                "TransducedCellsInBothMorphologyChannels",
                 result.overlappingThreeChannelCells.size.toString(),
                 summary,
                 doc

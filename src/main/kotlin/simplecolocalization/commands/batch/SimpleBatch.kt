@@ -85,7 +85,7 @@ class SimpleBatch : Command {
      * background subtraction.
      */
     @Parameter(
-        label = "Largest Cell Diameter",
+        label = "Largest Cell Diameter (px) (for Morphology Channel 1)",
         description = "Value we use to apply the rolling ball algorithm to subtract the background when thresholding",
         min = "1",
         stepSize = "1",
@@ -94,6 +94,16 @@ class SimpleBatch : Command {
         persist = false
     )
     private var largestCellDiameter = 30.0
+
+    @Parameter(
+        label = "Largest Cell Diameter for Morphology Channel 2 (px) (colocalization, only if channel enabled)",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var largestAllCellsDiameter = 30.0
 
     @Parameter(
         label = "<html><div align=\"right\">\nWhen performing batch colocalization, ensure that <br />all input images have the same channel ordering as<br />specified below.</div></html>",
@@ -175,6 +185,12 @@ class SimpleBatch : Command {
         }
 
         strategy.process(openFiles(files), outputFormat, outputFile, PreprocessingParameters(largestCellDiameter))
+
+        MessageDialog(
+            IJ.getInstance(),
+            "Saved",
+            "The batch processing results have successfully been saved to the specified file."
+        )
     }
 
         private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {

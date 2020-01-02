@@ -26,6 +26,7 @@ import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
 import simplecolocalization.preprocessing.PreprocessingParameters
+import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
@@ -37,6 +38,7 @@ import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplecolocalization.services.colocalizer.output.XMLColocalizationOutput
+import simplecolocalization.services.colocalizer.resetRoiManager
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -63,12 +65,18 @@ class SimpleColocalization : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Manually Tune Parameters?",
+        label = "Manually Tune Pre-Processing Parameters?",
         required = true,
         persist = false
     )
     private var tuneParams = false
-    // TODO(#84): Unimplemented!
+
+    @Parameter(
+        label = "Select Channels To Use:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var channelSelectionHeader: String
 
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
@@ -76,7 +84,7 @@ class SimpleColocalization : Command {
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Target Cell Channel:",
+        label = "Cell Morphology Channel 1:",
         min = "1",
         stepSize = "1",
         required = true,
@@ -85,24 +93,11 @@ class SimpleColocalization : Command {
     var targetChannel = 1
 
     /**
-     * Specify the channel for the transduced cells.
-     * By default this is the 2 (green) channel.
-     */
-    @Parameter(
-        label = "Transduced Cell Channel:",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = false
-    )
-    var transducedChannel = 2
-
-    /**
      * Specify the channel for the all cells channel.
      * By default this is the 0 (disabled).
      */
     @Parameter(
-        label = "All Cells Channel (0 to disable):",
+        label = "Cell Morphology Channel 2 (0 to disable):",
         min = "0",
         stepSize = "1",
         required = true,
@@ -113,6 +108,19 @@ class SimpleColocalization : Command {
     private fun isAllCellsEnabled(): Boolean {
         return allCellsChannel > 0
     }
+
+    /**
+     * Specify the channel for the transduced cells.
+     * By default this is the 2 (green) channel.
+     */
+    @Parameter(
+        label = "Transduction Channel:",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    var transducedChannel = 2
 
     @Parameter(
         label = "Preprocessing Parameters:",
@@ -127,7 +135,7 @@ class SimpleColocalization : Command {
      * background subtraction.
      */
     @Parameter(
-        label = "Largest Cell Diameter",
+        label = "Largest Cell Diameter for Morphology Channel 1 (px)",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -135,6 +143,16 @@ class SimpleColocalization : Command {
         persist = false
     )
     private var largestCellDiameter = 30.0
+
+    @Parameter(
+        label = "Largest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var largestAllCellsDiameter = 30.0
 
     @Parameter(
         label = "Output Parameters:",
@@ -147,7 +165,7 @@ class SimpleColocalization : Command {
      * The user can optionally output the results to a file.
      */
     object OutputFormat {
-        const val DISPLAY = "Display in table"
+        const val DISPLAY = "Display in ImageJ"
         const val CSV = "Save as CSV file"
         const val XML = "Save as XML file"
     }
@@ -204,8 +222,20 @@ class SimpleColocalization : Command {
             }
         }
 
+        val preprocessingParams = if (tuneParams) {
+            // Quit the plugin if the user cancels.
+            tuneParameters(
+                largestCellDiameter,
+                largestAllCellsDiameter = if (isAllCellsEnabled()) largestAllCellsDiameter else null
+            ) ?: return
+        } else {
+            PreprocessingParameters(largestCellDiameter, largestAllCellsDiameter = if (isAllCellsEnabled()) largestAllCellsDiameter else null)
+        }
+
+        resetRoiManager()
+
         val result = try {
-            process(image)
+            process(image, preprocessingParams)
         } catch (e: ChannelDoesNotExistException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -215,7 +245,7 @@ class SimpleColocalization : Command {
 
         image.show()
         addToRoiManager(result.overlappingTwoChannelCells)
-        showHistogram(result.overlappingTransducedIntensityAnalysis)
+        // showHistogram(result.overlappingTransducedIntensityAnalysis)
     }
 
     private fun writeOutput(result: TransductionResult) {
@@ -248,7 +278,7 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     @Throws(ChannelDoesNotExistException::class)
-    fun process(image: ImagePlus): TransductionResult {
+    fun process(image: ImagePlus, preprocessingParams: PreprocessingParameters): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
@@ -265,7 +295,8 @@ class SimpleColocalization : Command {
         return analyseTransduction(
             imageChannels[targetChannel - 1],
             imageChannels[transducedChannel - 1],
-            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null
+            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null,
+            preprocessingParams
         )
     }
 
@@ -277,14 +308,9 @@ class SimpleColocalization : Command {
         }
     }
 
-    fun analyseTransduction(
-        targetChannel: ImagePlus,
-        transducedChannel: ImagePlus,
-        allCellsChannel: ImagePlus?
-    ): TransductionResult {
+    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null, preprocessingParameters: PreprocessingParameters): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
-        val preprocessingParameters = PreprocessingParameters(largestCellDiameter)
         val targetCells = cellSegmentationService.extractCells(targetChannel, preprocessingParameters)
         val transducedCells = filterCellsByIntensity(
             cellSegmentationService.extractCells(transducedChannel, preprocessingParameters),
@@ -292,7 +318,8 @@ class SimpleColocalization : Command {
         )
         val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(
             allCellsChannel,
-            preprocessingParameters
+            preprocessingParameters,
+            isAllCellsChannel = true
         ) else null
 
         logService.info("Starting analysis")
