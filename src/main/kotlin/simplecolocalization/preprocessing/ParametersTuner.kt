@@ -30,14 +30,6 @@ data class PreprocessingParameters(
 )
 
 private fun renderParamsDialog(paramsDialog: GenericDialog, defaultParams: PreprocessingParameters) {
-    paramsDialog.addNumericField("Largest Cell Diameter (px)", defaultParams.largestCellDiameter, 0)
-    if (defaultParams.largestAllCellsDiameter != null) {
-        paramsDialog.addNumericField(
-            "Largest Cell Diameter in Morphology Channel 2 (px)",
-            defaultParams.largestAllCellsDiameter,
-            0
-        )
-    }
     paramsDialog.addCheckbox("Subtract Background?", defaultParams.shouldSubtractBackground)
     paramsDialog.addChoice("Threshold Locality", arrayOf(
         ThresholdTypes.GLOBAL,
