@@ -95,12 +95,14 @@ fun resetRoiManager() {
 fun drawCells(imp: ImagePlus, cells: List<PositionedCell>) {
     val rois = cells.map { it.toRoi() }
     val overlay = Overlay()
-    rois.forEach { overlay.add(it) }
-    val ic = imp.canvas
-    if (ic == null) {
-        imp.overlay = overlay
-        return
-    }
-    ic.showAllList = overlay
+
+    rois.forEachIndexed { index, roi -> overlay.add(roi, "${index + 1}") }
+    overlay.drawLabels(true)
+    overlay.drawNames(true)
+    overlay.drawBackgrounds(true)
+    imp.overlay = overlay
+    imp.canvas.overlay = overlay
+    imp.canvas.showAllList = overlay
+    imp.hideOverlay = false
     imp.draw()
 }

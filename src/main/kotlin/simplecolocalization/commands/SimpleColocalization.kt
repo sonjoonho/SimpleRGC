@@ -34,11 +34,10 @@ import simplecolocalization.services.cellcomparator.SubsetPixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.ColocalizationAnalysis
 import simplecolocalization.services.colocalizer.PositionedCell
-import simplecolocalization.services.colocalizer.addToRoiManager
+import simplecolocalization.services.colocalizer.drawCells
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplecolocalization.services.colocalizer.output.XMLColocalizationOutput
-import simplecolocalization.services.colocalizer.resetRoiManager
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -232,8 +231,6 @@ class SimpleColocalization : Command {
             PreprocessingParameters(largestCellDiameter, largestAllCellsDiameter = if (isAllCellsEnabled()) largestAllCellsDiameter else null)
         }
 
-        resetRoiManager()
-
         val result = try {
             process(image, preprocessingParams)
         } catch (e: ChannelDoesNotExistException) {
@@ -244,8 +241,7 @@ class SimpleColocalization : Command {
         writeOutput(result)
 
         image.show()
-        addToRoiManager(result.overlappingTwoChannelCells)
-        // showHistogram(result.overlappingTransducedIntensityAnalysis)
+        drawCells(image, result.overlappingTwoChannelCells)
     }
 
     private fun writeOutput(result: TransductionResult) {
@@ -334,7 +330,7 @@ class SimpleColocalization : Command {
 
         val transductionIntensityAnalysis = cellColocalizationService.analyseCellIntensity(
             transducedChannel,
-            targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }.toTypedArray()
+            targetTransducedAnalysis.overlappingBase.map { it.toRoi() }.toTypedArray()
         )
 
         var allCellsAnalysis: ColocalizationAnalysis? = null
