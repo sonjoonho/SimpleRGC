@@ -53,13 +53,11 @@ class SimpleBatch : Command {
     )
     private lateinit var inputFolder: File
 
-
     @Parameter(
         label = "Batch process files in nested sub-folders?",
         required = true
     )
     private var shouldProcessFilesInNestedFolders: Boolean = true
-
 
     @Parameter(
         label = "<html><div align=\"right\">\nWhen performing batch colocalization, ensure that <br />all input images have the same channel ordering as<br />specified below.</div></html>",
@@ -107,7 +105,6 @@ class SimpleBatch : Command {
         persist = false
     )
     private var transducedChannel = 2
-
 
     @Parameter(
         label = "Preprocessing Parameters:",
@@ -166,7 +163,6 @@ class SimpleBatch : Command {
         style = "radioButtonVertical"
     )
     private var outputFormat = OutputFormat.CSV
-
 
     @Parameter(
         label = "Output file:",
