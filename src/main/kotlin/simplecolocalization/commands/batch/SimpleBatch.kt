@@ -32,25 +32,6 @@ class SimpleBatch : Command {
     @Parameter
     private lateinit var context: Context
 
-    /**
-     * The user can optionally output the results to a file.
-     *
-     * TODO(Arjun): Reinstate a parameter for this once display output is built
-     */
-    object OutputFormat {
-        const val CSV = "Save as CSV file"
-        const val XML = "Save as XML file"
-    }
-
-    @Parameter(
-        label = "Results Output:",
-        choices = [OutputFormat.CSV, OutputFormat.XML],
-        required = true,
-        persist = false,
-        style = "radioButtonVertical"
-    )
-    private var outputFormat = OutputFormat.CSV
-
     object PluginChoice {
         const val SIMPLE_CELL_COUNTER = "SimpleCellCounter"
         const val SIMPLE_COLOCALIZATION = "SimpleColocalization"
@@ -72,20 +53,75 @@ class SimpleBatch : Command {
     )
     private lateinit var inputFolder: File
 
+
     @Parameter(
-        label = "Output file:",
-        required = true,
-        persist = false,
-        style = "save"
+        label = "Batch process files in nested sub-folders?",
+        required = true
     )
-    private lateinit var outputFile: File
+    private var shouldProcessFilesInNestedFolders: Boolean = true
+
+
+    @Parameter(
+        label = "<html><div align=\"right\">\nWhen performing batch colocalization, ensure that <br />all input images have the same channel ordering as<br />specified below.</div></html>",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private var colocalizationInstruction = ""
+
+    /**
+     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
+     * the channels available at the parameter initiation stage.
+     * By default this is 1 (red) channel.
+     */
+    @Parameter(
+        label = "Cell Morphology Channel 1 (Colocalization Only)",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    private var targetChannel = 1
+
+    /**
+     * Specify the channel for the all cells channel.
+     * By default this is the 0 (disabled).
+     */
+    @Parameter(
+        label = "Cell Morphology Channel 2 (Colocalization Only, 0 to disable):",
+        min = "0",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    var allCellsChannel = 0
+
+    /**
+     * Specify the channel for the transduced cells.
+     * By default this is the 2 (green) channel.
+     */
+    @Parameter(
+        label = "Transduction Channel (Colocalization Only)",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    private var transducedChannel = 2
+
+
+    @Parameter(
+        label = "Preprocessing Parameters:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var preprocessingParamsHeader: String
 
     /**
      * Used during the cell segmentation stage to perform local thresholding or
      * background subtraction.
      */
     @Parameter(
-        label = "Largest Cell Diameter (px) (for Morphology Channel 1)",
+        label = "Largest Cell Diameter for Morphology Channel 1 (px)",
         description = "Value we use to apply the rolling ball algorithm to subtract the background when thresholding",
         min = "1",
         stepSize = "1",
@@ -106,57 +142,39 @@ class SimpleBatch : Command {
     private var largestAllCellsDiameter = 30.0
 
     @Parameter(
-        label = "<html><div align=\"right\">\nWhen performing batch colocalization, ensure that <br />all input images have the same channel ordering as<br />specified below.</div></html>",
+        label = "Output Parameters:",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private var colocalizationInstruction = ""
+    private lateinit var outputParametersHeader: String
 
     /**
-     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
-     * the channels available at the parameter initiation stage.
-     * By default this is 1 (red) channel.
+     * The user can optionally output the results to a file.
+     *
+     * TODO(Arjun): Reinstate a parameter for this once display output is built
      */
-    @Parameter(
-        label = "Target Cell Channel (Colocalization Only)",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = false
-    )
-    private var targetChannel = 1
-
-    /**
-     * Specify the channel for the transduced cells.
-     * By default this is the 2 (green) channel.
-     */
-    @Parameter(
-        label = "Transduced Cell Channel (Colocalization Only)",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = false
-    )
-    private var transducedChannel = 2
-
-    /**
-     * Specify the channel for the all cells channel.
-     * By default this is the 0 (disabled).
-     */
-    @Parameter(
-        label = "All Cells Channel (Colocalization Only, 0 to disable):",
-        min = "0",
-        stepSize = "1",
-        required = true,
-        persist = false
-    )
-    var allCellsChannel = 0
+    object OutputFormat {
+        const val CSV = "Save as CSV file"
+        const val XML = "Save as XML file"
+    }
 
     @Parameter(
-        label = "Batch process files in nested sub-folders?",
-        required = true
+        label = "Results Output:",
+        choices = [OutputFormat.CSV, OutputFormat.XML],
+        required = true,
+        persist = false,
+        style = "radioButtonVertical"
     )
-    private var shouldProcessFilesInNestedFolders: Boolean = true
+    private var outputFormat = OutputFormat.CSV
+
+
+    @Parameter(
+        label = "Output file:",
+        required = true,
+        persist = false,
+        style = "save"
+    )
+    private lateinit var outputFile: File
 
     override fun run() {
         if (!inputFolder.exists()) {
