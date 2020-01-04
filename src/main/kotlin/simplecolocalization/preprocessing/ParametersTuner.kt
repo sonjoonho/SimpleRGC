@@ -17,16 +17,16 @@ object LocalThresholdAlgos {
 
 // We suspect this value may depend on the image, we will have to find a way to
 data class PreprocessingParameters(
-    val largestCellDiameter: Double,
-    val shouldSubtractBackground: Boolean = false,
-    val thresholdLocality: String = ThresholdTypes.LOCAL,
-    val localThresholdAlgo: String = LocalThresholdAlgos.NIBLACK,
-    val shouldDespeckle: Boolean = true,
-    val despeckleRadius: Double = 2.0,
-    val shouldGaussianBlur: Boolean = true,
-    val gaussianBlurSigma: Double = 3.0,
+    var largestCellDiameter: Double,
+    var shouldSubtractBackground: Boolean = false,
+    var thresholdLocality: String = ThresholdTypes.LOCAL,
+    var localThresholdAlgo: String = LocalThresholdAlgos.NIBLACK,
+    var shouldDespeckle: Boolean = true,
+    var despeckleRadius: Double = 2.0,
+    var shouldGaussianBlur: Boolean = true,
+    var gaussianBlurSigma: Double = 3.0,
     // For use with blue cell channel
-    val largestAllCellsDiameter: Double? = null
+    var largestAllCellsDiameter: Double? = null
 )
 
 private fun renderParamsDialog(paramsDialog: GenericDialog, defaultParams: PreprocessingParameters) {
@@ -47,33 +47,21 @@ private fun renderParamsDialog(paramsDialog: GenericDialog, defaultParams: Prepr
     paramsDialog.showDialog()
 }
 
-private fun getParamsFromDialog(paramsDialog: GenericDialog, isAllCellsEnabled: Boolean = false): PreprocessingParameters {
-    val largestCellDiameter = paramsDialog.nextNumber
-    val largestAllCellsDiameter = if (isAllCellsEnabled) paramsDialog.nextNumber else null
-    val shouldSubtractBackground = paramsDialog.nextBoolean
-    val thresholdLocality = paramsDialog.nextChoice
-    val localThresholdAlgo = paramsDialog.nextChoice
-    val shouldDespeckle = paramsDialog.nextBoolean
-    val despeckleRadius = paramsDialog.nextNumber
-    val shouldGaussianBlur = paramsDialog.nextBoolean
-    val gaussianBlurSigma = paramsDialog.nextNumber
-    return PreprocessingParameters(
-        largestCellDiameter,
-        shouldSubtractBackground,
-        thresholdLocality,
-        localThresholdAlgo,
-        shouldDespeckle,
-        despeckleRadius,
-        shouldGaussianBlur,
-        gaussianBlurSigma,
-        largestAllCellsDiameter = largestAllCellsDiameter
-    )
+private fun updateParamsFromDialog(params: PreprocessingParameters, paramsDialog: GenericDialog) {
+    params.shouldSubtractBackground = paramsDialog.nextBoolean
+    params.thresholdLocality = paramsDialog.nextChoice
+    params.localThresholdAlgo = paramsDialog.nextChoice
+    params.shouldDespeckle = paramsDialog.nextBoolean
+    params.despeckleRadius = paramsDialog.nextNumber
+    params.shouldGaussianBlur = paramsDialog.nextBoolean
+    params.gaussianBlurSigma = paramsDialog.nextNumber
 }
 
 fun tuneParameters(largestCellDiameter: Double, largestAllCellsDiameter: Double? = null): PreprocessingParameters? {
-    val defaultParams = PreprocessingParameters(largestCellDiameter = largestCellDiameter, largestAllCellsDiameter = largestAllCellsDiameter)
+    val params = PreprocessingParameters(largestCellDiameter = largestCellDiameter, largestAllCellsDiameter = largestAllCellsDiameter)
     val paramsDialog = GenericDialog("Tune Parameters Manually")
-    renderParamsDialog(paramsDialog, defaultParams)
+    renderParamsDialog(paramsDialog, params)
     if (paramsDialog.wasCanceled()) return null
-    return getParamsFromDialog(paramsDialog, largestAllCellsDiameter != null)
+    updateParamsFromDialog(params, paramsDialog)
+    return params
 }
