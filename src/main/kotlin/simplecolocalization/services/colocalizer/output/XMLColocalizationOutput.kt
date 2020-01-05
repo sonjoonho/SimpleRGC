@@ -93,7 +93,7 @@ class XMLColocalizationOutput(
         addAttribute("NumCellsInCellMorphology1", result.targetCellCount.toString(), summary, doc)
         addAttribute(
             "TransducedCellsInChannel1",
-            result.overlappingTwoChannelCells.size.toString(),
+            result.overlappingTransducedIntensityAnalysis.size.toString(),
             summary,
             doc
         )

@@ -24,7 +24,7 @@ class CSVColocalizationOutput(
         // Summaries
         outputData.add(arrayOf("--- Summary ---", "", "", ""))
         outputData.add(arrayOf("Total number of cells in cell morphology channel 1", result.targetCellCount.toString(), "", "", "", "", ""))
-        outputData.add(arrayOf("Transduced cells in channel 1", result.overlappingTwoChannelCells.size.toString(), "", "", "", "", ""))
+        outputData.add(arrayOf("Transduced cells in channel 1", result.overlappingTransducedIntensityAnalysis.size.toString(), "", "", "", "", ""))
         if (result.overlappingThreeChannelCells != null) {
             outputData.add(arrayOf("Transduced cells in both morphology channels", result.overlappingThreeChannelCells.size.toString(), "", "", "", "", ""))
         }

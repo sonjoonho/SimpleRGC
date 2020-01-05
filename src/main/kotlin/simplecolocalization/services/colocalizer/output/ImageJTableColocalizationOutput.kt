@@ -29,7 +29,7 @@ class ImageJTableColocalizationOutput(
 
         // Summary columns
         labelColumn.add("--- Summary ---")
-        countColumn.add(result.targetCellCount)
+        countColumn.add(0)
         areaColumn.add(0)
         medianColumn.add(0)
         meanColumn.add(0)
@@ -45,7 +45,7 @@ class ImageJTableColocalizationOutput(
         rawIntegratedDensityColumn.add(0)
 
         labelColumn.add("Transduced cells in channel 1")
-        countColumn.add(result.overlappingTwoChannelCells.size)
+        countColumn.add(result.overlappingTransducedIntensityAnalysis.size)
         areaColumn.add(0)
         medianColumn.add(0)
         meanColumn.add(0)
