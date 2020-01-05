@@ -39,11 +39,6 @@ class BatchableCellCounter(private val context: Context) : Batchable {
         } catch (ioe: IOException) {
             displayErrorDialog()
         }
-        MessageDialog(
-            IJ.getInstance(),
-            "Saved",
-            "The colocalization results have successfully been saved to the specified file."
-        )
     }
 
     // TODO(tiger-cross): Reduce duplication here.

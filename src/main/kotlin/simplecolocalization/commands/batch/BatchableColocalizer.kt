@@ -63,12 +63,6 @@ class BatchableColocalizer(
         } catch (ioe: IOException) {
             displayErrorDialog()
         }
-
-        MessageDialog(
-            IJ.getInstance(),
-            "Saved",
-            "The colocalization results have successfully been saved to the specified file."
-        )
     }
 
     private fun outputToCSV(
