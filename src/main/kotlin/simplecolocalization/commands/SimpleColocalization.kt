@@ -65,7 +65,7 @@ class SimpleColocalization : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Manually Tune Pre-Processing Parameters?",
+        label = "Manually Tune Pre-processing Parameters?",
         required = true,
         persist = false
     )

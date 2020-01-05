@@ -59,7 +59,7 @@ private fun updateParamsFromDialog(params: PreprocessingParameters, paramsDialog
 
 fun tuneParameters(largestCellDiameter: Double, largestAllCellsDiameter: Double? = null): PreprocessingParameters? {
     val params = PreprocessingParameters(largestCellDiameter = largestCellDiameter, largestAllCellsDiameter = largestAllCellsDiameter)
-    val paramsDialog = GenericDialog("Tune Parameters Manually")
+    val paramsDialog = GenericDialog("Pre-processing Parameters")
     renderParamsDialog(paramsDialog, params)
     if (paramsDialog.wasCanceled()) return null
     updateParamsFromDialog(params, paramsDialog)
