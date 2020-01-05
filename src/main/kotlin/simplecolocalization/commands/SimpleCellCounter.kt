@@ -55,7 +55,7 @@ class SimpleCellCounter : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Manually Tune Parameters?",
+        label = "Manually Tune Pre-processing Parameters?",
         required = true,
         persist = false
     )
