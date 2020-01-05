@@ -1,9 +1,7 @@
 package simplecolocalization.commands.batch
 
-import ij.IJ
 import ij.ImagePlus
 import ij.gui.GenericDialog
-import ij.gui.MessageDialog
 import java.io.File
 import java.io.IOException
 import javax.xml.transform.TransformerException
