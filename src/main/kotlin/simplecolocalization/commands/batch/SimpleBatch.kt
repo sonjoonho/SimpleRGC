@@ -117,7 +117,7 @@ class SimpleBatch : Command {
      */
     @Parameter(
         label = "Smallest Cell Diameter for Morphology Channel 1 (px)",
-        description = "Value we use as minimum diameter when identifying cells",
+        description = "Used as minimum diameter when identifying cells",
         min = "0.0",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -132,7 +132,7 @@ class SimpleBatch : Command {
      */
     @Parameter(
         label = "Largest Cell Diameter for Morphology Channel 1 (px)",
-        description = "Value we use to apply the rolling ball algorithm to subtract the background when thresholding",
+        description = "Used to apply the rolling ball algorithm to subtract the background when thresholding",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -142,8 +142,7 @@ class SimpleBatch : Command {
     private var largestCellDiameter = 30.0
 
     @Parameter(
-        label = "Smallest Cell Diameter for Morphology Channel 2 (px) (colocalization, only if channel enabled)",
-        description = "Value we use as minimum diameter when identifying cells",
+        label = "Smallest Cell Diameter for Morphology Channel 2 (px) (colocalization only, only if channel enabled)",
         min = "0.0",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -153,7 +152,7 @@ class SimpleBatch : Command {
     private var smallestAllCellsDiameter = 0.0
 
     @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 2 (px) (colocalization, only if channel enabled)",
+        label = "Largest Cell Diameter for Morphology Channel 2 (px) (colocalization only, only if channel enabled)",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
