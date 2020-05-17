@@ -71,7 +71,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var smallestCellDiameter = 0.0
+    var smallestCellDiameter = 0.0
 
     /**
      * Used during the cell segmentation stage to perform local thresholding or
