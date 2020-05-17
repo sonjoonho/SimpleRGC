@@ -63,13 +63,6 @@ class SimpleColocalization : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Manually Tune Pre-processing Parameters?",
-        required = true,
-        persist = false
-    )
-    private var tuneParams = false
-
-    @Parameter(
         label = "Select Channels To Use:",
         visibility = ItemVisibility.MESSAGE,
         required = false
