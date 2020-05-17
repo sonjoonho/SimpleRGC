@@ -25,8 +25,6 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
-import simplecolocalization.preprocessing.PreprocessingParameters
-import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
@@ -154,6 +152,8 @@ class SimpleColocalization : Command {
     )
     private var largestAllCellsDiameter = 30.0
 
+    // TODO(tiger-cross): Plugin 2 Optimisation, Add necessary parameters removed from preprocessing.
+
     @Parameter(
         label = "Output Parameters:",
         visibility = ItemVisibility.MESSAGE,
@@ -222,20 +222,12 @@ class SimpleColocalization : Command {
             }
         }
 
-        val preprocessingParams = if (tuneParams) {
-            // Quit the plugin if the user cancels.
-            tuneParameters(
-                largestCellDiameter,
-                largestAllCellsDiameter = if (isAllCellsEnabled()) largestAllCellsDiameter else null
-            ) ?: return
-        } else {
-            PreprocessingParameters(largestCellDiameter, largestAllCellsDiameter = if (isAllCellsEnabled()) largestAllCellsDiameter else null)
-        }
+        // if (isAllCellsEnabled()) largestAllCellsDiameter
 
         resetRoiManager()
 
         val result = try {
-            process(image, preprocessingParams)
+            process(image)
         } catch (e: ChannelDoesNotExistException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -278,7 +270,7 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     @Throws(ChannelDoesNotExistException::class)
-    fun process(image: ImagePlus, preprocessingParams: PreprocessingParameters): TransductionResult {
+    fun process(image: ImagePlus): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
@@ -295,8 +287,7 @@ class SimpleColocalization : Command {
         return analyseTransduction(
             imageChannels[targetChannel - 1],
             imageChannels[transducedChannel - 1],
-            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null,
-            preprocessingParams
+            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null
         )
     }
 
@@ -308,19 +299,22 @@ class SimpleColocalization : Command {
         }
     }
 
-    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null, preprocessingParameters: PreprocessingParameters): TransductionResult {
+    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
-        val targetCells = cellSegmentationService.extractCells(targetChannel, preprocessingParameters)
+        val targetCells = cellSegmentationService.extractCells(targetChannel, largestCellDiameter, gaussianBlurSigma = 3.0)
         val transducedCells = filterCellsByIntensity(
-            cellSegmentationService.extractCells(transducedChannel, preprocessingParameters),
+            cellSegmentationService.extractCells(transducedChannel, largestCellDiameter, gaussianBlurSigma = 3.0),
             transducedChannel
         )
+        // TODO: ^^^Don't we need a separate value here??
         val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(
             allCellsChannel,
-            preprocessingParameters,
-            isAllCellsChannel = true
+            largestAllCellsDiameter,
+            gaussianBlurSigma = 3.0
         ) else null
+
+        // TODO(tiger-cross): plugin 2 optimisation - use gb-sigma here
 
         logService.info("Starting analysis")
 
