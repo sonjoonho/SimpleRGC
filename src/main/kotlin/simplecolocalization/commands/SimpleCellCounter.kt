@@ -18,8 +18,6 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
-import simplecolocalization.preprocessing.PreprocessingParameters
-import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
@@ -55,11 +53,11 @@ class SimpleCellCounter : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Manually Tune Pre-processing Parameters?",
-        required = true,
-        persist = false
+        label = "Image Processing Parameters:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
     )
-    private var tuneParams = false
+    private lateinit var processingParametersHeader: String
 
     /**
      * Used during the cell segmentation stage to perform local thresholding or
@@ -76,6 +74,18 @@ class SimpleCellCounter : Command {
         persist = false
     )
     private var largestCellDiameter = 30.0
+
+    @Parameter(
+        label = "Gaussian Blur Sigma",
+        description = "Sigma value used for blurring the image during the processing," +
+            " a lower value is recommended if there are lots of cells densely packed together",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var gaussianBlurSigma = 3.0
 
     @Parameter(
         label = "Output Parameters:",
@@ -131,16 +141,9 @@ class SimpleCellCounter : Command {
             }
         }
 
-        val preprocessingParams = if (tuneParams) {
-            // Quit the plugin if the user cancels.
-            tuneParameters(largestCellDiameter) ?: return
-        } else {
-            PreprocessingParameters(largestCellDiameter)
-        }
-
         resetRoiManager()
 
-        val result = process(image, preprocessingParams)
+        val result = process(image)
 
         writeOutput(result.count, image.title)
 
@@ -187,9 +190,9 @@ class SimpleCellCounter : Command {
     }
 
     /** Processes single image. */
-    fun process(image: ImagePlus, preprocessingParams: PreprocessingParameters): CounterResult {
+    fun process(image: ImagePlus): CounterResult {
 
-        val cells = cellSegmentationService.extractCells(image, preprocessingParams)
+        val cells = cellSegmentationService.extractCells(image, largestCellDiameter, gaussianBlurSigma)
         return CounterResult(cells.size, cells)
     }
 

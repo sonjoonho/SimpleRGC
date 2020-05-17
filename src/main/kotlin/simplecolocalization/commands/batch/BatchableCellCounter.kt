@@ -9,21 +9,21 @@ import java.io.IOException
 import javax.xml.transform.TransformerException
 import org.scijava.Context
 import simplecolocalization.commands.SimpleCellCounter
-import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.XMLCounterOutput
 
+// TODO(tiger-cross): Add gaussian blur here too
 class BatchableCellCounter(private val context: Context) : Batchable {
     override fun process(
         inputImages: List<ImagePlus>,
+        largestCellDiameter: Double,
         outputFormat: String,
-        outputFile: File,
-        preprocessingParameters: PreprocessingParameters
+        outputFile: File
     ) {
         val simpleCellCounter = SimpleCellCounter()
         context.inject(simpleCellCounter)
 
-        val numCellsList = inputImages.map { simpleCellCounter.process(it, preprocessingParameters).count }
+        val numCellsList = inputImages.map { simpleCellCounter.process(it).count }
         val imageAndCount = inputImages.zip(numCellsList)
 
         val output = when (outputFormat) {

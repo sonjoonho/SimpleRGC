@@ -21,8 +21,8 @@ import org.w3c.dom.Element
 import simplecolocalization.commands.ChannelDoesNotExistException
 import simplecolocalization.commands.SimpleColocalization
 import simplecolocalization.commands.batch.SimpleBatch.OutputFormat
-import simplecolocalization.preprocessing.PreprocessingParameters
 
+// TODO(tiger-cross): add gb-sigma here
 class BatchableColocalizer(
     private val targetChannel: Int,
     private val transducedChannel: Int,
@@ -31,9 +31,9 @@ class BatchableColocalizer(
 ) : Batchable {
     override fun process(
         inputImages: List<ImagePlus>,
+        largestCellDiameter: Double,
         outputFormat: String,
-        outputFile: File,
-        preprocessingParameters: PreprocessingParameters
+        outputFile: File
     ) {
         val simpleColocalization = SimpleColocalization()
 
@@ -45,7 +45,7 @@ class BatchableColocalizer(
 
         val analyses = inputImages.mapNotNull {
             try {
-                simpleColocalization.process(it, preprocessingParameters)
+                simpleColocalization.process(it)
             } catch (e: ChannelDoesNotExistException) {
                 MessageDialog(IJ.getInstance(), "Error", e.message)
                 null
