@@ -1,17 +1,16 @@
 package simplecolocalization.services
 
 import de.biomedical_imaging.ij.steger.LineDetector
+import fiji.threshold.Auto_Local_Threshold
 import ij.ImagePlus
 import ij.gui.PolygonRoi
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
 import ij.plugin.ZProjector
-import ij.plugin.filter.BackgroundSubtracter
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.ParticleAnalyzer
-import ij.plugin.filter.RankFilters
 import ij.process.AutoThresholder
 import ij.process.FloatPolygon
 import ij.process.ImageConverter
@@ -21,79 +20,38 @@ import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
 import simplecolocalization.DummyRoiManager
-import simplecolocalization.algorithms.bernsen
-import simplecolocalization.algorithms.niblack
-import simplecolocalization.algorithms.otsu
-import simplecolocalization.preprocessing.LocalThresholdAlgos
-import simplecolocalization.preprocessing.PreprocessingParameters
-import simplecolocalization.preprocessing.ThresholdTypes
 import simplecolocalization.services.colocalizer.PositionedCell
 
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
 
     /** Perform pre-processing on the image to remove background and set cells to white. */
-    fun preprocessImage(image: ImagePlus, params: PreprocessingParameters, isAllCellsChannel: Boolean = false) {
+    fun preprocessImage(
+        image: ImagePlus,
+        largestCellDiameter: Double,
+        gaussianBlurSigma: Double
+    ) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
 
-        if (params.shouldSubtractBackground) {
-            // Remove background.
-            BackgroundSubtracter().rollingBallBackground(
-                image.channelProcessor,
-                if (isAllCellsChannel) params.largestAllCellsDiameter!! else params.largestCellDiameter,
-                false,
-                false,
-                false,
-                false,
-                false
-            )
-        }
-
-        when (params.thresholdLocality) {
-            ThresholdTypes.GLOBAL -> {
-                image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
-                image.processor.autoThreshold()
-            }
-            ThresholdTypes.LOCAL -> {
-                when (params.localThresholdAlgo) {
-                    LocalThresholdAlgos.OTSU -> otsu(
-                        image,
-                        if (isAllCellsChannel) params.largestAllCellsDiameter!!.toInt() else params.largestCellDiameter.toInt()
-                    )
-                    LocalThresholdAlgos.BERNSEN -> bernsen(
-                        image,
-                        if (isAllCellsChannel) params.largestAllCellsDiameter!!.toInt() else params.largestCellDiameter.toInt(),
-                        15.0
-                    )
-                    LocalThresholdAlgos.NIBLACK -> niblack(
-                        image,
-                        if (isAllCellsChannel) params.largestAllCellsDiameter!!.toInt() else params.largestCellDiameter.toInt(),
-                        0.2,
-                        0.0
-                    )
-                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
-                }
-            }
-            else -> throw IllegalArgumentException("Invalid Threshold Choice selected")
-        }
-
-        if (params.shouldDespeckle) {
-            // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
-            // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
-            RankFilters().rank(image.channelProcessor, params.despeckleRadius, RankFilters.MEDIAN)
-        }
+        // Additional params with values 0.0 are unused. Just required by localthreshold api.
+        Auto_Local_Threshold().exec(
+            image,
+            "Otsu",
+            largestCellDiameter.toInt(),
+            0.0,
+            0.0,
+            true
+        )
 
         removeAxons(image, detectAxons(image))
 
-        if (params.shouldGaussianBlur) {
-            // Apply Gaussian Blur to group larger speckles.
-            image.channelProcessor.blurGaussian(params.gaussianBlurSigma)
+        // Apply Gaussian Blur to group larger speckles.
+        image.channelProcessor.blurGaussian(gaussianBlurSigma)
 
-            // Threshold image again to remove blur.
-            image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
-            image.processor.autoThreshold()
-        }
+        // Threshold image again to remove blur.
+        image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
+        image.processor.autoThreshold()
     }
 
     /**
@@ -101,8 +59,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
      */
     fun extractCells(
         image: ImagePlus,
-        preprocessingParameters: PreprocessingParameters,
-        isAllCellsChannel: Boolean = false
+        largestCellDiameter: Double,
+        gaussianBlurSigma: Double
     ): List<PositionedCell> {
         val mutableImage = if (image.nSlices > 1) {
             // Flatten slices of the image. This step should probably be done during inside the pre-processing step -
@@ -112,7 +70,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             image.duplicate()
         }
 
-        preprocessImage(mutableImage, preprocessingParameters, isAllCellsChannel)
+        preprocessImage(mutableImage, largestCellDiameter, gaussianBlurSigma)
         segmentImage(mutableImage)
 
         return identifyCells(mutableImage)
