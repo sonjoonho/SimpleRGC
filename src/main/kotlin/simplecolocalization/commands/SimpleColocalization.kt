@@ -300,7 +300,7 @@ class SimpleColocalization : Command {
             cellSegmentationService.extractCells(transducedChannel, largestCellDiameter, gaussianBlurSigma = 3.0),
             transducedChannel
         )
-        // TODO: ^^^Don't we need a separate value here??
+        // TODO(#105) ^^
         val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(
             allCellsChannel,
             largestAllCellsDiameter,
