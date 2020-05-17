@@ -67,6 +67,10 @@
         <allowedDuplicateClasses>
             org.junit.platform.commons.annotation.*
         </allowedDuplicateClasses>
+
+        <!-- Temporarily target JVM 11 because Travis is broken. -->
+        <scijava.jvm.version>11</scijava.jvm.version>
+        <scijava.jvm.build.version>[1.8, 11.02]</scijava.jvm.build.version>
     </properties>
 
     <!-- Build Settings -->
