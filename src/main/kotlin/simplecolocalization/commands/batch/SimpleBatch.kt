@@ -17,7 +17,6 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
-import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
@@ -197,8 +196,8 @@ class SimpleBatch : Command {
             PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, allCellsChannel, context)
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
-
-        strategy.process(openFiles(files), outputFormat, outputFile, PreprocessingParameters(largestCellDiameter))
+        // TODO(tiger-cross): Think more about allCellsDiameter and where to pass it.
+        strategy.process(openFiles(files), largestCellDiameter, outputFormat, outputFile)
 
         MessageDialog(
             IJ.getInstance(),
