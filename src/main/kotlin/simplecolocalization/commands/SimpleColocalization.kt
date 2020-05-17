@@ -133,7 +133,7 @@ class SimpleColocalization : Command {
         required = true,
         persist = false
     )
-    private var largestCellDiameter = 30.0
+    var largestCellDiameter = 30.0
 
     @Parameter(
         label = "Largest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
