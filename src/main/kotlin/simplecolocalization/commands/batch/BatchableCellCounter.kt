@@ -13,7 +13,7 @@ import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.XMLCounterOutput
 
 // TODO(tiger-cross): Add gaussian blur here too
-class BatchableCellCounter(private val context: Context) : Batchable {
+class BatchableCellCounter(private val targetChannel: Int, private val context: Context) : Batchable {
     override fun process(
         inputImages: List<ImagePlus>,
         largestCellDiameter: Double,
@@ -21,6 +21,8 @@ class BatchableCellCounter(private val context: Context) : Batchable {
         outputFile: File
     ) {
         val simpleCellCounter = SimpleCellCounter()
+
+        simpleCellCounter.targetChannel = targetChannel
         context.inject(simpleCellCounter)
 
         val numCellsList = inputImages.map { simpleCellCounter.process(it).count }
