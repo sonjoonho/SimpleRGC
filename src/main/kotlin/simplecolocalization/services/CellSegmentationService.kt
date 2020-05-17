@@ -30,7 +30,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
         image: ImagePlus,
         largestCellDiameter: Double,
         gaussianBlurSigma: Double,
-        removeAxon: Boolean
+        shouldRemoveAxons: Boolean
     ) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
@@ -45,7 +45,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             true
         )
 
-        if (removeAxon) {
+        if (shouldRemoveAxons) {
             removeAxons(image, detectAxons(image))
         }
 
@@ -64,7 +64,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
         image: ImagePlus,
         largestCellDiameter: Double,
         gaussianBlurSigma: Double,
-        removeAxon: Boolean = false
+        shouldRemoveAxons: Boolean = false
     ): List<PositionedCell> {
         val mutableImage = if (image.nSlices > 1) {
             // Flatten slices of the image. This step should probably be done during inside the pre-processing step -
@@ -74,7 +74,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             image.duplicate()
         }
 
-        preprocessImage(mutableImage, largestCellDiameter, gaussianBlurSigma, removeAxon)
+        preprocessImage(mutableImage, largestCellDiameter, gaussianBlurSigma, shouldRemoveAxons)
         segmentImage(mutableImage)
 
         return identifyCells(mutableImage)

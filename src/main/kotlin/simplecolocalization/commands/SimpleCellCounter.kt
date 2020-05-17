@@ -92,7 +92,7 @@ class SimpleCellCounter : Command {
             required = true,
             persist = false
     )
-    private var removeAxon: Boolean = false
+    private var shouldRemoveAxons: Boolean = false
 
     @Parameter(
         label = "Output Parameters:",
@@ -199,7 +199,7 @@ class SimpleCellCounter : Command {
     /** Processes single image. */
     fun process(image: ImagePlus): CounterResult {
 
-        val cells = cellSegmentationService.extractCells(image, largestCellDiameter, gaussianBlurSigma, removeAxon)
+        val cells = cellSegmentationService.extractCells(image, largestCellDiameter, gaussianBlurSigma, shouldRemoveAxons)
         return CounterResult(cells.size, cells)
     }
 
