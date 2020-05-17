@@ -4,6 +4,7 @@ import ij.IJ
 import ij.ImagePlus
 import ij.gui.MessageDialog
 import ij.io.Opener
+import java.io.File
 import loci.formats.UnknownFormatException
 import loci.plugins.BF
 import loci.plugins.`in`.ImporterOptions
@@ -17,7 +18,6 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellSegmentationService
-import java.io.File
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
 class SimpleBatch : Command {
