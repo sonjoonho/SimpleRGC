@@ -106,11 +106,11 @@ class SimpleBatch : Command {
     private var transducedChannel = 2
 
     @Parameter(
-        label = "Preprocessing Parameters:",
+        label = "Image Processing Parameters:",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var preprocessingParamsHeader: String
+    private lateinit var processingParametersHeader: String
 
     /**
      * Used during the cell segmentation stage to perform local thresholding or
@@ -136,6 +136,18 @@ class SimpleBatch : Command {
         persist = false
     )
     private var largestAllCellsDiameter = 30.0
+
+    @Parameter(
+        label = "Gaussian Blur Sigma",
+        description = "Sigma value used for blurring the image during the processing," +
+            " a lower value is recommended if there are lots of cells densely packed together",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var gaussianBlurSigma = 3.0
 
     @Parameter(
         label = "Output Parameters:",
@@ -197,7 +209,7 @@ class SimpleBatch : Command {
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
         // TODO(tiger-cross): Think more about allCellsDiameter and where to pass it.
-        strategy.process(openFiles(files), largestCellDiameter, outputFormat, outputFile)
+        strategy.process(openFiles(files), largestCellDiameter, gaussianBlurSigma, outputFormat, outputFile)
 
         MessageDialog(
             IJ.getInstance(),

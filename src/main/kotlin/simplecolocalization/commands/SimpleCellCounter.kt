@@ -97,7 +97,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var largestCellDiameter = 30.0
+    var largestCellDiameter = 30.0
 
     @Parameter(
         label = "Gaussian Blur Sigma:",
@@ -109,7 +109,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var gaussianBlurSigma = 3.0
+    var gaussianBlurSigma = 3.0
 
     @Parameter(
         label = "Output Parameters:",
