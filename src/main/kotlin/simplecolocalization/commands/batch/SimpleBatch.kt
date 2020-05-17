@@ -17,7 +17,6 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
-import simplecolocalization.preprocessing.PreprocessingParameters
 import simplecolocalization.services.CellSegmentationService
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
@@ -107,11 +106,25 @@ class SimpleBatch : Command {
     private var transducedChannel = 2
 
     @Parameter(
-        label = "Preprocessing Parameters:",
+        label = "Image Processing Parameters:",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var preprocessingParamsHeader: String
+    private lateinit var processingParametersHeader: String
+
+    /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Smallest Cell Diameter for Morphology Channel 1 (px)",
+        description = "Used as minimum diameter when identifying cells",
+        min = "0.0",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var smallestCellDiameter = 0.0
 
     /**
      * Used during the cell segmentation stage to perform local thresholding or
@@ -119,7 +132,7 @@ class SimpleBatch : Command {
      */
     @Parameter(
         label = "Largest Cell Diameter for Morphology Channel 1 (px)",
-        description = "Value we use to apply the rolling ball algorithm to subtract the background when thresholding",
+        description = "Used to apply the rolling ball algorithm to subtract the background when thresholding",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -129,7 +142,17 @@ class SimpleBatch : Command {
     private var largestCellDiameter = 30.0
 
     @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 2 (px) (colocalization, only if channel enabled)",
+        label = "Smallest Cell Diameter for Morphology Channel 2 (px) (colocalization only, only if channel enabled)",
+        min = "0.0",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var smallestAllCellsDiameter = 0.0
+
+    @Parameter(
+        label = "Largest Cell Diameter for Morphology Channel 2 (px) (colocalization only, only if channel enabled)",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -137,6 +160,18 @@ class SimpleBatch : Command {
         persist = false
     )
     private var largestAllCellsDiameter = 30.0
+
+    @Parameter(
+        label = "Gaussian Blur Sigma",
+        description = "Sigma value used for blurring the image during the processing," +
+            " a lower value is recommended if there are lots of cells densely packed together",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var gaussianBlurSigma = 3.0
 
     @Parameter(
         label = "Output Parameters:",
@@ -194,11 +229,23 @@ class SimpleBatch : Command {
 
         val strategy = when (pluginChoice) {
             PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(context)
-            PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, allCellsChannel, context)
+            PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(
+                targetChannel,
+                transducedChannel,
+                allCellsChannel,
+                context
+            )
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
-
-        strategy.process(openFiles(files), outputFormat, outputFile, PreprocessingParameters(largestCellDiameter))
+        // TODO(tiger-cross): Think more about allCellsDiameter and where to pass it.
+        strategy.process(
+            openFiles(files),
+            smallestCellDiameter,
+            largestCellDiameter,
+            gaussianBlurSigma,
+            outputFormat,
+            outputFile
+        )
 
         MessageDialog(
             IJ.getInstance(),
@@ -251,32 +298,34 @@ class SimpleBatch : Command {
             } catch (e: UnknownFormatException) {
                 logService.warn("Skipping file with unsupported type \"${file.name}\"")
             } catch (e: NoClassDefFoundError) {
-                MessageDialog(IJ.getInstance(), "Error",
+                MessageDialog(
+                    IJ.getInstance(), "Error",
                     """
                     It appears that the Bio-Formats plugin is not installed.
                     Please enable the Fiji update site in order to enable this functionality.
-                    """.trimIndent())
+                    """.trimIndent()
+                )
             }
         }
 
         return inputImages
     }
 
-        companion object {
-            /**
-             * Entry point to directly open the plugin, used for debugging purposes.
-             *
-             * @throws Exception
-             */
-            @Throws(Exception::class)
-            @JvmStatic
-            fun main(args: Array<String>) {
-                val ij = ImageJ()
+    companion object {
+        /**
+         * Entry point to directly open the plugin, used for debugging purposes.
+         *
+         * @throws Exception
+         */
+        @Throws(Exception::class)
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val ij = ImageJ()
 
-                ij.context().inject(CellSegmentationService())
-                ij.launch()
+            ij.context().inject(CellSegmentationService())
+            ij.launch()
 
-                ij.command().run(SimpleBatch::class.java, true)
-            }
+            ij.command().run(SimpleBatch::class.java, true)
         }
     }
+}
