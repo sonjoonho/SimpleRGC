@@ -147,7 +147,7 @@ class SimpleColocalization : Command {
         required = true,
         persist = false
     )
-    private var largestCellDiameter = 30.0
+    var largestCellDiameter = 30.0
 
     /**
      * Used during the cell identification stage to filter out cells that are too small
