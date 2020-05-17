@@ -57,7 +57,7 @@ class SimpleCellCounter : Command {
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var ProcessingParametersHeader: String
+    private lateinit var processingParametersHeader: String
 
     /**
      * Used during the cell segmentation stage to perform local thresholding or
