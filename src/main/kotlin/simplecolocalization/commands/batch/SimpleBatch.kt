@@ -207,13 +207,13 @@ class SimpleBatch : Command {
         )
     }
 
-        private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
-            return if (shouldProcessFilesInNestedFolders) {
-                file.walkTopDown().filter { f -> !f.isDirectory }.toList()
-            } else {
-                file.listFiles()?.toList() ?: listOf(file)
-            }
+    private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
+        return if (shouldProcessFilesInNestedFolders) {
+            file.walkTopDown().filter { f -> !f.isDirectory }.toList()
+        } else {
+            file.listFiles()?.filter { f -> !f.isDirectory }?.toList() ?: listOf(file)
         }
+    }
 
     private fun openFiles(inputFiles: List<File>): List<ImagePlus> {
         /*
