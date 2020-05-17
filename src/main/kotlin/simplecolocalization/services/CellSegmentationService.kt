@@ -29,7 +29,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
     fun preprocessImage(
         image: ImagePlus,
         largestCellDiameter: Double,
-        gaussianBlurSigma: Double
+        gaussianBlurSigma: Double,
+        removeAxon: Boolean
     ) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
@@ -44,7 +45,9 @@ class CellSegmentationService : AbstractService(), ImageJService {
             true
         )
 
-        removeAxons(image, detectAxons(image))
+        if (removeAxon) {
+            removeAxons(image, detectAxons(image))
+        }
 
         // Apply Gaussian Blur to group larger speckles.
         image.channelProcessor.blurGaussian(gaussianBlurSigma)
@@ -60,7 +63,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
     fun extractCells(
         image: ImagePlus,
         largestCellDiameter: Double,
-        gaussianBlurSigma: Double
+        gaussianBlurSigma: Double,
+        removeAxon: Boolean = false
     ): List<PositionedCell> {
         val mutableImage = if (image.nSlices > 1) {
             // Flatten slices of the image. This step should probably be done during inside the pre-processing step -
@@ -70,7 +74,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             image.duplicate()
         }
 
-        preprocessImage(mutableImage, largestCellDiameter, gaussianBlurSigma)
+        preprocessImage(mutableImage, largestCellDiameter, gaussianBlurSigma, removeAxon)
         segmentImage(mutableImage)
 
         return identifyCells(mutableImage)

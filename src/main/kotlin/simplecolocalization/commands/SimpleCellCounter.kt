@@ -88,6 +88,13 @@ class SimpleCellCounter : Command {
     private var gaussianBlurSigma = 3.0
 
     @Parameter(
+            label = "Remove Axons",
+            required = true,
+            persist = false
+    )
+    private var removeAxon: Boolean = false
+
+    @Parameter(
         label = "Output Parameters:",
         visibility = ItemVisibility.MESSAGE,
         required = false
@@ -192,7 +199,7 @@ class SimpleCellCounter : Command {
     /** Processes single image. */
     fun process(image: ImagePlus): CounterResult {
 
-        val cells = cellSegmentationService.extractCells(image, largestCellDiameter, gaussianBlurSigma)
+        val cells = cellSegmentationService.extractCells(image, largestCellDiameter, gaussianBlurSigma, removeAxon)
         return CounterResult(cells.size, cells)
     }
 
