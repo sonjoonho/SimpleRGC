@@ -15,6 +15,8 @@ import ij.process.AutoThresholder
 import ij.process.FloatPolygon
 import ij.process.ImageConverter
 import java.awt.Color
+import java.lang.Math.PI
+import kotlin.math.pow
 import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
@@ -59,6 +61,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
      */
     fun extractCells(
         image: ImagePlus,
+        smallestCellDiameter: Double,
         largestCellDiameter: Double,
         gaussianBlurSigma: Double
     ): List<PositionedCell> {
@@ -73,7 +76,11 @@ class CellSegmentationService : AbstractService(), ImageJService {
         preprocessImage(mutableImage, largestCellDiameter, gaussianBlurSigma)
         segmentImage(mutableImage)
 
-        return identifyCells(mutableImage)
+        return identifyCells(
+            mutableImage,
+            smallestCellDiameter,
+            largestCellDiameter
+        )
     }
 
     /**
@@ -134,16 +141,27 @@ class CellSegmentationService : AbstractService(), ImageJService {
      * We use [ParticleAnalyzer] instead of [MaximumFinder] as the former highlights the shape of the cell instead
      * of just marking its centre.
      */
-    fun identifyCells(segmentedImage: ImagePlus): List<PositionedCell> {
+    fun identifyCells(
+        segmentedImage: ImagePlus,
+        smallestCellDiameter: Double,
+        largestCellDiameter: Double
+    ): List<PositionedCell> {
+        // Compute min/max area
+        val minArea = smallestCellDiameter.diameterToArea()
+        val maxArea = largestCellDiameter.diameterToArea()
+
         val roiManager = DummyRoiManager()
         ParticleAnalyzer.setRoiManager(roiManager)
         ParticleAnalyzer(
             ParticleAnalyzer.SHOW_NONE or ParticleAnalyzer.ADD_TO_MANAGER,
             Measurements.ALL_STATS,
             ResultsTable(),
-            0.0,
-            Double.MAX_VALUE
+            minArea,
+            maxArea
         ).analyze(segmentedImage)
         return roiManager.roisAsArray.map { PositionedCell.fromRoi(it) }
     }
 }
+
+/** Compute the area from the diameter. */
+fun Double.diameterToArea(): Double = (this / 2).pow(2.0) * PI
