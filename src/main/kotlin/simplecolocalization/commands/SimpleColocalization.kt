@@ -121,6 +121,20 @@ class SimpleColocalization : Command {
     private lateinit var preprocessingParamsHeader: String
 
     /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Smallest Cell Diameter for Morphology Channel 1 (px)",
+        description = "Value we use as minimum diameter when identifying cells",
+        min = "0.0",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var smallestCellDiameter = 0.0
+
+    /**
      * Used during the cell segmentation stage to reduce overlapping cells
      * being grouped into a single cell and perform local thresholding or
      * background subtraction.
@@ -133,7 +147,21 @@ class SimpleColocalization : Command {
         required = true,
         persist = false
     )
-    private var largestCellDiameter = 30.0
+    var largestCellDiameter = 30.0
+
+    /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Smallest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
+        description = "Value we use as minimum diameter when identifying cells",
+        min = "0.0",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var smallestAllCellsDiameter = 0.0
 
     @Parameter(
         label = "Largest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
@@ -295,14 +323,15 @@ class SimpleColocalization : Command {
     fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
-        val targetCells = cellSegmentationService.extractCells(targetChannel, largestCellDiameter, gaussianBlurSigma = 3.0)
+        val targetCells = cellSegmentationService.extractCells(targetChannel, smallestCellDiameter, largestCellDiameter, gaussianBlurSigma = 3.0)
         val transducedCells = filterCellsByIntensity(
-            cellSegmentationService.extractCells(transducedChannel, largestCellDiameter, gaussianBlurSigma = 3.0),
+            cellSegmentationService.extractCells(transducedChannel, smallestCellDiameter, largestCellDiameter, gaussianBlurSigma = 3.0),
             transducedChannel
         )
         // TODO(#105) ^^
         val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(
             allCellsChannel,
+            smallestCellDiameter,
             largestAllCellsDiameter,
             gaussianBlurSigma = 3.0
         ) else null

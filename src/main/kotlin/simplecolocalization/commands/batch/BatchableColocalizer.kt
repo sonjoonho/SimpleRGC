@@ -22,7 +22,6 @@ import simplecolocalization.commands.ChannelDoesNotExistException
 import simplecolocalization.commands.SimpleColocalization
 import simplecolocalization.commands.batch.SimpleBatch.OutputFormat
 
-// TODO(tiger-cross): add gb-sigma here
 class BatchableColocalizer(
     private val targetChannel: Int,
     private val transducedChannel: Int,
@@ -32,12 +31,14 @@ class BatchableColocalizer(
     override fun process(
         inputImages: List<ImagePlus>,
         largestCellDiameter: Double,
+        gaussianBlurSigma: Double,
         outputFormat: String,
         outputFile: File
     ) {
         val simpleColocalization = SimpleColocalization()
 
         // TODO(sonjoonho): I hate this
+        simpleColocalization.largestCellDiameter = largestCellDiameter
         simpleColocalization.targetChannel = targetChannel
         simpleColocalization.transducedChannel = transducedChannel
         simpleColocalization.allCellsChannel = allChannel

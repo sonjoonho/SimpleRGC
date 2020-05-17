@@ -60,6 +60,20 @@ class SimpleCellCounter : Command {
     private lateinit var processingParametersHeader: String
 
     /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Smallest Cell Diameter (px)",
+        description = "Value we use as minimum diameter when identifying cells",
+        min = "0.0",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var smallestCellDiameter = 0.0
+
+    /**
      * Used during the cell segmentation stage to perform local thresholding or
      * background subtraction.
      */
@@ -67,13 +81,13 @@ class SimpleCellCounter : Command {
         label = "Largest Cell Diameter (px)",
         description = "Value we use to apply the rolling ball algorithm to subtract " +
             "the background when thresholding",
-            min = "1",
+        min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
         persist = false
     )
-    private var largestCellDiameter = 30.0
+    var largestCellDiameter = 30.0
 
     @Parameter(
         label = "Gaussian Blur Sigma",
@@ -85,7 +99,7 @@ class SimpleCellCounter : Command {
         required = true,
         persist = false
     )
-    private var gaussianBlurSigma = 3.0
+    var gaussianBlurSigma = 3.0
 
     @Parameter(
             label = "Remove Axons",
@@ -133,6 +147,15 @@ class SimpleCellCounter : Command {
         val image = WindowManager.getCurrentImage()
         if (image == null) {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+            return
+        }
+
+        if (smallestCellDiameter > largestCellDiameter) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Error",
+                "Smallest cell diameter must be smaller than the largest cell diameter"
+            )
             return
         }
 
@@ -198,8 +221,8 @@ class SimpleCellCounter : Command {
 
     /** Processes single image. */
     fun process(image: ImagePlus): CounterResult {
+        val cells = cellSegmentationService.extractCells(image, smallestCellDiameter, largestCellDiameter, gaussianBlurSigma, shouldRemoveAxons)
 
-        val cells = cellSegmentationService.extractCells(image, largestCellDiameter, gaussianBlurSigma, shouldRemoveAxons)
         return CounterResult(cells.size, cells)
     }
 
