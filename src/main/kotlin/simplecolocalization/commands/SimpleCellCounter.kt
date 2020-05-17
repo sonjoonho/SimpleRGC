@@ -64,14 +64,14 @@ class SimpleCellCounter : Command {
      */
     @Parameter(
         label = "Smallest Cell Diameter (px)",
-        description = "Value we use as minimum diameter when identifying cells",
+        description = "Used as minimum diameter when identifying cells",
         min = "0.0",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
         persist = false
     )
-    private var smallestCellDiameter = 0.0
+    var smallestCellDiameter = 0.0
 
     /**
      * Used during the cell segmentation stage to perform local thresholding or
@@ -79,7 +79,7 @@ class SimpleCellCounter : Command {
      */
     @Parameter(
         label = "Largest Cell Diameter (px)",
-        description = "Value we use to apply the rolling ball algorithm to subtract " +
+        description = "Used to apply the rolling ball algorithm to subtract " +
             "the background when thresholding",
         min = "1",
         stepSize = "1",

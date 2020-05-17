@@ -30,6 +30,7 @@ class BatchableColocalizer(
 ) : Batchable {
     override fun process(
         inputImages: List<ImagePlus>,
+        smallestCellDiameter: Double,
         largestCellDiameter: Double,
         gaussianBlurSigma: Double,
         outputFormat: String,
@@ -38,6 +39,7 @@ class BatchableColocalizer(
         val simpleColocalization = SimpleColocalization()
 
         // TODO(sonjoonho): I hate this
+        simpleColocalization.smallestCellDiameter = smallestCellDiameter
         simpleColocalization.largestCellDiameter = largestCellDiameter
         simpleColocalization.targetChannel = targetChannel
         simpleColocalization.transducedChannel = transducedChannel

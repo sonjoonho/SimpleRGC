@@ -125,14 +125,14 @@ class SimpleColocalization : Command {
      */
     @Parameter(
         label = "Smallest Cell Diameter for Morphology Channel 1 (px)",
-        description = "Value we use as minimum diameter when identifying cells",
+        description = "Used as minimum diameter when identifying cells",
         min = "0.0",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
         persist = false
     )
-    private var smallestCellDiameter = 0.0
+    var smallestCellDiameter = 0.0
 
     /**
      * Used during the cell segmentation stage to reduce overlapping cells
@@ -154,7 +154,6 @@ class SimpleColocalization : Command {
      */
     @Parameter(
         label = "Smallest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
-        description = "Value we use as minimum diameter when identifying cells",
         min = "0.0",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,

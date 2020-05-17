@@ -15,6 +15,7 @@ import simplecolocalization.services.counter.output.XMLCounterOutput
 class BatchableCellCounter(private val context: Context) : Batchable {
     override fun process(
         inputImages: List<ImagePlus>,
+        smallestCellDiameter: Double,
         largestCellDiameter: Double,
         gaussianBlurSigma: Double,
         outputFormat: String,
@@ -23,6 +24,7 @@ class BatchableCellCounter(private val context: Context) : Batchable {
         val simpleCellCounter = SimpleCellCounter()
 
         // TODO(sonjoonho): I hate this
+        simpleCellCounter.smallestCellDiameter = smallestCellDiameter
         simpleCellCounter.largestCellDiameter = largestCellDiameter
         simpleCellCounter.gaussianBlurSigma = gaussianBlurSigma
         context.inject(simpleCellCounter)
