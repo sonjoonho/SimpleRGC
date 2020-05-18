@@ -17,6 +17,7 @@ class BatchableCellCounter(private val context: Context) : Batchable {
         inputImages: List<ImagePlus>,
         smallestCellDiameter: Double,
         largestCellDiameter: Double,
+        localThresholdRadius: Int,
         gaussianBlurSigma: Double,
         outputFormat: String,
         outputFile: File
@@ -26,6 +27,7 @@ class BatchableCellCounter(private val context: Context) : Batchable {
         // TODO(sonjoonho): I hate this
         simpleCellCounter.smallestCellDiameter = smallestCellDiameter
         simpleCellCounter.largestCellDiameter = largestCellDiameter
+        simpleCellCounter.localThresholdRadius = localThresholdRadius
         simpleCellCounter.gaussianBlurSigma = gaussianBlurSigma
         context.inject(simpleCellCounter)
 

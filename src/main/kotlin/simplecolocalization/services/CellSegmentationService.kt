@@ -28,9 +28,9 @@ import simplecolocalization.services.colocalizer.PositionedCell
 class CellSegmentationService : AbstractService(), ImageJService {
 
     /** Perform pre-processing on the image to remove background and set cells to white. */
-    fun preprocessImage(
+    private fun preprocessImage(
         image: ImagePlus,
-        largestCellDiameter: Double,
+        localThresholdRadius: Int,
         gaussianBlurSigma: Double,
         shouldRemoveAxons: Boolean
     ) {
@@ -41,11 +41,13 @@ class CellSegmentationService : AbstractService(), ImageJService {
         Auto_Local_Threshold().exec(
             image,
             "Otsu",
-            largestCellDiameter.toInt(),
+            localThresholdRadius,
             0.0,
             0.0,
             true
         )
+
+        println("radius: " + localThresholdRadius)
 
         if (shouldRemoveAxons) {
             removeAxons(image, detectAxons(image))
@@ -66,6 +68,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
         image: ImagePlus,
         smallestCellDiameter: Double,
         largestCellDiameter: Double,
+        localThresholdRadius: Int,
         gaussianBlurSigma: Double,
         shouldRemoveAxons: Boolean = false
     ): List<PositionedCell> {
@@ -77,7 +80,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             image.duplicate()
         }
 
-        preprocessImage(mutableImage, largestCellDiameter, gaussianBlurSigma, shouldRemoveAxons)
+        preprocessImage(mutableImage, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
         segmentImage(mutableImage)
 
         return identifyCells(

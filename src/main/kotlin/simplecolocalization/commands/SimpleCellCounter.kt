@@ -89,6 +89,21 @@ class SimpleCellCounter : Command {
     )
     var largestCellDiameter = 30.0
 
+    /**
+     * Used as the size of the window over which the threshold will be locally computed.
+     */
+    @Parameter(
+        label = "Local Threshold Radius",
+        // TODO: Improve this description to make more intuitive.
+        description = "The radius of the local domain over which the threshold will be computed.",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var localThresholdRadius = 20
+
     @Parameter(
         label = "Gaussian Blur Sigma",
         description = "Sigma value used for blurring the image during the processing," +
@@ -221,7 +236,7 @@ class SimpleCellCounter : Command {
 
     /** Processes single image. */
     fun process(image: ImagePlus): CounterResult {
-        val cells = cellSegmentationService.extractCells(image, smallestCellDiameter, largestCellDiameter, gaussianBlurSigma, shouldRemoveAxons)
+        val cells = cellSegmentationService.extractCells(image, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
 
         return CounterResult(cells.size, cells)
     }

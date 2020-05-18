@@ -150,6 +150,21 @@ class SimpleColocalization : Command {
     var largestCellDiameter = 30.0
 
     /**
+     * Used as the size of the window over which the threshold will be locally computed.
+     */
+    @Parameter(
+        label = "Local Threshold Radius",
+        // TODO: Improve this description to make more intuitive.
+        description = "The radius of the local domain over which the threshold will be computed.",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var localThresholdRadius = 30
+
+    /**
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
@@ -322,9 +337,9 @@ class SimpleColocalization : Command {
     fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null): TransductionResult {
         logService.info("Starting extraction")
         // TODO(#77)
-        val targetCells = cellSegmentationService.extractCells(targetChannel, smallestCellDiameter, largestCellDiameter, gaussianBlurSigma = 3.0)
+        val targetCells = cellSegmentationService.extractCells(targetChannel, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma = 3.0)
         val transducedCells = filterCellsByIntensity(
-            cellSegmentationService.extractCells(transducedChannel, smallestCellDiameter, largestCellDiameter, gaussianBlurSigma = 3.0),
+            cellSegmentationService.extractCells(transducedChannel, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma = 3.0),
             transducedChannel
         )
         // TODO(#105) ^^
@@ -332,6 +347,7 @@ class SimpleColocalization : Command {
             allCellsChannel,
             smallestCellDiameter,
             largestAllCellsDiameter,
+            localThresholdRadius,
             gaussianBlurSigma = 3.0
         ) else null
 
