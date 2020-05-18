@@ -32,6 +32,7 @@ class BatchableColocalizer(
         inputImages: List<ImagePlus>,
         smallestCellDiameter: Double,
         largestCellDiameter: Double,
+        localThresholdRadius: Int,
         gaussianBlurSigma: Double,
         outputFormat: String,
         outputFile: File
@@ -41,6 +42,7 @@ class BatchableColocalizer(
         // TODO(sonjoonho): I hate this
         simpleColocalization.smallestCellDiameter = smallestCellDiameter
         simpleColocalization.largestCellDiameter = largestCellDiameter
+        simpleColocalization.localThresholdRadius = localThresholdRadius
         simpleColocalization.targetChannel = targetChannel
         simpleColocalization.transducedChannel = transducedChannel
         simpleColocalization.allCellsChannel = allChannel
