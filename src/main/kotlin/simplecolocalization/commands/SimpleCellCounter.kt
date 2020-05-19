@@ -209,9 +209,9 @@ class SimpleCellCounter : Command {
         try {
             output.output()
         } catch (te: TransformerException) {
-            "XML".displayOutputFileErrorDialog()
+            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
-            "".displayOutputFileErrorDialog()
+            displayOutputFileErrorDialog()
         }
 
         // The cell counting results are clearly displayed if the output

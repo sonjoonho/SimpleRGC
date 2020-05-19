@@ -286,9 +286,9 @@ class SimpleColocalization : Command {
         try {
             output.output()
         } catch (te: TransformerException) {
-            "XML".displayOutputFileErrorDialog()
+            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
-            "".displayOutputFileErrorDialog()
+            displayOutputFileErrorDialog()
         }
 
         // The colocalization results are clearly displayed if the output

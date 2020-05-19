@@ -43,9 +43,9 @@ class BatchableCellCounter(private val context: Context) : Batchable {
         try {
             output.output()
         } catch (te: TransformerException) {
-            "XML".displayOutputFileErrorDialog()
+            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
-            "".displayOutputFileErrorDialog()
+            displayOutputFileErrorDialog()
         }
         MessageDialog(
             IJ.getInstance(),

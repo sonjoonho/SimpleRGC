@@ -66,7 +66,7 @@ class BatchableColocalizer(
                 else -> throw IllegalArgumentException("Invalid output type provided")
             }
         } catch (ioe: IOException) {
-            "".displayOutputFileErrorDialog()
+            displayOutputFileErrorDialog()
         }
 
         MessageDialog(
@@ -122,7 +122,7 @@ class BatchableColocalizer(
             // Send output file to file output stream.
             tr.transform(DOMSource(doc), StreamResult(FileOutputStream(outputFile)))
         } catch (te: TransformerException) {
-            "XML".displayOutputFileErrorDialog()
+            displayOutputFileErrorDialog(filetype = "XML")
         }
     }
 
