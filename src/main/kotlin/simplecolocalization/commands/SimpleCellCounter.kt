@@ -74,14 +74,14 @@ class SimpleCellCounter : Command {
      */
     @Parameter(
         label = "Smallest Cell Diameter (px):",
-        description = "Value we use as minimum diameter when identifying cells",
+        description = "Used as minimum diameter when identifying cells",
         min = "0.0",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
         persist = false
     )
-    private var smallestCellDiameter = 0.0
+    var smallestCellDiameter = 0.0
 
     /**
      * Used during the cell segmentation stage to perform local thresholding or
@@ -89,7 +89,7 @@ class SimpleCellCounter : Command {
      */
     @Parameter(
         label = "Largest Cell Diameter (px):",
-        description = "Value we use to apply the rolling ball algorithm to subtract " +
+        description = "Used to apply the rolling ball algorithm to subtract " +
             "the background when thresholding",
         min = "1",
         stepSize = "1",
@@ -98,6 +98,21 @@ class SimpleCellCounter : Command {
         persist = false
     )
     var largestCellDiameter = 30.0
+
+    /**
+     * Used as the size of the window over which the threshold will be locally computed.
+     */
+    @Parameter(
+        label = "Local Threshold Radius",
+        // TODO: Improve this description to make more intuitive.
+        description = "The radius of the local domain over which the threshold will be computed.",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var localThresholdRadius = 20
 
     @Parameter(
         label = "Gaussian Blur Sigma:",
@@ -110,6 +125,13 @@ class SimpleCellCounter : Command {
         persist = false
     )
     var gaussianBlurSigma = 3.0
+
+    @Parameter(
+            label = "Remove Axons",
+            required = true,
+            persist = false
+    )
+    private var shouldRemoveAxons: Boolean = false
 
     @Parameter(
         label = "Output Parameters:",
@@ -229,8 +251,7 @@ class SimpleCellCounter : Command {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
         }
 
-        val cells = cellSegmentationService.extractCells(imageChannels[targetChannel - 1], smallestCellDiameter, largestCellDiameter, gaussianBlurSigma)
-
+        val cells = cellSegmentationService.extractCells(imageChannels[targetChannel - 1], smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
         return CounterResult(cells.size, cells)
     }
 

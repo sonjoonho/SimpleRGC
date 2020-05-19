@@ -113,12 +113,26 @@ class SimpleBatch : Command {
     private lateinit var processingParametersHeader: String
 
     /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Smallest Cell Diameter for Morphology Channel 1 (px)",
+        description = "Used as minimum diameter when identifying cells",
+        min = "0.0",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var smallestCellDiameter = 0.0
+
+    /**
      * Used during the cell segmentation stage to perform local thresholding or
      * background subtraction.
      */
     @Parameter(
         label = "Largest Cell Diameter for Morphology Channel 1 (px)",
-        description = "Value we use to apply the rolling ball algorithm to subtract the background when thresholding",
+        description = "Used to apply the rolling ball algorithm to subtract the background when thresholding",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -127,8 +141,33 @@ class SimpleBatch : Command {
     )
     private var largestCellDiameter = 30.0
 
+    /**
+     * Used as the size of the window over which the threshold will be locally computed.
+     */
     @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 2 (px) (colocalization, only if channel enabled)",
+        label = "Local Threshold Radius",
+        // TODO: Improve this description to make more intuitive.
+        description = "The radius of the local domain over which the threshold will be computed.",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var localThresholdRadius = 20
+
+    @Parameter(
+        label = "Smallest Cell Diameter for Morphology Channel 2 (px) (colocalization only, only if channel enabled)",
+        min = "0.0",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var smallestAllCellsDiameter = 0.0
+
+    @Parameter(
+        label = "Largest Cell Diameter for Morphology Channel 2 (px) (colocalization only, only if channel enabled)",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -205,11 +244,24 @@ class SimpleBatch : Command {
 
         val strategy = when (pluginChoice) {
             PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(targetChannel, context)
-            PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(targetChannel, transducedChannel, allCellsChannel, context)
+            PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(
+                targetChannel,
+                transducedChannel,
+                allCellsChannel,
+                context
+            )
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
         // TODO(tiger-cross): Think more about allCellsDiameter and where to pass it.
-        strategy.process(openFiles(files), largestCellDiameter, gaussianBlurSigma, outputFormat, outputFile)
+        strategy.process(
+            openFiles(files),
+            smallestCellDiameter,
+            largestCellDiameter,
+            localThresholdRadius,
+            gaussianBlurSigma,
+            outputFormat,
+            outputFile
+        )
 
         MessageDialog(
             IJ.getInstance(),
@@ -218,13 +270,13 @@ class SimpleBatch : Command {
         )
     }
 
-        private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
-            return if (shouldProcessFilesInNestedFolders) {
-                file.walkTopDown().filter { f -> !f.isDirectory }.toList()
-            } else {
-                file.listFiles()?.toList() ?: listOf(file)
-            }
+    private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
+        return if (shouldProcessFilesInNestedFolders) {
+            file.walkTopDown().filter { f -> !f.isDirectory }.toList()
+        } else {
+            file.listFiles()?.toList() ?: listOf(file)
         }
+    }
 
     private fun openFiles(inputFiles: List<File>): List<ImagePlus> {
         /*
@@ -262,32 +314,34 @@ class SimpleBatch : Command {
             } catch (e: UnknownFormatException) {
                 logService.warn("Skipping file with unsupported type \"${file.name}\"")
             } catch (e: NoClassDefFoundError) {
-                MessageDialog(IJ.getInstance(), "Error",
+                MessageDialog(
+                    IJ.getInstance(), "Error",
                     """
                     It appears that the Bio-Formats plugin is not installed.
                     Please enable the Fiji update site in order to enable this functionality.
-                    """.trimIndent())
+                    """.trimIndent()
+                )
             }
         }
 
         return inputImages
     }
 
-        companion object {
-            /**
-             * Entry point to directly open the plugin, used for debugging purposes.
-             *
-             * @throws Exception
-             */
-            @Throws(Exception::class)
-            @JvmStatic
-            fun main(args: Array<String>) {
-                val ij = ImageJ()
+    companion object {
+        /**
+         * Entry point to directly open the plugin, used for debugging purposes.
+         *
+         * @throws Exception
+         */
+        @Throws(Exception::class)
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val ij = ImageJ()
 
-                ij.context().inject(CellSegmentationService())
-                ij.launch()
+            ij.context().inject(CellSegmentationService())
+            ij.launch()
 
-                ij.command().run(SimpleBatch::class.java, true)
-            }
+            ij.command().run(SimpleBatch::class.java, true)
         }
     }
+}

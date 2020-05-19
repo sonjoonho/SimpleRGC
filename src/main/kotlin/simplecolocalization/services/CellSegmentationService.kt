@@ -28,10 +28,11 @@ import simplecolocalization.services.colocalizer.PositionedCell
 class CellSegmentationService : AbstractService(), ImageJService {
 
     /** Perform pre-processing on the image to remove background and set cells to white. */
-    fun preprocessImage(
+    private fun preprocessImage(
         image: ImagePlus,
-        largestCellDiameter: Double,
-        gaussianBlurSigma: Double
+        localThresholdRadius: Int,
+        gaussianBlurSigma: Double,
+        shouldRemoveAxons: Boolean
     ) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
@@ -40,13 +41,17 @@ class CellSegmentationService : AbstractService(), ImageJService {
         Auto_Local_Threshold().exec(
             image,
             "Otsu",
-            largestCellDiameter.toInt(),
+            localThresholdRadius,
             0.0,
             0.0,
             true
         )
 
-        removeAxons(image, detectAxons(image))
+        println("radius: " + localThresholdRadius)
+
+        if (shouldRemoveAxons) {
+            removeAxons(image, detectAxons(image))
+        }
 
         // Apply Gaussian Blur to group larger speckles.
         image.channelProcessor.blurGaussian(gaussianBlurSigma)
@@ -63,7 +68,9 @@ class CellSegmentationService : AbstractService(), ImageJService {
         image: ImagePlus,
         smallestCellDiameter: Double,
         largestCellDiameter: Double,
-        gaussianBlurSigma: Double
+        localThresholdRadius: Int,
+        gaussianBlurSigma: Double,
+        shouldRemoveAxons: Boolean = false
     ): List<PositionedCell> {
         val mutableImage = if (image.nSlices > 1) {
             // Flatten slices of the image. This step should probably be done during inside the pre-processing step -
@@ -73,7 +80,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
             image.duplicate()
         }
 
-        preprocessImage(mutableImage, largestCellDiameter, gaussianBlurSigma)
+        preprocessImage(mutableImage, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
         segmentImage(mutableImage)
 
         return identifyCells(
