@@ -286,9 +286,9 @@ class SimpleColocalization : Command {
         try {
             output.output()
         } catch (te: TransformerException) {
-            displayErrorDialog(fileType = "XML")
+            "XML".displayOutputFileErrorDialog()
         } catch (ioe: IOException) {
-            displayErrorDialog()
+            "".displayOutputFileErrorDialog()
         }
 
         // The colocalization results are clearly displayed if the output
@@ -324,14 +324,6 @@ class SimpleColocalization : Command {
             imageChannels[transducedChannel - 1],
             if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null
         )
-    }
-
-    private fun displayErrorDialog(fileType: String = "") {
-        GenericDialog("Error").apply {
-            addMessage("Unable to save results to $fileType file. Ensure the output file is not currently in use by other programs and try again.")
-            hideCancelButton()
-            showDialog()
-        }
     }
 
     fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null): TransductionResult {
