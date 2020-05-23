@@ -67,11 +67,11 @@ class SimpleBatch : Command {
 
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
-     * the channels available at the parameter initiation stage.
+     * the channels available at the parameter initialisation stage.
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Cell Morphology Channel 1 (Colocalization Only)",
+        label = "Cell Morphology Channel 1",
         min = "1",
         stepSize = "1",
         required = true,
@@ -243,7 +243,7 @@ class SimpleBatch : Command {
         val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
 
         val strategy = when (pluginChoice) {
-            PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(context)
+            PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(targetChannel, context)
             PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(
                 targetChannel,
                 transducedChannel,
