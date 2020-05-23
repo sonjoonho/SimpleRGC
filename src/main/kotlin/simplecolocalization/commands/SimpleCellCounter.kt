@@ -18,8 +18,6 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
-import simplecolocalization.preprocessing.PreprocessingParameters
-import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
@@ -55,11 +53,25 @@ class SimpleCellCounter : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Manually Tune Parameters?",
+        label = "Image Processing Parameters:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var processingParametersHeader: String
+
+    /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Smallest Cell Diameter (px)",
+        description = "Used as minimum diameter when identifying cells",
+        min = "0.0",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
         required = true,
         persist = false
     )
-    private var tuneParams = false
+    var smallestCellDiameter = 0.0
 
     /**
      * Used during the cell segmentation stage to perform local thresholding or
@@ -67,15 +79,49 @@ class SimpleCellCounter : Command {
      */
     @Parameter(
         label = "Largest Cell Diameter (px)",
-        description = "Value we use to apply the rolling ball algorithm to subtract " +
+        description = "Used to apply the rolling ball algorithm to subtract " +
             "the background when thresholding",
-            min = "1",
+        min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
         persist = false
     )
-    private var largestCellDiameter = 30.0
+    var largestCellDiameter = 30.0
+
+    /**
+     * Used as the size of the window over which the threshold will be locally computed.
+     */
+    @Parameter(
+        label = "Local Threshold Radius",
+        // TODO: Improve this description to make more intuitive.
+        description = "The radius of the local domain over which the threshold will be computed.",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var localThresholdRadius = 20
+
+    @Parameter(
+        label = "Gaussian Blur Sigma",
+        description = "Sigma value used for blurring the image during the processing," +
+            " a lower value is recommended if there are lots of cells densely packed together",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var gaussianBlurSigma = 3.0
+
+    @Parameter(
+            label = "Remove Axons",
+            required = true,
+            persist = false
+    )
+    private var shouldRemoveAxons: Boolean = false
 
     @Parameter(
         label = "Output Parameters:",
@@ -119,6 +165,15 @@ class SimpleCellCounter : Command {
             return
         }
 
+        if (smallestCellDiameter > largestCellDiameter) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Error",
+                "Smallest cell diameter must be smaller than the largest cell diameter"
+            )
+            return
+        }
+
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
             val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
@@ -131,16 +186,9 @@ class SimpleCellCounter : Command {
             }
         }
 
-        val preprocessingParams = if (tuneParams) {
-            // Quit the plugin if the user cancels.
-            tuneParameters(largestCellDiameter) ?: return
-        } else {
-            PreprocessingParameters(largestCellDiameter)
-        }
-
         resetRoiManager()
 
-        val result = process(image, preprocessingParams)
+        val result = process(image)
 
         writeOutput(result.count, image.title)
 
@@ -187,9 +235,9 @@ class SimpleCellCounter : Command {
     }
 
     /** Processes single image. */
-    fun process(image: ImagePlus, preprocessingParams: PreprocessingParameters): CounterResult {
+    fun process(image: ImagePlus): CounterResult {
+        val cells = cellSegmentationService.extractCells(image, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
 
-        val cells = cellSegmentationService.extractCells(image, preprocessingParams)
         return CounterResult(cells.size, cells)
     }
 
