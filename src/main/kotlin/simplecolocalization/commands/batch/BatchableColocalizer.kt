@@ -21,7 +21,6 @@ import org.w3c.dom.Element
 import simplecolocalization.commands.ChannelDoesNotExistException
 import simplecolocalization.commands.SimpleColocalization
 import simplecolocalization.commands.batch.SimpleBatch.OutputFormat
-import simplecolocalization.preprocessing.PreprocessingParameters
 
 class BatchableColocalizer(
     private val targetChannel: Int,
@@ -31,13 +30,19 @@ class BatchableColocalizer(
 ) : Batchable {
     override fun process(
         inputImages: List<ImagePlus>,
+        smallestCellDiameter: Double,
+        largestCellDiameter: Double,
+        localThresholdRadius: Int,
+        gaussianBlurSigma: Double,
         outputFormat: String,
-        outputFile: File,
-        preprocessingParameters: PreprocessingParameters
+        outputFile: File
     ) {
         val simpleColocalization = SimpleColocalization()
 
         // TODO(sonjoonho): I hate this
+        simpleColocalization.smallestCellDiameter = smallestCellDiameter
+        simpleColocalization.largestCellDiameter = largestCellDiameter
+        simpleColocalization.localThresholdRadius = localThresholdRadius
         simpleColocalization.targetChannel = targetChannel
         simpleColocalization.transducedChannel = transducedChannel
         simpleColocalization.allCellsChannel = allChannel
@@ -45,7 +50,7 @@ class BatchableColocalizer(
 
         val analyses = inputImages.mapNotNull {
             try {
-                simpleColocalization.process(it, preprocessingParameters)
+                simpleColocalization.process(it)
             } catch (e: ChannelDoesNotExistException) {
                 MessageDialog(IJ.getInstance(), "Error", e.message)
                 null

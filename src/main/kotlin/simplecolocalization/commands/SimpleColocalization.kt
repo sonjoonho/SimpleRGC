@@ -25,8 +25,6 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
-import simplecolocalization.preprocessing.PreprocessingParameters
-import simplecolocalization.preprocessing.tuneParameters
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
@@ -63,13 +61,6 @@ class SimpleColocalization : Command {
      */
     @Parameter
     private lateinit var uiService: UIService
-
-    @Parameter(
-        label = "Manually Tune Pre-processing Parameters?",
-        required = true,
-        persist = false
-    )
-    private var tuneParams = false
 
     @Parameter(
         label = "Select Channels To Use:",
@@ -130,6 +121,20 @@ class SimpleColocalization : Command {
     private lateinit var preprocessingParamsHeader: String
 
     /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Smallest Cell Diameter for Morphology Channel 1 (px)",
+        description = "Used as minimum diameter when identifying cells",
+        min = "0.0",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var smallestCellDiameter = 0.0
+
+    /**
      * Used during the cell segmentation stage to reduce overlapping cells
      * being grouped into a single cell and perform local thresholding or
      * background subtraction.
@@ -142,7 +147,35 @@ class SimpleColocalization : Command {
         required = true,
         persist = false
     )
-    private var largestCellDiameter = 30.0
+    var largestCellDiameter = 30.0
+
+    /**
+     * Used as the size of the window over which the threshold will be locally computed.
+     */
+    @Parameter(
+        label = "Local Threshold Radius",
+        // TODO: Improve this description to make more intuitive.
+        description = "The radius of the local domain over which the threshold will be computed.",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var localThresholdRadius = 30
+
+    /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Smallest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
+        min = "0.0",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    private var smallestAllCellsDiameter = 0.0
 
     @Parameter(
         label = "Largest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
@@ -153,6 +186,18 @@ class SimpleColocalization : Command {
         persist = false
     )
     private var largestAllCellsDiameter = 30.0
+
+    @Parameter(
+        label = "Gaussian Blur Sigma",
+        description = "Sigma value used for blurring the image during the processing," +
+            " a lower value is recommended if there are lots of cells densely packed together",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var gaussianBlurSigma = 3.0
 
     @Parameter(
         label = "Output Parameters:",
@@ -193,7 +238,7 @@ class SimpleColocalization : Command {
      * @property overlappingTwoChannelCells List of cells which overlap two channels.
      * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
      *
-     * TODO(tc): Discuss whether we want to use targetCellCount in the single colocalisation plugin
+     * TODO(tiger-cross): Discuss whether we want to use targetCellCount in the single colocalisation plugin
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
@@ -222,20 +267,12 @@ class SimpleColocalization : Command {
             }
         }
 
-        val preprocessingParams = if (tuneParams) {
-            // Quit the plugin if the user cancels.
-            tuneParameters(
-                largestCellDiameter,
-                largestAllCellsDiameter = if (isAllCellsEnabled()) largestAllCellsDiameter else null
-            ) ?: return
-        } else {
-            PreprocessingParameters(largestCellDiameter, largestAllCellsDiameter = if (isAllCellsEnabled()) largestAllCellsDiameter else null)
-        }
+        // if (isAllCellsEnabled()) largestAllCellsDiameter
 
         resetRoiManager()
 
         val result = try {
-            process(image, preprocessingParams)
+            process(image)
         } catch (e: ChannelDoesNotExistException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -278,7 +315,7 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     @Throws(ChannelDoesNotExistException::class)
-    fun process(image: ImagePlus, preprocessingParams: PreprocessingParameters): TransductionResult {
+    fun process(image: ImagePlus): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
@@ -295,8 +332,7 @@ class SimpleColocalization : Command {
         return analyseTransduction(
             imageChannels[targetChannel - 1],
             imageChannels[transducedChannel - 1],
-            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null,
-            preprocessingParams
+            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null
         )
     }
 
@@ -308,18 +344,20 @@ class SimpleColocalization : Command {
         }
     }
 
-    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null, preprocessingParameters: PreprocessingParameters): TransductionResult {
+    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null): TransductionResult {
         logService.info("Starting extraction")
-        // TODO(#77)
-        val targetCells = cellSegmentationService.extractCells(targetChannel, preprocessingParameters)
+        val targetCells = cellSegmentationService.extractCells(targetChannel, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma)
         val transducedCells = filterCellsByIntensity(
-            cellSegmentationService.extractCells(transducedChannel, preprocessingParameters),
+            cellSegmentationService.extractCells(transducedChannel, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma),
             transducedChannel
         )
+        // TODO(#105) ^^
         val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(
             allCellsChannel,
-            preprocessingParameters,
-            isAllCellsChannel = true
+            smallestCellDiameter,
+            largestAllCellsDiameter,
+            localThresholdRadius,
+            gaussianBlurSigma
         ) else null
 
         logService.info("Starting analysis")

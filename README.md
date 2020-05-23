@@ -23,6 +23,15 @@ After installing, the plugin can be found in the ImageJ menu under `Plugins > Si
 
 At this point, you might ask "why is it under 'Simple Cells' if the plugin is called 'SimpleColocalization'?". I'm not sure.
 
+## Caveats
+- Make sure your project is configured to JDK 1.8.
+- If you get an error like `attempted duplicate class definition: "ij/ImagePlus"`, a workaround is to add the line
+
+  ```-javaagent:/home/joon/.m2/repository/net/imagej/ij1-patcher/0.12.9/ij1-patcher-0.12.9.jar=init```
+
+  to your JVM arguments - the exact path will be given in the error message.
+- If you get a error to do with the `CellSegmentationService` not being in the `Context`, this can often be solved by running `mvn clean` before re-building.
+
 ## Details
 
 We're still working on this bit.
