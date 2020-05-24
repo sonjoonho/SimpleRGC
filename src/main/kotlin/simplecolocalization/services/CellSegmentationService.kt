@@ -22,6 +22,7 @@ import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
 import simplecolocalization.DummyRoiManager
+import simplecolocalization.commands.CellDiameterRange
 import simplecolocalization.services.colocalizer.PositionedCell
 
 @Plugin(type = Service::class)
@@ -64,8 +65,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
      */
     fun extractCells(
         image: ImagePlus,
-        smallestCellDiameter: Double,
-        largestCellDiameter: Double,
+        diameterRange: CellDiameterRange,
         localThresholdRadius: Int,
         gaussianBlurSigma: Double,
         shouldRemoveAxons: Boolean = false
@@ -83,8 +83,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
 
         return identifyCells(
             mutableImage,
-            smallestCellDiameter,
-            largestCellDiameter
+            diameterRange.smallest,
+            diameterRange.largest
         )
     }
 

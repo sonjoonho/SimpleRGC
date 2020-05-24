@@ -25,6 +25,7 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
+import org.scijava.widget.TextWidget
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.cellcomparator.PixelCellComparator
@@ -124,30 +125,13 @@ class SimpleColocalization : Command {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Smallest Cell Diameter for Morphology Channel 1 (px)",
-        description = "Used as minimum diameter when identifying cells",
-        min = "0.0",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
+        label = "Cell Diameter for Morphology Channel 1 (px)",
+        description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
+        style = TextWidget.FIELD_STYLE,
         persist = false
     )
-    var smallestCellDiameter = 0.0
-
-    /**
-     * Used during the cell segmentation stage to reduce overlapping cells
-     * being grouped into a single cell and perform local thresholding or
-     * background subtraction.
-     */
-    @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 1 (px)",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    var largestCellDiameter = 30.0
+    var cellDiameterText = "0.0-30.0"
 
     /**
      * Used as the size of the window over which the threshold will be locally computed.
@@ -168,24 +152,13 @@ class SimpleColocalization : Command {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Smallest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
-        min = "0.0",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
+        label = "Cell Diameter (px) for Morphology Channel 2 (px) (only if enabled)",
+        description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
+        style = TextWidget.FIELD_STYLE,
         persist = false
     )
-    private var smallestAllCellsDiameter = 0.0
-
-    @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var largestAllCellsDiameter = 30.0
+    var allCellDiameterText = "0.0-30.0"
 
     @Parameter(
         label = "Gaussian Blur Sigma",
@@ -254,6 +227,16 @@ class SimpleColocalization : Command {
             return
         }
 
+        val cellDiameterRange: CellDiameterRange
+        val allCellDiameterRange: CellDiameterRange?
+        try {
+            cellDiameterRange = parseDiameterRange(cellDiameterText)
+            allCellDiameterRange = if (isAllCellsEnabled()) parseDiameterRange(allCellDiameterText) else null
+        } catch (e: DiameterParseException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
+            return
+        }
+
         // TODO(sonjoonho): Remove duplication in this code fragment.
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
@@ -267,12 +250,10 @@ class SimpleColocalization : Command {
             }
         }
 
-        // if (isAllCellsEnabled()) largestAllCellsDiameter
-
         resetRoiManager()
 
         val result = try {
-            process(image)
+            process(image, cellDiameterRange, allCellDiameterRange)
         } catch (e: ChannelDoesNotExistException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -315,7 +296,11 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     @Throws(ChannelDoesNotExistException::class)
-    fun process(image: ImagePlus): TransductionResult {
+    fun process(
+        image: ImagePlus,
+        cellDiameterRange: CellDiameterRange,
+        allCellDiameterRange: CellDiameterRange?
+    ): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
@@ -332,7 +317,9 @@ class SimpleColocalization : Command {
         return analyseTransduction(
             imageChannels[targetChannel - 1],
             imageChannels[transducedChannel - 1],
-            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null
+            cellDiameterRange,
+            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null,
+            allCellDiameterRange
         )
     }
 
@@ -344,18 +331,33 @@ class SimpleColocalization : Command {
         }
     }
 
-    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null): TransductionResult {
+    fun analyseTransduction(
+        targetChannel: ImagePlus,
+        transducedChannel: ImagePlus,
+        cellDiameterRange: CellDiameterRange,
+        allCellsChannel: ImagePlus? = null,
+        allCellDiameterRange: CellDiameterRange?
+    ): TransductionResult {
         logService.info("Starting extraction")
-        val targetCells = cellSegmentationService.extractCells(targetChannel, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma)
+        val targetCells = cellSegmentationService.extractCells(
+            targetChannel,
+            cellDiameterRange,
+            localThresholdRadius,
+            gaussianBlurSigma
+        )
         val transducedCells = filterCellsByIntensity(
-            cellSegmentationService.extractCells(transducedChannel, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma),
+            cellSegmentationService.extractCells(
+                transducedChannel,
+                cellDiameterRange,
+                localThresholdRadius,
+                gaussianBlurSigma
+            ),
             transducedChannel
         )
         // TODO(#105) ^^
-        val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(
+        val allCells = if (allCellsChannel != null && allCellDiameterRange != null) cellSegmentationService.extractCells(
             allCellsChannel,
-            smallestCellDiameter,
-            largestAllCellsDiameter,
+            allCellDiameterRange,
             localThresholdRadius,
             gaussianBlurSigma
         ) else null
@@ -364,7 +366,7 @@ class SimpleColocalization : Command {
 
         // Target layer is based and transduced layer is overlaid.
         val targetTransducedAnalysis = BucketedNaiveColocalizer(
-            largestCellDiameter.toInt(),
+            cellDiameterRange.largest.toInt(),
             targetChannel.width,
             targetChannel.height,
             SubsetPixelCellComparator(threshold = 0.5f)
@@ -378,7 +380,7 @@ class SimpleColocalization : Command {
         var allCellsAnalysis: ColocalizationAnalysis? = null
         if (allCells != null) {
             allCellsAnalysis = BucketedNaiveColocalizer(
-                largestCellDiameter.toInt(),
+                cellDiameterRange.largest.toInt(),
                 allCellsChannel!!.width,
                 allCellsChannel.height,
                 PixelCellComparator(threshold = 0.01f)

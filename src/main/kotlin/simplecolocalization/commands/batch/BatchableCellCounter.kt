@@ -8,6 +8,7 @@ import java.io.File
 import java.io.IOException
 import javax.xml.transform.TransformerException
 import org.scijava.Context
+import simplecolocalization.commands.CellDiameterRange
 import simplecolocalization.commands.SimpleCellCounter
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.XMLCounterOutput
@@ -15,8 +16,7 @@ import simplecolocalization.services.counter.output.XMLCounterOutput
 class BatchableCellCounter(private val targetChannel: Int, private val context: Context) : Batchable {
     override fun process(
         inputImages: List<ImagePlus>,
-        smallestCellDiameter: Double,
-        largestCellDiameter: Double,
+        cellDiameterRange: CellDiameterRange,
         localThresholdRadius: Int,
         gaussianBlurSigma: Double,
         outputFormat: String,
@@ -25,13 +25,11 @@ class BatchableCellCounter(private val targetChannel: Int, private val context: 
         val simpleCellCounter = SimpleCellCounter()
 
         simpleCellCounter.targetChannel = targetChannel
-        simpleCellCounter.smallestCellDiameter = smallestCellDiameter
-        simpleCellCounter.largestCellDiameter = largestCellDiameter
         simpleCellCounter.localThresholdRadius = localThresholdRadius
         simpleCellCounter.gaussianBlurSigma = gaussianBlurSigma
         context.inject(simpleCellCounter)
 
-        val numCellsList = inputImages.map { simpleCellCounter.process(it).count }
+        val numCellsList = inputImages.map { simpleCellCounter.process(it, cellDiameterRange).count }
         val imageAndCount = inputImages.zip(numCellsList)
 
         val output = when (outputFormat) {

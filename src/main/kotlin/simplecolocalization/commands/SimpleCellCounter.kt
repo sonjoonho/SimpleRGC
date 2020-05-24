@@ -19,6 +19,7 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
+import org.scijava.widget.TextWidget
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
@@ -73,37 +74,19 @@ class SimpleCellCounter : Command {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Smallest Cell Diameter (px):",
-        description = "Used as minimum diameter when identifying cells",
-        min = "0.0",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
+        label = "Cell Diameter (px):",
+        description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
+        style = TextWidget.FIELD_STYLE,
         persist = false
     )
-    var smallestCellDiameter = 0.0
-
-    /**
-     * Used during the cell segmentation stage to perform local thresholding or
-     * background subtraction.
-     */
-    @Parameter(
-        label = "Largest Cell Diameter (px):",
-        description = "Used to apply the rolling ball algorithm to subtract " +
-            "the background when thresholding",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    var largestCellDiameter = 30.0
+    var cellsDiameterText = "0.0-30.0"
 
     /**
      * Used as the size of the window over which the threshold will be locally computed.
      */
     @Parameter(
-        label = "Local Threshold Radius",
+        label = "Local Threshold Radius:",
         // TODO: Improve this description to make more intuitive.
         description = "The radius of the local domain over which the threshold will be computed.",
         min = "1",
@@ -127,9 +110,9 @@ class SimpleCellCounter : Command {
     var gaussianBlurSigma = 3.0
 
     @Parameter(
-            label = "Remove Axons",
-            required = true,
-            persist = false
+        label = "Remove Axons",
+        required = true,
+        persist = false
     )
     private var shouldRemoveAxons: Boolean = false
 
@@ -174,13 +157,11 @@ class SimpleCellCounter : Command {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
             return
         }
-
-        if (smallestCellDiameter > largestCellDiameter) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error",
-                "Smallest cell diameter must be smaller than the largest cell diameter"
-            )
+        val diameterRange: CellDiameterRange
+        try {
+            diameterRange = parseDiameterRange(cellsDiameterText)
+        } catch (e: DiameterParseException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
             return
         }
 
@@ -198,7 +179,7 @@ class SimpleCellCounter : Command {
 
         resetRoiManager()
 
-        val result = process(image)
+        val result = process(image, diameterRange)
 
         writeOutput(result.count, image.title)
 
@@ -245,13 +226,20 @@ class SimpleCellCounter : Command {
     }
 
     /** Processes single image. */
-    fun process(image: ImagePlus): CounterResult {
+    fun process(image: ImagePlus, diameterRange: CellDiameterRange): CounterResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
         }
 
-        val cells = cellSegmentationService.extractCells(imageChannels[targetChannel - 1], smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
+        val cells = cellSegmentationService.extractCells(
+            imageChannels[targetChannel - 1],
+            diameterRange,
+            localThresholdRadius,
+            gaussianBlurSigma,
+            shouldRemoveAxons
+        )
+
         return CounterResult(cells.size, cells)
     }
 

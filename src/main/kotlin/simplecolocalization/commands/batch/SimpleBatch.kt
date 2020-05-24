@@ -17,6 +17,10 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
+import org.scijava.widget.TextWidget
+import simplecolocalization.commands.CellDiameterRange
+import simplecolocalization.commands.DiameterParseException
+import simplecolocalization.commands.parseDiameterRange
 import simplecolocalization.services.CellSegmentationService
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
@@ -116,30 +120,13 @@ class SimpleBatch : Command {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Smallest Cell Diameter for Morphology Channel 1 (px)",
-        description = "Used as minimum diameter when identifying cells",
-        min = "0.0",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
+        label = "Cell Diameter for Morphology Channel 1 (px)",
+        description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
+        style = TextWidget.FIELD_STYLE,
         persist = false
     )
-    private var smallestCellDiameter = 0.0
-
-    /**
-     * Used during the cell segmentation stage to perform local thresholding or
-     * background subtraction.
-     */
-    @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 1 (px)",
-        description = "Used to apply the rolling ball algorithm to subtract the background when thresholding",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var largestCellDiameter = 30.0
+    var cellDiameterText = "0.0-30.0"
 
     /**
      * Used as the size of the window over which the threshold will be locally computed.
@@ -156,25 +143,17 @@ class SimpleBatch : Command {
     )
     var localThresholdRadius = 20
 
+    /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
     @Parameter(
-        label = "Smallest Cell Diameter for Morphology Channel 2 (px) (colocalization only, only if channel enabled)",
-        min = "0.0",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
+        label = "Cell Diameter (px) for Morphology Channel 2 (px) (colocalization only, only if enabled)",
+        description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
+        style = TextWidget.FIELD_STYLE,
         persist = false
     )
-    private var smallestAllCellsDiameter = 0.0
-
-    @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 2 (px) (colocalization only, only if channel enabled)",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var largestAllCellsDiameter = 30.0
+    var allCellDiameterText = "0.0-30.0"
 
     @Parameter(
         label = "Gaussian Blur Sigma",
@@ -231,6 +210,14 @@ class SimpleBatch : Command {
             return
         }
 
+        val cellDiameterRange: CellDiameterRange
+        try {
+            cellDiameterRange = parseDiameterRange(cellDiameterText)
+        } catch (e: DiameterParseException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
+            return
+        }
+
         // Validate output file extension.
         when (outputFormat) {
             OutputFormat.CSV -> {
@@ -255,8 +242,7 @@ class SimpleBatch : Command {
         // TODO(tiger-cross): Think more about allCellsDiameter and where to pass it.
         strategy.process(
             openFiles(files),
-            smallestCellDiameter,
-            largestCellDiameter,
+            cellDiameterRange,
             localThresholdRadius,
             gaussianBlurSigma,
             outputFormat,
