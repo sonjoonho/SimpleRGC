@@ -12,7 +12,7 @@ import simplecolocalization.commands.displayOutputFileErrorDialog
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.XMLCounterOutput
 
-class BatchableCellCounter(private val context: Context) : Batchable {
+class BatchableCellCounter(private val targetChannel: Int, private val context: Context) : Batchable {
     override fun process(
         inputImages: List<ImagePlus>,
         smallestCellDiameter: Double,
@@ -24,7 +24,7 @@ class BatchableCellCounter(private val context: Context) : Batchable {
     ) {
         val simpleCellCounter = SimpleCellCounter()
 
-        // TODO(sonjoonho): I hate this
+        simpleCellCounter.targetChannel = targetChannel
         simpleCellCounter.smallestCellDiameter = smallestCellDiameter
         simpleCellCounter.largestCellDiameter = largestCellDiameter
         simpleCellCounter.localThresholdRadius = localThresholdRadius

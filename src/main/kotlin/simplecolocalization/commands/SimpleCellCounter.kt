@@ -5,6 +5,7 @@ import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
+import ij.plugin.ChannelSplitter
 import java.io.File
 import java.io.IOException
 import javax.xml.transform.TransformerException
@@ -53,6 +54,15 @@ class SimpleCellCounter : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
+        label = "Select Channel To Use:",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = false
+    )
+    var targetChannel = 1
+
+    @Parameter(
         label = "Image Processing Parameters:",
         visibility = ItemVisibility.MESSAGE,
         required = false
@@ -63,7 +73,7 @@ class SimpleCellCounter : Command {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Smallest Cell Diameter (px)",
+        label = "Smallest Cell Diameter (px):",
         description = "Used as minimum diameter when identifying cells",
         min = "0.0",
         stepSize = "1",
@@ -78,7 +88,7 @@ class SimpleCellCounter : Command {
      * background subtraction.
      */
     @Parameter(
-        label = "Largest Cell Diameter (px)",
+        label = "Largest Cell Diameter (px):",
         description = "Used to apply the rolling ball algorithm to subtract " +
             "the background when thresholding",
         min = "1",
@@ -105,7 +115,7 @@ class SimpleCellCounter : Command {
     var localThresholdRadius = 20
 
     @Parameter(
-        label = "Gaussian Blur Sigma",
+        label = "Gaussian Blur Sigma:",
         description = "Sigma value used for blurring the image during the processing," +
             " a lower value is recommended if there are lots of cells densely packed together",
         min = "1",
@@ -228,8 +238,12 @@ class SimpleCellCounter : Command {
 
     /** Processes single image. */
     fun process(image: ImagePlus): CounterResult {
-        val cells = cellSegmentationService.extractCells(image, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
+        val imageChannels = ChannelSplitter.split(image)
+        if (targetChannel < 1 || targetChannel > imageChannels.size) {
+            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
+        }
 
+        val cells = cellSegmentationService.extractCells(imageChannels[targetChannel - 1], smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
         return CounterResult(cells.size, cells)
     }
 
