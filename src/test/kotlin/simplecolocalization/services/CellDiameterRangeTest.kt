@@ -58,6 +58,11 @@ class CellDiameterRangeTest : FreeSpec({
                 "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
             ),
             row(
+                "invalid decimal",
+                "0f0 - 30.0",
+                "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
+            ),
+            row(
                 "contains alpha characters",
                 "0.0-30.b ",
                 "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
