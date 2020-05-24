@@ -40,14 +40,12 @@ class CellSegmentationService : AbstractService(), ImageJService {
         // Additional params with values 0.0 are unused. Just required by localthreshold api.
         Auto_Local_Threshold().exec(
             image,
-            "Otsu",
+            "Niblack",
             localThresholdRadius,
             0.0,
             0.0,
             true
         )
-
-        println("radius: " + localThresholdRadius)
 
         if (shouldRemoveAxons) {
             removeAxons(image, detectAxons(image))
