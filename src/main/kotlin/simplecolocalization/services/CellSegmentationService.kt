@@ -64,8 +64,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
      */
     fun extractCells(
         image: ImagePlus,
-        smallestCellDiameter: Double,
-        largestCellDiameter: Double,
+        diameterRange: CellDiameterRange,
         localThresholdRadius: Int,
         gaussianBlurSigma: Double,
         shouldRemoveAxons: Boolean = false
@@ -83,8 +82,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
 
         return identifyCells(
             mutableImage,
-            smallestCellDiameter,
-            largestCellDiameter
+            diameterRange.smallest,
+            diameterRange.largest
         )
     }
 
