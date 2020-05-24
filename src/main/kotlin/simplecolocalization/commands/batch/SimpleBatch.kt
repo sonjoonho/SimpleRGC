@@ -18,10 +18,9 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
 import org.scijava.widget.TextWidget
-import simplecolocalization.commands.CellDiameterRange
-import simplecolocalization.commands.DiameterParseException
-import simplecolocalization.commands.parseDiameterRange
+import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.DiameterParseException
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
 class SimpleBatch : Command {
@@ -212,7 +211,7 @@ class SimpleBatch : Command {
 
         val cellDiameterRange: CellDiameterRange
         try {
-            cellDiameterRange = parseDiameterRange(cellDiameterText)
+            cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
         } catch (e: DiameterParseException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return

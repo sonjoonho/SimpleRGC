@@ -22,7 +22,6 @@ import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
 import simplecolocalization.DummyRoiManager
-import simplecolocalization.commands.CellDiameterRange
 import simplecolocalization.services.colocalizer.PositionedCell
 
 @Plugin(type = Service::class)

@@ -20,7 +20,9 @@ import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
 import org.scijava.widget.TextWidget
+import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.DiameterParseException
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.resetRoiManager
@@ -80,7 +82,7 @@ class SimpleCellCounter : Command {
         style = TextWidget.FIELD_STYLE,
         persist = false
     )
-    var cellsDiameterText = "0.0-30.0"
+    var cellDiameterText = "0.0-30.0"
 
     /**
      * Used as the size of the window over which the threshold will be locally computed.
@@ -159,7 +161,7 @@ class SimpleCellCounter : Command {
         }
         val diameterRange: CellDiameterRange
         try {
-            diameterRange = parseDiameterRange(cellsDiameterText)
+            diameterRange = CellDiameterRange.parseFromText(cellDiameterText)
         } catch (e: DiameterParseException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return

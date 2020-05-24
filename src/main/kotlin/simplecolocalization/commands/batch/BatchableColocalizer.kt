@@ -18,10 +18,10 @@ import javax.xml.transform.stream.StreamResult
 import org.scijava.Context
 import org.w3c.dom.Document
 import org.w3c.dom.Element
-import simplecolocalization.commands.CellDiameterRange
 import simplecolocalization.commands.ChannelDoesNotExistException
 import simplecolocalization.commands.SimpleColocalization
 import simplecolocalization.commands.batch.SimpleBatch.OutputFormat
+import simplecolocalization.services.CellDiameterRange
 
 class BatchableColocalizer(
     private val targetChannel: Int,

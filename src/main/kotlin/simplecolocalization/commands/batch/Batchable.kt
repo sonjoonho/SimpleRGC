@@ -2,7 +2,7 @@ package simplecolocalization.commands.batch
 
 import ij.ImagePlus
 import java.io.File
-import simplecolocalization.commands.CellDiameterRange
+import simplecolocalization.services.CellDiameterRange
 
 interface Batchable {
     fun process(

@@ -8,8 +8,8 @@ import java.io.File
 import java.io.IOException
 import javax.xml.transform.TransformerException
 import org.scijava.Context
-import simplecolocalization.commands.CellDiameterRange
 import simplecolocalization.commands.SimpleCellCounter
+import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.XMLCounterOutput
 

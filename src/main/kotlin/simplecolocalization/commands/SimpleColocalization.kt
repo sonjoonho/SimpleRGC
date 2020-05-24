@@ -27,7 +27,9 @@ import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
 import org.scijava.widget.TextWidget
 import simplecolocalization.services.CellColocalizationService
+import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.DiameterParseException
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.cellcomparator.SubsetPixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
@@ -230,8 +232,9 @@ class SimpleColocalization : Command {
         val cellDiameterRange: CellDiameterRange
         val allCellDiameterRange: CellDiameterRange?
         try {
-            cellDiameterRange = parseDiameterRange(cellDiameterText)
-            allCellDiameterRange = if (isAllCellsEnabled()) parseDiameterRange(allCellDiameterText) else null
+            cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
+            allCellDiameterRange =
+                if (isAllCellsEnabled()) CellDiameterRange.parseFromText(allCellDiameterText) else null
         } catch (e: DiameterParseException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -355,12 +358,13 @@ class SimpleColocalization : Command {
             transducedChannel
         )
         // TODO(#105) ^^
-        val allCells = if (allCellsChannel != null && allCellDiameterRange != null) cellSegmentationService.extractCells(
-            allCellsChannel,
-            allCellDiameterRange,
-            localThresholdRadius,
-            gaussianBlurSigma
-        ) else null
+        val allCells =
+            if (allCellsChannel != null && allCellDiameterRange != null) cellSegmentationService.extractCells(
+                allCellsChannel,
+                allCellDiameterRange,
+                localThresholdRadius,
+                gaussianBlurSigma
+            ) else null
 
         logService.info("Starting analysis")
 
