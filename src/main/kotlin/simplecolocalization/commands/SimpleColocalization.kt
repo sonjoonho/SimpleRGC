@@ -25,7 +25,6 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
-import org.scijava.widget.TextWidget
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
@@ -40,6 +39,7 @@ import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplecolocalization.services.colocalizer.output.XMLColocalizationOutput
 import simplecolocalization.services.colocalizer.resetRoiManager
+import simplecolocalization.widgets.AlignedTextWidget
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command {
@@ -130,7 +130,7 @@ class SimpleColocalization : Command {
         label = "Cell Diameter for Morphology Channel 1 (px)",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
-        style = TextWidget.FIELD_STYLE,
+        style = AlignedTextWidget.RIGHT,
         persist = false
     )
     var cellDiameterText = "0.0-30.0"
@@ -157,7 +157,7 @@ class SimpleColocalization : Command {
         label = "Cell Diameter (px) for Morphology Channel 2 (px) (only if enabled)",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
-        style = TextWidget.FIELD_STYLE,
+        style = AlignedTextWidget.RIGHT,
         persist = false
     )
     var allCellDiameterText = "0.0-30.0"

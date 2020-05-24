@@ -19,7 +19,6 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
-import org.scijava.widget.TextWidget
 import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.DiameterParseException
@@ -29,6 +28,7 @@ import simplecolocalization.services.colocalizer.resetRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 import simplecolocalization.services.counter.output.XMLCounterOutput
+import simplecolocalization.widgets.AlignedTextWidget
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -79,7 +79,7 @@ class SimpleCellCounter : Command {
         label = "Cell Diameter (px):",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
-        style = TextWidget.FIELD_STYLE,
+        style = AlignedTextWidget.RIGHT,
         persist = false
     )
     var cellDiameterText = "0.0-30.0"

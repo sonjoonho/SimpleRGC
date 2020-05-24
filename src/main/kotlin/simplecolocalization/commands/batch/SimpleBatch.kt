@@ -17,10 +17,10 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
-import org.scijava.widget.TextWidget
 import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.DiameterParseException
+import simplecolocalization.widgets.AlignedTextWidget
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
 class SimpleBatch : Command {
@@ -122,7 +122,7 @@ class SimpleBatch : Command {
         label = "Cell Diameter for Morphology Channel 1 (px)",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
-        style = TextWidget.FIELD_STYLE,
+        style = AlignedTextWidget.RIGHT,
         persist = false
     )
     var cellDiameterText = "0.0-30.0"
@@ -149,7 +149,7 @@ class SimpleBatch : Command {
         label = "Cell Diameter (px) for Morphology Channel 2 (px) (colocalization only, only if enabled)",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
-        style = TextWidget.FIELD_STYLE,
+        style = AlignedTextWidget.RIGHT,
         persist = false
     )
     var allCellDiameterText = "0.0-30.0"
