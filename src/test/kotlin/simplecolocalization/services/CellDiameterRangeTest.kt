@@ -45,22 +45,22 @@ class CellDiameterRangeTest : FreeSpec({
             row(
                 "missing largest",
                 "0.0 - ",
-                "Cell diameter should be of the form e.g.'0.0 - 30.0'"
+                "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
             ),
             row(
                 "missing smallest",
                 "-30.0",
-                "Cell diameter should be of the form e.g.'0.0 - 30.0'"
+                "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
             ),
             row(
                 "missing - ",
                 "0.0 30.0 ",
-                "Cell diameter should be of the form e.g.'0.0 - 30.0'"
+                "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
             ),
             row(
                 "contains alpha characters",
                 "0.0-30.b ",
-                "Cell diameter should be of the form e.g.'0.0 - 30.0'"
+                "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
             ),
             row(
                 "smallest equals largest",

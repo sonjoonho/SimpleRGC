@@ -302,7 +302,7 @@ class SimpleColocalization : Command {
     fun process(
         image: ImagePlus,
         cellDiameterRange: CellDiameterRange,
-        allCellDiameterRange: CellDiameterRange?
+        allCellDiameterRange: CellDiameterRange? = null
     ): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {

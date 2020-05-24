@@ -11,7 +11,7 @@ data class CellDiameterRange(val smallest: Double, val largest: Double) {
             val rangeRegex = Regex("""^(?<smallest>$diameterPtn)\s*-\s*(?<largest>$diameterPtn)$""")
 
             val match = rangeRegex.matchEntire(text)
-                ?: throw DiameterParseException("Cell diameter should be of the form e.g.'0.0 - 30.0'")
+                ?: throw DiameterParseException("Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)")
 
             // Extract smallest and largest diameters
             val groups = match.groups
