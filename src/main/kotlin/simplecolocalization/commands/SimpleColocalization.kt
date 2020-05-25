@@ -187,7 +187,17 @@ class SimpleColocalization : Command {
     )
     private var largestAllCellsDiameter = 30.0
 
-    // TODO(tiger-cross): Plugin 2 Optimisation, Add necessary parameters removed from preprocessing.
+    @Parameter(
+        label = "Gaussian Blur Sigma",
+        description = "Sigma value used for blurring the image during the processing," +
+            " a lower value is recommended if there are lots of cells densely packed together",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var gaussianBlurSigma = 3.0
 
     @Parameter(
         label = "Output Parameters:",
@@ -228,7 +238,7 @@ class SimpleColocalization : Command {
      * @property overlappingTwoChannelCells List of cells which overlap two channels.
      * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
      *
-     * TODO(tc): Discuss whether we want to use targetCellCount in the single colocalisation plugin
+     * TODO(tiger-cross): Discuss whether we want to use targetCellCount in the single colocalisation plugin
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
@@ -328,10 +338,9 @@ class SimpleColocalization : Command {
 
     fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null): TransductionResult {
         logService.info("Starting extraction")
-        // TODO(#77)
-        val targetCells = cellSegmentationService.extractCells(targetChannel, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma = 3.0)
+        val targetCells = cellSegmentationService.extractCells(targetChannel, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma)
         val transducedCells = filterCellsByIntensity(
-            cellSegmentationService.extractCells(transducedChannel, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma = 3.0),
+            cellSegmentationService.extractCells(transducedChannel, smallestCellDiameter, largestCellDiameter, localThresholdRadius, gaussianBlurSigma),
             transducedChannel
         )
         // TODO(#105) ^^
@@ -340,10 +349,8 @@ class SimpleColocalization : Command {
             smallestCellDiameter,
             largestAllCellsDiameter,
             localThresholdRadius,
-            gaussianBlurSigma = 3.0
+            gaussianBlurSigma
         ) else null
-
-        // TODO(tiger-cross): plugin 2 optimisation - use gb-sigma here
 
         logService.info("Starting analysis")
 
