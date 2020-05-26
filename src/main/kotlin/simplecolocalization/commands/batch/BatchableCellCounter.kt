@@ -1,8 +1,6 @@
 package simplecolocalization.commands.batch
 
-import ij.IJ
 import ij.ImagePlus
-import ij.gui.MessageDialog
 import java.io.File
 import java.io.IOException
 import javax.xml.transform.TransformerException
@@ -45,10 +43,5 @@ class BatchableCellCounter(private val targetChannel: Int, private val context: 
         } catch (ioe: IOException) {
             displayOutputFileErrorDialog()
         }
-        MessageDialog(
-            IJ.getInstance(),
-            "Saved",
-            "The colocalization results have successfully been saved to the specified file."
-        )
     }
 }
