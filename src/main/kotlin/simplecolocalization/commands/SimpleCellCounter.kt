@@ -6,6 +6,7 @@ import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
+import ij.plugin.frame.RoiManager
 import java.io.File
 import java.io.IOException
 import javax.xml.transform.TransformerException
@@ -13,6 +14,7 @@ import net.imagej.ImageJ
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
+import org.scijava.command.Previewable
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
@@ -41,7 +43,7 @@ import simplecolocalization.widgets.AlignedTextWidget
  * are populated.
  */
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Cell Counter")
-class SimpleCellCounter : Command {
+class SimpleCellCounter : Command, Previewable {
 
     @Parameter
     private lateinit var logService: LogService
@@ -149,6 +151,13 @@ class SimpleCellCounter : Command {
         required = false
     )
     private var outputFile: File? = null
+
+    @Parameter(
+        visibility = ItemVisibility.INVISIBLE,
+        persist = false,
+        callback = "previewChanged"
+    )
+    private var preview: Boolean = false
 
     data class CounterResult(val count: Int, val cells: List<PositionedCell>)
 
@@ -265,5 +274,42 @@ class SimpleCellCounter : Command {
             imp.show()
             ij.command().run(SimpleCellCounter::class.java, true)
         }
+    }
+
+    /** Displays the preview. */
+    override fun preview() {
+        if (preview) {
+            val image = WindowManager.getCurrentImage()
+            if (image == null) {
+                MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+                return
+            }
+            val diameterRange: CellDiameterRange
+            try {
+                diameterRange = CellDiameterRange.parseFromText(cellDiameterText)
+            } catch (e: DiameterParseException) {
+                RoiManager.getRoiManager().reset()
+                return
+            }
+
+            resetRoiManager()
+
+            val result = process(image, diameterRange)
+
+            image.show()
+            addToRoiManager(result.cells)
+        }
+    }
+
+    /** Called when the preview box is unchecked. */
+    override fun cancel() {
+        val roiManager = RoiManager.getRoiManager()
+        roiManager.reset()
+        roiManager.close()
+    }
+
+    /** Called when the preview parameter value changes. */
+    private fun previewChanged() {
+        if (!preview) cancel()
     }
 }
