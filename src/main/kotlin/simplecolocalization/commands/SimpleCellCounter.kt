@@ -26,6 +26,7 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.DiameterParseException
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
+import simplecolocalization.services.colocalizer.drawCells
 import simplecolocalization.services.colocalizer.resetRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
@@ -285,21 +286,19 @@ class SimpleCellCounter : Command, Previewable {
             try {
                 diameterRange = CellDiameterRange.parseFromText(cellDiameterText)
             } catch (e: DiameterParseException) {
-                resetRoiManager()
+                cancel()
                 return
             }
-
-            resetRoiManager()
 
             val result = try {
                 process(image, diameterRange)
             } catch (e: ChannelDoesNotExistException) {
-                resetRoiManager()
+                cancel()
                 return
             }
 
             image.show()
-            addToRoiManager(result.cells)
+            drawCells(image, result.cells)
         }
     }
 
