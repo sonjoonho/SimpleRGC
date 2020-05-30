@@ -190,7 +190,12 @@ class SimpleCellCounter : Command, Previewable {
 
         resetRoiManager()
 
-        val result = process(image, diameterRange)
+        val result = try {
+            process(image, diameterRange)
+        } catch (e: ChannelDoesNotExistException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
+            return
+        }
 
         writeOutput(result.count, image.title)
 
@@ -280,13 +285,18 @@ class SimpleCellCounter : Command, Previewable {
             try {
                 diameterRange = CellDiameterRange.parseFromText(cellDiameterText)
             } catch (e: DiameterParseException) {
-                RoiManager.getRoiManager().reset()
+                resetRoiManager()
                 return
             }
 
             resetRoiManager()
 
-            val result = process(image, diameterRange)
+            val result = try {
+                process(image, diameterRange)
+            } catch (e: ChannelDoesNotExistException) {
+                resetRoiManager()
+                return
+            }
 
             image.show()
             addToRoiManager(result.cells)
