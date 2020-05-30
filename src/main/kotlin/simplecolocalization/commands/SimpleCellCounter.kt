@@ -61,7 +61,7 @@ class SimpleCellCounter : Command {
         min = "1",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     var targetChannel = 1
 
@@ -80,7 +80,7 @@ class SimpleCellCounter : Command {
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
-        persist = false
+        persist = true
     )
     var cellDiameterText = "0.0-30.0"
 
@@ -95,7 +95,7 @@ class SimpleCellCounter : Command {
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
     var localThresholdRadius = 20
 
@@ -107,14 +107,14 @@ class SimpleCellCounter : Command {
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
     var gaussianBlurSigma = 3.0
 
     @Parameter(
         label = "Remove Axons",
         required = true,
-        persist = false
+        persist = true
     )
     private var shouldRemoveAxons: Boolean = false
 
@@ -138,7 +138,7 @@ class SimpleCellCounter : Command {
         label = "Results Output:",
         choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
         required = true,
-        persist = false,
+        persist = true,
         style = "radioButtonVertical"
     )
     private var outputFormat = OutputFormat.DISPLAY
