@@ -3,7 +3,6 @@ package simplecolocalization.commands.batch
 import de.siegmar.fastcsv.writer.CsvWriter
 import ij.IJ
 import ij.ImagePlus
-import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import java.io.File
 import java.io.FileOutputStream
@@ -21,6 +20,7 @@ import org.w3c.dom.Element
 import simplecolocalization.commands.ChannelDoesNotExistException
 import simplecolocalization.commands.SimpleColocalization
 import simplecolocalization.commands.batch.SimpleBatch.OutputFormat
+import simplecolocalization.commands.displayOutputFileErrorDialog
 import simplecolocalization.services.CellDiameterRange
 
 class BatchableColocalizer(
@@ -65,14 +65,8 @@ class BatchableColocalizer(
                 else -> throw IllegalArgumentException("Invalid output type provided")
             }
         } catch (ioe: IOException) {
-            displayErrorDialog()
+            displayOutputFileErrorDialog()
         }
-
-        MessageDialog(
-            IJ.getInstance(),
-            "Saved",
-            "The colocalization results have successfully been saved to the specified file."
-        )
     }
 
     private fun outputToCSV(
@@ -121,16 +115,7 @@ class BatchableColocalizer(
             // Send output file to file output stream.
             tr.transform(DOMSource(doc), StreamResult(FileOutputStream(outputFile)))
         } catch (te: TransformerException) {
-            displayErrorDialog(fileType = "XML")
-        }
-    }
-
-    // TODO(tiger-cross): Reduce duplication in the below 3 functions.
-    private fun displayErrorDialog(fileType: String = "") {
-        GenericDialog("Error").apply {
-            addMessage("Unable to save results to $fileType file. Ensure the output file is not currently in use by other programs and try again.")
-            hideCancelButton()
-            showDialog()
+            displayOutputFileErrorDialog(filetype = "XML")
         }
     }
 
