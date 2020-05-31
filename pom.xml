@@ -13,25 +13,21 @@
             <groupId>net.imagej</groupId>
             <artifactId>imagej</artifactId>
         </dependency>
-        <!-- For the AutoThreshold -->
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>ij</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/sc.fiji/Auto_Local_Threshold -->
+        <dependency>
+            <groupId>ome</groupId>
+            <artifactId>bio-formats_plugins</artifactId>
+        </dependency>
         <dependency>
             <groupId>sc.fiji</groupId>
             <artifactId>Auto_Local_Threshold</artifactId>
-            <version>1.10.0</version>
         </dependency>
-
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>imagej-legacy</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ome</groupId>
-            <artifactId>formats-gpl</artifactId>
         </dependency>
         <dependency>
             <groupId>de.siegmar</groupId>
@@ -45,10 +41,25 @@
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jdk7</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.kotlintest</groupId>
             <artifactId>kotlintest-runner-junit5</artifactId>
             <version>3.3.2</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>de.biomedical-imaging.imagej</groupId>
+            <artifactId>ij_ridge_detect</artifactId>
+            <version>1.4.1</version>
         </dependency>
     </dependencies>
     <!-- Inherit from the SciJava base POM. -->
@@ -167,7 +178,7 @@
     </organization>
     <developers>
         <developer>
-            <id>wburr10</id>
+            <id>willburr</id>
             <name>William Burr</name>
         </developer>
         <developer>

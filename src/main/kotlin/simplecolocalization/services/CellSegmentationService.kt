@@ -1,93 +1,58 @@
 package simplecolocalization.services
 
+import de.biomedical_imaging.ij.steger.LineDetector
+import fiji.threshold.Auto_Local_Threshold
 import ij.ImagePlus
+import ij.gui.PolygonRoi
+import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
-import ij.plugin.filter.BackgroundSubtracter
+import ij.plugin.ZProjector
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.ParticleAnalyzer
-import ij.plugin.filter.RankFilters
 import ij.process.AutoThresholder
+import ij.process.FloatPolygon
 import ij.process.ImageConverter
+import java.awt.Color
+import java.lang.Math.PI
+import kotlin.math.pow
 import net.imagej.ImageJService
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
 import simplecolocalization.DummyRoiManager
-import simplecolocalization.algorithms.bernsen
-import simplecolocalization.algorithms.niblack
-import simplecolocalization.algorithms.otsu
-import simplecolocalization.preprocessing.LocalThresholdAlgos
-import simplecolocalization.preprocessing.PreprocessingParameters
-import simplecolocalization.preprocessing.ThresholdTypes
 import simplecolocalization.services.colocalizer.PositionedCell
 
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
 
-    data class CellAnalysis(val area: Int, val channels: List<ChannelAnalysis>)
-    data class ChannelAnalysis(val name: String, val mean: Int, val min: Int, val max: Int)
-
     /** Perform pre-processing on the image to remove background and set cells to white. */
-    fun preprocessImage(
+    private fun preprocessImage(
         image: ImagePlus,
-        params: PreprocessingParameters
+        localThresholdRadius: Int,
+        gaussianBlurSigma: Double,
+        shouldRemoveAxons: Boolean
     ) {
         // Convert to grayscale 8-bit.
         ImageConverter(image).convertToGray8()
 
-        if (params.shouldSubtractBackground) {
-            // Remove background.
-            BackgroundSubtracter().rollingBallBackground(
-                image.channelProcessor,
-                params.largestCellDiameter.toDouble(),
-                false,
-                false,
-                false,
-                false,
-                false
-            )
+        // Additional params with values 0.0 are unused. Just required by localthreshold api.
+        Auto_Local_Threshold().exec(
+            image,
+            "Niblack",
+            localThresholdRadius,
+            0.0,
+            0.0,
+            true
+        )
+
+        if (shouldRemoveAxons) {
+            removeAxons(image, detectAxons(image))
         }
 
-        when (params.thresholdLocality) {
-            ThresholdTypes.GLOBAL -> {
-                image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
-                image.processor.autoThreshold()
-            }
-            ThresholdTypes.LOCAL -> {
-                when (params.localThresholdAlgo) {
-                    LocalThresholdAlgos.OTSU -> otsu(
-                        image,
-                        params.largestCellDiameter.toInt()
-                    )
-                    LocalThresholdAlgos.BERNSEN -> bernsen(
-                        image,
-                        params.largestCellDiameter.toInt(),
-                        15.0
-                    )
-                    LocalThresholdAlgos.NIBLACK -> niblack(
-                        image,
-                        params.largestCellDiameter.toInt(),
-                        0.2,
-                        0.0
-                    )
-                    else -> throw IllegalArgumentException("Threshold Algorithm selected")
-                }
-            }
-            else -> throw IllegalArgumentException("Invalid Threshold Choice selected")
-        }
-
-        if (params.shouldDespeckle) {
-            // Despeckle the image using a median filter with radius 1.0, as defined in ImageJ docs.
-            // https://imagej.nih.gov/ij/developer/api/ij/plugin/filter/RankFilters.html
-            RankFilters().rank(image.channelProcessor, params.despeckleRadius, RankFilters.MEDIAN)
-        }
-
-        if (params.shouldGaussianBlur) {
-            // Apply Gaussian Blur to group larger speckles.
-            image.channelProcessor.blurGaussian(params.gaussianBlurSigma)
-        }
+        // Apply Gaussian Blur to group larger speckles.
+        image.channelProcessor.blurGaussian(gaussianBlurSigma)
 
         // Threshold image again to remove blur.
         image.processor.setAutoThreshold(AutoThresholder.Method.Otsu, true)
@@ -95,12 +60,81 @@ class CellSegmentationService : AbstractService(), ImageJService {
     }
 
     /**
+     * Extract a list of cells from the specified image.
+     */
+    fun extractCells(
+        image: ImagePlus,
+        diameterRange: CellDiameterRange,
+        localThresholdRadius: Int,
+        gaussianBlurSigma: Double,
+        shouldRemoveAxons: Boolean = false
+    ): List<PositionedCell> {
+        val mutableImage = if (image.nSlices > 1) {
+            // Flatten slices of the image. This step should probably be done during inside the pre-processing step -
+            // however this operation is not done in-place but creates a new image, which makes this hard.
+            ZProjector.run(image, "max")
+        } else {
+            image.duplicate()
+        }
+
+        preprocessImage(mutableImage, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
+        segmentImage(mutableImage)
+
+        return identifyCells(
+            mutableImage,
+            diameterRange.smallest,
+            diameterRange.largest
+        )
+    }
+
+    /**
+     * Detect axons/dendrites within an image and return them as Rois.
+     *
+     * Uses Ridge Detection plugin's LineDetector.
+     */
+    private fun detectAxons(image: ImagePlus): List<Roi> {
+        // Empirically, the values of sigma, upperThresh and lowerThresh
+        // proved the most effective on test images.
+        // TODO(willburr): Investigate optimum parameters for Line Detector
+        val contours = LineDetector().detectLines(
+            image.processor, 1.61, 15.0, 5.0,
+            0.0, 0.0, false, true, true, true
+        )
+        val axons = mutableListOf<Roi>()
+        // Convert to Rois.
+        for (c in contours) {
+            // Generate one Roi per contour.
+            val p = FloatPolygon(c.xCoordinates, c.yCoordinates, c.number)
+            val r = PolygonRoi(p, Roi.FREELINE)
+            r.position = c.frame
+            // Set the line width of Roi based on the average width of axon.
+            var sumWidths = 0.0
+            for (j in c.lineWidthL.indices) {
+                sumWidths += c.lineWidthL[j] + c.lineWidthR[j]
+            }
+            r.strokeWidth = (sumWidths / (c.xCoordinates.size)).toFloat()
+            axons.add(r)
+        }
+        return axons
+    }
+
+    /** Remove axon rois from the (thresholded) image. */
+    private fun removeAxons(image: ImagePlus, axons: List<Roi>) {
+        // The background post-thresholding will be black
+        // therefore we want the brush to be black
+        image.setColor(Color.BLACK)
+        for (axon in axons) {
+            axon.drawPixels(image.processor)
+        }
+    }
+
+    /**
      * Segment the image into individual cells, overlaying outlines for cells in the image.
      *
      * Uses ImageJ's Euclidean Distance Map plugin for performing the watershed algorithm.
-     * Used as a simple starting point that'd allow for cell counting.
+     * Appropriate pre-processing is expected before calling this.
      */
-    fun segmentImage(image: ImagePlus) {
+    private fun segmentImage(image: ImagePlus) {
         // Preprocessing is good enough that watershed is sufficient to segment here.
         EDM().toWatershed(image.channelProcessor)
     }
@@ -111,16 +145,27 @@ class CellSegmentationService : AbstractService(), ImageJService {
      * We use [ParticleAnalyzer] instead of [MaximumFinder] as the former highlights the shape of the cell instead
      * of just marking its centre.
      */
-    fun identifyCells(segmentedImage: ImagePlus): List<PositionedCell> {
+    fun identifyCells(
+        segmentedImage: ImagePlus,
+        smallestCellDiameter: Double,
+        largestCellDiameter: Double
+    ): List<PositionedCell> {
+        // Compute min/max area
+        val minArea = smallestCellDiameter.diameterToArea()
+        val maxArea = largestCellDiameter.diameterToArea()
+
         val roiManager = DummyRoiManager()
         ParticleAnalyzer.setRoiManager(roiManager)
         ParticleAnalyzer(
             ParticleAnalyzer.SHOW_NONE or ParticleAnalyzer.ADD_TO_MANAGER,
             Measurements.ALL_STATS,
             ResultsTable(),
-            0.0,
-            Double.MAX_VALUE
+            minArea,
+            maxArea
         ).analyze(segmentedImage)
         return roiManager.roisAsArray.map { PositionedCell.fromRoi(it) }
     }
 }
+
+/** Compute the area from the diameter. */
+fun Double.diameterToArea(): Double = (this / 2).pow(2.0) * PI

@@ -5,8 +5,10 @@ import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
-import ij.plugin.ZProjector
+import ij.plugin.ChannelSplitter
 import java.io.File
+import java.io.IOException
+import javax.xml.transform.TransformerException
 import net.imagej.ImageJ
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
@@ -16,13 +18,18 @@ import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
+import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
-import simplecolocalization.preprocessing.PreprocessingParameters
-import simplecolocalization.preprocessing.tuneParameters
+import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
-import simplecolocalization.services.colocalizer.showCells
+import simplecolocalization.services.DiameterParseException
+import simplecolocalization.services.colocalizer.PositionedCell
+import simplecolocalization.services.colocalizer.addToRoiManager
+import simplecolocalization.services.colocalizer.resetRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
+import simplecolocalization.services.counter.output.XMLCounterOutput
+import simplecolocalization.widgets.AlignedTextWidget
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -54,27 +61,66 @@ class SimpleCellCounter : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Manually Tune Parameters?",
+        label = "Select Channel To Use:",
+        min = "1",
+        stepSize = "1",
         required = true,
         persist = false
     )
-    private var tuneParams = false
+    var targetChannel = 1
+
+    @Parameter(
+        label = "Image Processing Parameters:",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var processingParametersHeader: String
 
     /**
-     * Used during the cell segmentation stage to perform local thresholding or
-     * background subtraction.
+     * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Largest Cell Diameter",
-        description = "Value we use to apply the rolling ball algorithm to subtract " +
-            "the background when thresholding",
-            min = "1",
+        label = "Cell Diameter (px):",
+        description = "Used as minimum/maximum diameter when identifying cells",
+        required = true,
+        style = AlignedTextWidget.RIGHT,
+        persist = false
+    )
+    var cellDiameterText = "0.0-30.0"
+
+    /**
+     * Used as the size of the window over which the threshold will be locally computed.
+     */
+    @Parameter(
+        label = "Local Threshold Radius:",
+        // TODO: Improve this description to make more intuitive.
+        description = "The radius of the local domain over which the threshold will be computed.",
+        min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
         persist = false
     )
-    private var largestCellDiameter = 30.0
+    var localThresholdRadius = 20
+
+    @Parameter(
+        label = "Gaussian Blur Sigma:",
+        description = "Sigma value used for blurring the image during the processing," +
+            " a lower value is recommended if there are lots of cells densely packed together",
+        min = "1",
+        stepSize = "1",
+        style = NumberWidget.SPINNER_STYLE,
+        required = true,
+        persist = false
+    )
+    var gaussianBlurSigma = 3.0
+
+    @Parameter(
+        label = "Remove Axons",
+        required = true,
+        persist = false
+    )
+    private var shouldRemoveAxons: Boolean = false
 
     @Parameter(
         label = "Output Parameters:",
@@ -86,45 +132,48 @@ class SimpleCellCounter : Command {
     /**
      * The user can optionally output the results to a file.
      */
-    object OutputDestination {
-        const val DISPLAY = "Display in table"
+    object OutputFormat {
+        const val DISPLAY = "Display in ImageJ"
         const val CSV = "Save as CSV file"
+        const val XML = "Save as XML file"
     }
 
     @Parameter(
         label = "Results Output:",
-        choices = [OutputDestination.DISPLAY, OutputDestination.CSV],
+        choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
         required = true,
         persist = false,
         style = "radioButtonVertical"
     )
-    private var outputDestination = OutputDestination.DISPLAY
+    private var outputFormat = OutputFormat.DISPLAY
 
+    @Parameter(
+        label = "Output File (if saving):",
+        style = "save",
+        required = false
+    )
     private var outputFile: File? = null
+
+    data class CounterResult(val count: Int, val cells: List<PositionedCell>)
 
     /** Runs after the parameters above are populated. */
     override fun run() {
-        var image = WindowManager.getCurrentImage()
-        if (image != null) {
-            if (image.nSlices > 1) {
-                // Flatten slices of the image. This step should probably be done during the preprocessing step - however
-                // this operation is not done in-place but creates a new image, which makes this hard.
-                image = ZProjector.run(image, "max")
-            }
-
-            process(image)
-        } else {
+        val image = WindowManager.getCurrentImage()
+        if (image == null) {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+            return
         }
-    }
+        val diameterRange: CellDiameterRange
+        try {
+            diameterRange = CellDiameterRange.parseFromText(cellDiameterText)
+        } catch (e: DiameterParseException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
+            return
+        }
 
-    /** Processes single image. */
-    private fun process(image: ImagePlus) {
-        statusService.showStatus(0, 100, "Starting...")
-
-        if (outputDestination != OutputDestination.DISPLAY && outputFile == null) {
-            val path = IJ.getDirectory("current")
-            val name = FilenameUtils.removeExtension(image.title) + ".csv"
+        if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
+            val path = image.originalFileInfo.directory
+            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
@@ -134,47 +183,62 @@ class SimpleCellCounter : Command {
             }
         }
 
-        val imageDuplicate = image.duplicate()
+        resetRoiManager()
 
-        val preprocessingParams = if (tuneParams) {
-                tuneParameters(largestCellDiameter) ?: return
-            } else {
-                PreprocessingParameters(largestCellDiameter = largestCellDiameter)
-            }
+        val result = process(image, diameterRange)
 
-        statusService.showStatus(25, 100, "Preprocessing...")
+        writeOutput(result.count, image.title)
 
-        cellSegmentationService.preprocessImage(imageDuplicate, preprocessingParams)
+        image.show()
+        addToRoiManager(result.cells)
+    }
 
-        statusService.showStatus(50, 100, "Segmenting cells...")
-
-        cellSegmentationService.segmentImage(imageDuplicate)
-
-        statusService.showStatus(75, 100, "Identifying cells...")
-
-        val cells = cellSegmentationService.identifyCells(imageDuplicate)
-
-        if (outputDestination == OutputDestination.DISPLAY) {
-            ImageJTableCounterOutput(cells.size, uiService).output()
-        } else if (outputDestination == OutputDestination.CSV) {
-            CSVCounterOutput(cells.size, outputFile!!).output()
+    private fun writeOutput(numCells: Int, file: String) {
+        val output = when (outputFormat) {
+            OutputFormat.DISPLAY -> ImageJTableCounterOutput(uiService)
+            OutputFormat.CSV -> CSVCounterOutput(outputFile!!)
+            OutputFormat.XML -> XMLCounterOutput(outputFile!!)
+            else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
-        // The colocalization results are clearly displayed if the output
+        output.addCountForFile(numCells, file)
+
+        try {
+            output.output()
+        } catch (te: TransformerException) {
+            displayOutputFileErrorDialog(filetype = "XML")
+        } catch (ioe: IOException) {
+            displayOutputFileErrorDialog()
+        }
+
+        // The cell counting results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation
         // is useful if the output is saved to file.
-        if (outputDestination != OutputDestination.DISPLAY) {
+        if (outputFormat != OutputFormat.DISPLAY) {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
                 "The cell counting results have successfully been saved to the specified file."
             )
         }
+    }
 
-        statusService.showStatus(100, 100, "Done!")
+    /** Processes single image. */
+    fun process(image: ImagePlus, diameterRange: CellDiameterRange): CounterResult {
+        val imageChannels = ChannelSplitter.split(image)
+        if (targetChannel < 1 || targetChannel > imageChannels.size) {
+            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
+        }
 
-        image.show()
-        showCells(image, cells)
+        val cells = cellSegmentationService.extractCells(
+            imageChannels[targetChannel - 1],
+            diameterRange,
+            localThresholdRadius,
+            gaussianBlurSigma,
+            shouldRemoveAxons
+        )
+
+        return CounterResult(cells.size, cells)
     }
 
     companion object {
@@ -192,7 +256,7 @@ class SimpleCellCounter : Command {
 
             ij.launch()
 
-            val file: File = ij.ui().chooseFile(null, "open")
+            val file: File = ij.ui().chooseFile(null, FileWidget.OPEN_STYLE)
             val imp = IJ.openImage(file.path)
             imp.show()
             ij.command().run(SimpleCellCounter::class.java, true)
