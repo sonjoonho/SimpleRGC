@@ -18,6 +18,7 @@ import net.imagej.ImageJ
 import net.imagej.ops.OpService
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
+import org.scijava.app.StatusService
 import org.scijava.command.Command
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
@@ -48,6 +49,9 @@ class SimpleColocalization : Command {
 
     @Parameter
     private lateinit var logService: LogService
+
+    @Parameter
+    private lateinit var statusService: StatusService
 
     @Parameter
     private lateinit var cellSegmentationService: CellSegmentationService
@@ -262,6 +266,7 @@ class SimpleColocalization : Command {
             return
         }
 
+        statusService.showStatus(100, 100, "Done!")
         writeOutput(result)
 
         image.show()
@@ -340,6 +345,7 @@ class SimpleColocalization : Command {
             localThresholdRadius,
             gaussianBlurSigma
         )
+
         val transducedCells = filterCellsByIntensity(
             cellSegmentationService.extractCells(
                 transducedChannel,
@@ -358,6 +364,7 @@ class SimpleColocalization : Command {
                 gaussianBlurSigma
             ) else null
 
+        statusService.showStatus(80, 100, "Analysing transduction...")
         logService.info("Starting analysis")
 
         // Target layer is based and transduced layer is overlaid.

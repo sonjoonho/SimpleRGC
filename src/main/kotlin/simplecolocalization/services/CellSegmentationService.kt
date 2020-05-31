@@ -18,6 +18,8 @@ import java.awt.Color
 import java.lang.Math.PI
 import kotlin.math.pow
 import net.imagej.ImageJService
+import org.scijava.app.StatusService
+import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.service.AbstractService
 import org.scijava.service.Service
@@ -26,6 +28,9 @@ import simplecolocalization.services.colocalizer.PositionedCell
 
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
+
+    @Parameter
+    private lateinit var statusService: StatusService
 
     /** Perform pre-processing on the image to remove background and set cells to white. */
     private fun preprocessImage(
@@ -69,6 +74,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
         gaussianBlurSigma: Double,
         shouldRemoveAxons: Boolean = false
     ): List<PositionedCell> {
+
         val mutableImage = if (image.nSlices > 1) {
             // Flatten slices of the image. This step should probably be done during inside the pre-processing step -
             // however this operation is not done in-place but creates a new image, which makes this hard.
@@ -77,8 +83,11 @@ class CellSegmentationService : AbstractService(), ImageJService {
             image.duplicate()
         }
 
+        statusService.showStatus(25, 100, "Preprocessing...")
         preprocessImage(mutableImage, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
+        statusService.showStatus(50, 100, "Segmenting image...")
         segmentImage(mutableImage)
+        statusService.showStatus(75, 100, "Identifying cells...")
 
         return identifyCells(
             mutableImage,

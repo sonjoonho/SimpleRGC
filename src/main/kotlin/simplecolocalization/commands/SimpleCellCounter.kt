@@ -45,10 +45,10 @@ import simplecolocalization.widgets.AlignedTextWidget
 class SimpleCellCounter : Command {
 
     @Parameter
-    private lateinit var statusService: StatusService
+    private lateinit var logService: LogService
 
     @Parameter
-    private lateinit var logService: LogService
+    private lateinit var statusService: StatusService
 
     @Parameter
     private lateinit var cellSegmentationService: CellSegmentationService
@@ -171,6 +171,8 @@ class SimpleCellCounter : Command {
             return
         }
 
+        statusService.showStatus(0, 100, "Starting...")
+
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
             val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
@@ -186,6 +188,7 @@ class SimpleCellCounter : Command {
         resetRoiManager()
 
         val result = process(image, diameterRange)
+        statusService.showStatus(100, 100, "Done!")
 
         writeOutput(result.count, image.title)
 
