@@ -350,10 +350,12 @@ class SimpleColocalization : Command, Previewable {
             localThresholdRadius,
             gaussianBlurSigma
         )
+
+        // Allow cells in the transduced channel to have unbounded area
         val transducedCells = filterCellsByIntensity(
             cellSegmentationService.extractCells(
                 transducedChannel,
-                cellDiameterRange,
+                CellDiameterRange(cellDiameterRange.smallest, Double.MAX_VALUE),
                 localThresholdRadius,
                 gaussianBlurSigma
             ),
