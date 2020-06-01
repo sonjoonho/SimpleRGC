@@ -6,6 +6,7 @@ import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
+import ij.plugin.frame.RoiManager
 import java.io.File
 import java.io.IOException
 import javax.xml.transform.TransformerException
@@ -13,6 +14,7 @@ import net.imagej.ImageJ
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
+import org.scijava.command.Previewable
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
@@ -24,6 +26,7 @@ import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.DiameterParseException
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
+import simplecolocalization.services.colocalizer.drawCells
 import simplecolocalization.services.colocalizer.resetRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
@@ -41,7 +44,7 @@ import simplecolocalization.widgets.AlignedTextWidget
  * are populated.
  */
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Cell Counter")
-class SimpleCellCounter : Command {
+class SimpleCellCounter : Command, Previewable {
 
     @Parameter
     private lateinit var logService: LogService
@@ -150,6 +153,13 @@ class SimpleCellCounter : Command {
     )
     private var outputFile: File? = null
 
+    @Parameter(
+        visibility = ItemVisibility.INVISIBLE,
+        persist = false,
+        callback = "previewChanged"
+    )
+    private var preview: Boolean = false
+
     data class CounterResult(val count: Int, val cells: List<PositionedCell>)
 
     /** Runs after the parameters above are populated. */
@@ -181,7 +191,12 @@ class SimpleCellCounter : Command {
 
         resetRoiManager()
 
-        val result = process(image, diameterRange)
+        val result = try {
+            process(image, diameterRange)
+        } catch (e: ChannelDoesNotExistException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
+            return
+        }
 
         writeOutput(result.count, image.title)
 
@@ -257,5 +272,45 @@ class SimpleCellCounter : Command {
             imp.show()
             ij.command().run(SimpleCellCounter::class.java, true)
         }
+    }
+
+    /** Displays the preview. */
+    override fun preview() {
+        if (preview) {
+            val image = WindowManager.getCurrentImage()
+            if (image == null) {
+                MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+                return
+            }
+            val diameterRange: CellDiameterRange
+            try {
+                diameterRange = CellDiameterRange.parseFromText(cellDiameterText)
+            } catch (e: DiameterParseException) {
+                cancel()
+                return
+            }
+
+            val result = try {
+                process(image, diameterRange)
+            } catch (e: ChannelDoesNotExistException) {
+                cancel()
+                return
+            }
+
+            image.show()
+            drawCells(image, result.cells)
+        }
+    }
+
+    /** Called when the preview box is unchecked. */
+    override fun cancel() {
+        val roiManager = RoiManager.getRoiManager()
+        roiManager.reset()
+        roiManager.close()
+    }
+
+    /** Called when the preview parameter value changes. */
+    private fun previewChanged() {
+        if (!preview) cancel()
     }
 }
