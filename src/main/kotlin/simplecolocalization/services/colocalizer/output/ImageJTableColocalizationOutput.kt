@@ -1,12 +1,12 @@
 package simplecolocalization.services.colocalizer.output
 
+import kotlin.math.roundToInt
 import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import simplecolocalization.commands.SimpleColocalization
 import simplecolocalization.services.SimpleOutput
-import kotlin.math.roundToInt
 
 /**
  * Displays a table for a transduction analysis with the result of
