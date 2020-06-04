@@ -1,5 +1,4 @@
 .DS_Store
-.idea/shelf
 /android.tests.dependencies
 /confluence/target
 /dependencies/repo
@@ -23,6 +22,11 @@ build/
 !**/test/**/build
 *.iml
 !**/testData/**/*.iml
+.idea/
+.idea/shelf
+.idea/codeStyles/
+.idea/misc.xml
+.idea/uiDesigner.xml
 .idea/libraries/Gradle*.xml
 .idea/libraries/Maven*.xml
 .idea/artifacts/PILL_*.xml
@@ -35,6 +39,7 @@ build/
 .idea/gradle.xml
 .idea/compiler.xml
 .idea/inspectionProfiles/profiles_settings.xml
+.idea/inspectionProfiles/ktlint.xml
 .idea/.name
 .idea/artifacts/dist_auto_*
 .idea/artifacts/dist.xml

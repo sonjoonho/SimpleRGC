@@ -259,7 +259,7 @@ class SimpleBatch : Command {
         return if (shouldProcessFilesInNestedFolders) {
             file.walkTopDown().filter { f -> !f.isDirectory }.toList()
         } else {
-            file.listFiles()?.toList() ?: listOf(file)
+            file.listFiles()?.filter { f -> !f.isDirectory }?.toList() ?: listOf(file)
         }
     }
 
