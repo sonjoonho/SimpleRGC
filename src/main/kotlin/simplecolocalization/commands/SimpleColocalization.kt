@@ -89,7 +89,7 @@ class SimpleColocalization : Command, Previewable {
         min = "1",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     var targetChannel = 1
 
@@ -102,7 +102,7 @@ class SimpleColocalization : Command, Previewable {
         min = "0",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     var allCellsChannel = 0
 
@@ -119,7 +119,7 @@ class SimpleColocalization : Command, Previewable {
         min = "1",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     var transducedChannel = 2
 
@@ -138,7 +138,7 @@ class SimpleColocalization : Command, Previewable {
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
-        persist = false
+        persist = true
     )
     var cellDiameterText = "0.0-30.0"
 
@@ -153,7 +153,7 @@ class SimpleColocalization : Command, Previewable {
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
     var localThresholdRadius = 30
 
@@ -165,7 +165,7 @@ class SimpleColocalization : Command, Previewable {
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
-        persist = false
+        persist = true
     )
     var allCellDiameterText = "0.0-30.0"
 
@@ -177,7 +177,7 @@ class SimpleColocalization : Command, Previewable {
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
     var gaussianBlurSigma = 3.0
 
@@ -201,7 +201,7 @@ class SimpleColocalization : Command, Previewable {
         label = "Results Output:",
         choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
         required = true,
-        persist = false,
+        persist = true,
         style = "radioButtonVertical"
     )
     private var outputFormat = OutputFormat.DISPLAY
@@ -356,10 +356,12 @@ class SimpleColocalization : Command, Previewable {
             gaussianBlurSigma
         )
 
+
+        // Allow cells in the transduced channel to have unbounded area
         val transducedCells = filterCellsByIntensity(
             cellSegmentationService.extractCells(
                 transducedChannel,
-                cellDiameterRange,
+                CellDiameterRange(cellDiameterRange.smallest, Double.MAX_VALUE),
                 localThresholdRadius,
                 gaussianBlurSigma
             ),
