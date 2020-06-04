@@ -6,6 +6,7 @@ import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import simplecolocalization.commands.SimpleColocalization
 import simplecolocalization.services.SimpleOutput
+import kotlin.math.roundToInt
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -61,6 +62,16 @@ class ImageJTableColocalizationOutput(
             integratedDensityColumn.add(0)
             rawIntegratedDensityColumn.add(0)
         }
+
+        val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
+
+        labelColumn.add("Transduction Efficiency (rounded to nearest integer) %")
+        countColumn.add(transductionEfficiency.roundToInt())
+        areaColumn.add(0)
+        medianColumn.add(0)
+        meanColumn.add(0)
+        integratedDensityColumn.add(0)
+        rawIntegratedDensityColumn.add(0)
 
         labelColumn.add("--- Transduced Channel Analysis, Colocalized Cells ---")
         countColumn.add(0)
