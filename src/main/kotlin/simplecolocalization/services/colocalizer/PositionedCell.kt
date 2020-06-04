@@ -86,7 +86,7 @@ fun addToRoiManager(cells: List<PositionedCell>) {
 
 fun resetRoiManager() {
     val roiManager = RoiManager.getRoiManager()
-    roiManager.runCommand("Reset")
+    roiManager.reset()
 }
 
 /**

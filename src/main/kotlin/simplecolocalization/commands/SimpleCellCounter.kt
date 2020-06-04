@@ -5,6 +5,8 @@ import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
+import ij.plugin.ChannelSplitter
+import ij.plugin.frame.RoiManager
 import java.io.File
 import java.io.IOException
 import javax.xml.transform.TransformerException
@@ -12,19 +14,24 @@ import net.imagej.ImageJ
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
+import org.scijava.command.Previewable
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
+import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.DiameterParseException
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
+import simplecolocalization.services.colocalizer.drawCells
 import simplecolocalization.services.colocalizer.resetRoiManager
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.ImageJTableCounterOutput
 import simplecolocalization.services.counter.output.XMLCounterOutput
+import simplecolocalization.widgets.AlignedTextWidget
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely
@@ -37,7 +44,7 @@ import simplecolocalization.services.counter.output.XMLCounterOutput
  * are populated.
  */
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Cell Counter")
-class SimpleCellCounter : Command {
+class SimpleCellCounter : Command, Previewable {
 
     @Parameter
     private lateinit var logService: LogService
@@ -53,6 +60,15 @@ class SimpleCellCounter : Command {
     private lateinit var uiService: UIService
 
     @Parameter(
+        label = "Select Channel To Use:",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = true
+    )
+    var targetChannel = 1
+
+    @Parameter(
         label = "Image Processing Parameters:",
         visibility = ItemVisibility.MESSAGE,
         required = false
@@ -63,48 +79,45 @@ class SimpleCellCounter : Command {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Smallest Cell Diameter (px)",
-        description = "Used as minimum diameter when identifying cells",
-        min = "0.0",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
+        label = "Cell Diameter (px):",
+        description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
-        persist = false
+        style = AlignedTextWidget.RIGHT,
+        persist = true
     )
-    var smallestCellDiameter = 0.0
+    var cellDiameterText = "0.0-30.0"
 
     /**
-     * Used during the cell segmentation stage to perform local thresholding or
-     * background subtraction.
+     * Used as the size of the window over which the threshold will be locally computed.
      */
     @Parameter(
-        label = "Largest Cell Diameter (px)",
-        description = "Used to apply the rolling ball algorithm to subtract " +
-            "the background when thresholding",
+        label = "Local Threshold Radius:",
+        // TODO: Improve this description to make more intuitive.
+        description = "The radius of the local domain over which the threshold will be computed.",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
-    var largestCellDiameter = 30.0
+    var localThresholdRadius = 20
 
     @Parameter(
-        label = "Gaussian Blur Sigma",
+        label = "Gaussian Blur Sigma:",
         description = "Sigma value used for blurring the image during the processing," +
             " a lower value is recommended if there are lots of cells densely packed together",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
     var gaussianBlurSigma = 3.0
 
     @Parameter(
-            label = "Remove Axons",
-            required = true,
-            persist = false
+        label = "Remove Axons",
+        required = true,
+        persist = true
     )
     private var shouldRemoveAxons: Boolean = false
 
@@ -128,7 +141,7 @@ class SimpleCellCounter : Command {
         label = "Results Output:",
         choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
         required = true,
-        persist = false,
+        persist = true,
         style = "radioButtonVertical"
     )
     private var outputFormat = OutputFormat.DISPLAY
@@ -140,6 +153,13 @@ class SimpleCellCounter : Command {
     )
     private var outputFile: File? = null
 
+    @Parameter(
+        visibility = ItemVisibility.INVISIBLE,
+        persist = false,
+        callback = "previewChanged"
+    )
+    private var preview: Boolean = false
+
     data class CounterResult(val count: Int, val cells: List<PositionedCell>)
 
     /** Runs after the parameters above are populated. */
@@ -149,13 +169,11 @@ class SimpleCellCounter : Command {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
             return
         }
-
-        if (smallestCellDiameter > largestCellDiameter) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Error",
-                "Smallest cell diameter must be smaller than the largest cell diameter"
-            )
+        val diameterRange: CellDiameterRange
+        try {
+            diameterRange = CellDiameterRange.parseFromText(cellDiameterText)
+        } catch (e: DiameterParseException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
             return
         }
 
@@ -173,7 +191,12 @@ class SimpleCellCounter : Command {
 
         resetRoiManager()
 
-        val result = process(image)
+        val result = try {
+            process(image, diameterRange)
+        } catch (e: ChannelDoesNotExistException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
+            return
+        }
 
         writeOutput(result.count, image.title)
 
@@ -194,9 +217,9 @@ class SimpleCellCounter : Command {
         try {
             output.output()
         } catch (te: TransformerException) {
-            displayErrorDialog(fileType = "XML")
+            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
-            displayErrorDialog()
+            displayOutputFileErrorDialog()
         }
 
         // The cell counting results are clearly displayed if the output
@@ -211,17 +234,20 @@ class SimpleCellCounter : Command {
         }
     }
 
-    private fun displayErrorDialog(fileType: String = "") {
-        GenericDialog("Error").apply {
-            addMessage("Unable to save results to $fileType file. Ensure the output file is not currently open by other programs and try again.")
-            hideCancelButton()
-            showDialog()
-        }
-    }
-
     /** Processes single image. */
-    fun process(image: ImagePlus): CounterResult {
-        val cells = cellSegmentationService.extractCells(image, smallestCellDiameter, largestCellDiameter, gaussianBlurSigma, shouldRemoveAxons)
+    fun process(image: ImagePlus, diameterRange: CellDiameterRange): CounterResult {
+        val imageChannels = ChannelSplitter.split(image)
+        if (targetChannel < 1 || targetChannel > imageChannels.size) {
+            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
+        }
+
+        val cells = cellSegmentationService.extractCells(
+            imageChannels[targetChannel - 1],
+            diameterRange,
+            localThresholdRadius,
+            gaussianBlurSigma,
+            shouldRemoveAxons
+        )
 
         return CounterResult(cells.size, cells)
     }
@@ -246,5 +272,45 @@ class SimpleCellCounter : Command {
             imp.show()
             ij.command().run(SimpleCellCounter::class.java, true)
         }
+    }
+
+    /** Displays the preview. */
+    override fun preview() {
+        if (preview) {
+            val image = WindowManager.getCurrentImage()
+            if (image == null) {
+                MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+                return
+            }
+            val diameterRange: CellDiameterRange
+            try {
+                diameterRange = CellDiameterRange.parseFromText(cellDiameterText)
+            } catch (e: DiameterParseException) {
+                cancel()
+                return
+            }
+
+            val result = try {
+                process(image, diameterRange)
+            } catch (e: ChannelDoesNotExistException) {
+                cancel()
+                return
+            }
+
+            image.show()
+            drawCells(image, result.cells)
+        }
+    }
+
+    /** Called when the preview box is unchecked. */
+    override fun cancel() {
+        val roiManager = RoiManager.getRoiManager()
+        roiManager.reset()
+        roiManager.close()
+    }
+
+    /** Called when the preview parameter value changes. */
+    private fun previewChanged() {
+        if (!preview) cancel()
     }
 }

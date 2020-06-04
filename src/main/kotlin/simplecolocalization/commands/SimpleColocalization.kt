@@ -7,6 +7,7 @@ import ij.gui.GenericDialog
 import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
+import ij.plugin.frame.RoiManager
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
 import java.io.File
@@ -19,6 +20,7 @@ import net.imagej.ops.OpService
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
 import org.scijava.command.Command
+import org.scijava.command.Previewable
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
@@ -26,20 +28,24 @@ import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellColocalizationService
+import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
+import simplecolocalization.services.DiameterParseException
 import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.cellcomparator.SubsetPixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.ColocalizationAnalysis
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
+import simplecolocalization.services.colocalizer.drawCells
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplecolocalization.services.colocalizer.output.XMLColocalizationOutput
 import simplecolocalization.services.colocalizer.resetRoiManager
+import simplecolocalization.widgets.AlignedTextWidget
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
-class SimpleColocalization : Command {
+class SimpleColocalization : Command, Previewable {
 
     private val intensityPercentageThreshold: Float = 90f
 
@@ -79,7 +85,7 @@ class SimpleColocalization : Command {
         min = "1",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     var targetChannel = 1
 
@@ -92,7 +98,7 @@ class SimpleColocalization : Command {
         min = "0",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     var allCellsChannel = 0
 
@@ -109,7 +115,7 @@ class SimpleColocalization : Command {
         min = "1",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     var transducedChannel = 2
 
@@ -124,55 +130,52 @@ class SimpleColocalization : Command {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Smallest Cell Diameter for Morphology Channel 1 (px)",
-        description = "Used as minimum diameter when identifying cells",
-        min = "0.0",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
+        label = "Cell Diameter for Morphology Channel 1 (px)",
+        description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
-        persist = false
+        style = AlignedTextWidget.RIGHT,
+        persist = true
     )
-    var smallestCellDiameter = 0.0
+    var cellDiameterText = "0.0-30.0"
 
     /**
-     * Used during the cell segmentation stage to reduce overlapping cells
-     * being grouped into a single cell and perform local thresholding or
-     * background subtraction.
+     * Used as the size of the window over which the threshold will be locally computed.
      */
     @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 1 (px)",
+        label = "Local Threshold Radius",
+        // TODO: Improve this description to make more intuitive.
+        description = "The radius of the local domain over which the threshold will be computed.",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
-    var largestCellDiameter = 30.0
+    var localThresholdRadius = 30
 
     /**
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Smallest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
-        min = "0.0",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
+        label = "Cell Diameter (px) for Morphology Channel 2 (px) (only if enabled)",
+        description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
-        persist = false
+        style = AlignedTextWidget.RIGHT,
+        persist = true
     )
-    private var smallestAllCellsDiameter = 0.0
+    var allCellDiameterText = "0.0-30.0"
 
     @Parameter(
-        label = "Largest Cell Diameter for Morphology Channel 2 (px) (only if enabled)",
+        label = "Gaussian Blur Sigma",
+        description = "Sigma value used for blurring the image during the processing," +
+            " a lower value is recommended if there are lots of cells densely packed together",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
-    private var largestAllCellsDiameter = 30.0
-
-    // TODO(tiger-cross): Plugin 2 Optimisation, Add necessary parameters removed from preprocessing.
+    var gaussianBlurSigma = 3.0
 
     @Parameter(
         label = "Output Parameters:",
@@ -194,7 +197,7 @@ class SimpleColocalization : Command {
         label = "Results Output:",
         choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
         required = true,
-        persist = false,
+        persist = true,
         style = "radioButtonVertical"
     )
     private var outputFormat = OutputFormat.DISPLAY
@@ -206,6 +209,13 @@ class SimpleColocalization : Command {
     )
     private var outputFile: File? = null
 
+    @Parameter(
+        visibility = ItemVisibility.INVISIBLE,
+        persist = false,
+        callback = "previewChanged"
+    )
+    private var preview: Boolean = false
+
     /**
      * Result of transduction analysis for output.
      * @property targetCellCount Number of red channel cells.
@@ -213,7 +223,7 @@ class SimpleColocalization : Command {
      * @property overlappingTwoChannelCells List of cells which overlap two channels.
      * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
      *
-     * TODO(tc): Discuss whether we want to use targetCellCount in the single colocalisation plugin
+     * TODO(tiger-cross): Discuss whether we want to use targetCellCount in the single colocalisation plugin
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
@@ -226,6 +236,17 @@ class SimpleColocalization : Command {
         val image = WindowManager.getCurrentImage()
         if (image == null) {
             MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+            return
+        }
+
+        val cellDiameterRange: CellDiameterRange
+        val allCellDiameterRange: CellDiameterRange?
+        try {
+            cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
+            allCellDiameterRange =
+                if (isAllCellsEnabled()) CellDiameterRange.parseFromText(allCellDiameterText) else null
+        } catch (e: DiameterParseException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
             return
         }
 
@@ -242,12 +263,10 @@ class SimpleColocalization : Command {
             }
         }
 
-        // if (isAllCellsEnabled()) largestAllCellsDiameter
-
         resetRoiManager()
 
         val result = try {
-            process(image)
+            process(image, cellDiameterRange, allCellDiameterRange)
         } catch (e: ChannelDoesNotExistException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -271,9 +290,9 @@ class SimpleColocalization : Command {
         try {
             output.output()
         } catch (te: TransformerException) {
-            displayErrorDialog(fileType = "XML")
+            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
-            displayErrorDialog()
+            displayOutputFileErrorDialog()
         }
 
         // The colocalization results are clearly displayed if the output
@@ -290,7 +309,11 @@ class SimpleColocalization : Command {
 
     /** Processes single image. */
     @Throws(ChannelDoesNotExistException::class)
-    fun process(image: ImagePlus): TransductionResult {
+    fun process(
+        image: ImagePlus,
+        cellDiameterRange: CellDiameterRange,
+        allCellDiameterRange: CellDiameterRange? = null
+    ): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
             throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
@@ -307,41 +330,51 @@ class SimpleColocalization : Command {
         return analyseTransduction(
             imageChannels[targetChannel - 1],
             imageChannels[transducedChannel - 1],
-            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null
+            cellDiameterRange,
+            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null,
+            allCellDiameterRange
         )
     }
 
-    private fun displayErrorDialog(fileType: String = "") {
-        GenericDialog("Error").apply {
-            addMessage("Unable to save results to $fileType file. Ensure the output file is not currently in use by other programs and try again.")
-            hideCancelButton()
-            showDialog()
-        }
-    }
-
-    fun analyseTransduction(targetChannel: ImagePlus, transducedChannel: ImagePlus, allCellsChannel: ImagePlus? = null): TransductionResult {
+    fun analyseTransduction(
+        targetChannel: ImagePlus,
+        transducedChannel: ImagePlus,
+        cellDiameterRange: CellDiameterRange,
+        allCellsChannel: ImagePlus? = null,
+        allCellDiameterRange: CellDiameterRange?
+    ): TransductionResult {
         logService.info("Starting extraction")
-        // TODO(#77)
-        val targetCells = cellSegmentationService.extractCells(targetChannel, smallestCellDiameter, largestCellDiameter, gaussianBlurSigma = 3.0)
+        val targetCells = cellSegmentationService.extractCells(
+            targetChannel,
+            cellDiameterRange,
+            localThresholdRadius,
+            gaussianBlurSigma
+        )
+
+        // Allow cells in the transduced channel to have unbounded area
         val transducedCells = filterCellsByIntensity(
-            cellSegmentationService.extractCells(transducedChannel, smallestCellDiameter, largestCellDiameter, gaussianBlurSigma = 3.0),
+            cellSegmentationService.extractCells(
+                transducedChannel,
+                CellDiameterRange(cellDiameterRange.smallest, Double.MAX_VALUE),
+                localThresholdRadius,
+                gaussianBlurSigma
+            ),
             transducedChannel
         )
         // TODO(#105) ^^
-        val allCells = if (allCellsChannel != null) cellSegmentationService.extractCells(
-            allCellsChannel,
-            smallestCellDiameter,
-            largestAllCellsDiameter,
-            gaussianBlurSigma = 3.0
-        ) else null
-
-        // TODO(tiger-cross): plugin 2 optimisation - use gb-sigma here
+        val allCells =
+            if (allCellsChannel != null && allCellDiameterRange != null) cellSegmentationService.extractCells(
+                allCellsChannel,
+                allCellDiameterRange,
+                localThresholdRadius,
+                gaussianBlurSigma
+            ) else null
 
         logService.info("Starting analysis")
 
         // Target layer is based and transduced layer is overlaid.
         val targetTransducedAnalysis = BucketedNaiveColocalizer(
-            largestCellDiameter.toInt(),
+            cellDiameterRange.largest.toInt(),
             targetChannel.width,
             targetChannel.height,
             SubsetPixelCellComparator(threshold = 0.5f)
@@ -355,7 +388,7 @@ class SimpleColocalization : Command {
         var allCellsAnalysis: ColocalizationAnalysis? = null
         if (allCells != null) {
             allCellsAnalysis = BucketedNaiveColocalizer(
-                largestCellDiameter.toInt(),
+                cellDiameterRange.largest.toInt(),
                 allCellsChannel!!.width,
                 allCellsChannel.height,
                 PixelCellComparator(threshold = 0.01f)
@@ -432,6 +465,48 @@ class SimpleColocalization : Command {
             imp.show()
             ij.command().run(SimpleColocalization::class.java, true)
         }
+    }
+
+    override fun preview() {
+        if (preview) {
+            val image = WindowManager.getCurrentImage()
+            if (image == null) {
+                MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+                return
+            }
+
+            val cellDiameterRange: CellDiameterRange
+            val allCellDiameterRange: CellDiameterRange?
+            try {
+                cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
+                allCellDiameterRange =
+                    if (isAllCellsEnabled()) CellDiameterRange.parseFromText(allCellDiameterText) else null
+            } catch (e: DiameterParseException) {
+                cancel()
+                return
+            }
+
+            val result = try {
+                process(image, cellDiameterRange, allCellDiameterRange)
+            } catch (e: ChannelDoesNotExistException) {
+                cancel()
+                return
+            }
+
+            image.show()
+            drawCells(image, result.overlappingTwoChannelCells)
+        }
+    }
+
+    override fun cancel() {
+        val roiManager = RoiManager.getRoiManager()
+        roiManager.reset()
+        roiManager.close()
+    }
+
+    /** Called when the preview parameter value changes. */
+    private fun previewChanged() {
+        if (!preview) cancel()
     }
 }
 

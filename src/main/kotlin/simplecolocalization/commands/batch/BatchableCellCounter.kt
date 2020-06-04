@@ -1,35 +1,33 @@
 package simplecolocalization.commands.batch
 
-import ij.IJ
 import ij.ImagePlus
-import ij.gui.GenericDialog
-import ij.gui.MessageDialog
 import java.io.File
 import java.io.IOException
 import javax.xml.transform.TransformerException
 import org.scijava.Context
 import simplecolocalization.commands.SimpleCellCounter
+import simplecolocalization.commands.displayOutputFileErrorDialog
+import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.counter.output.CSVCounterOutput
 import simplecolocalization.services.counter.output.XMLCounterOutput
 
-class BatchableCellCounter(private val context: Context) : Batchable {
+class BatchableCellCounter(private val targetChannel: Int, private val context: Context) : Batchable {
     override fun process(
         inputImages: List<ImagePlus>,
-        smallestCellDiameter: Double,
-        largestCellDiameter: Double,
+        cellDiameterRange: CellDiameterRange,
+        localThresholdRadius: Int,
         gaussianBlurSigma: Double,
         outputFormat: String,
         outputFile: File
     ) {
         val simpleCellCounter = SimpleCellCounter()
 
-        // TODO(sonjoonho): I hate this
-        simpleCellCounter.smallestCellDiameter = smallestCellDiameter
-        simpleCellCounter.largestCellDiameter = largestCellDiameter
+        simpleCellCounter.targetChannel = targetChannel
+        simpleCellCounter.localThresholdRadius = localThresholdRadius
         simpleCellCounter.gaussianBlurSigma = gaussianBlurSigma
         context.inject(simpleCellCounter)
 
-        val numCellsList = inputImages.map { simpleCellCounter.process(it).count }
+        val numCellsList = inputImages.map { simpleCellCounter.process(it, cellDiameterRange).count }
         val imageAndCount = inputImages.zip(numCellsList)
 
         val output = when (outputFormat) {
@@ -41,23 +39,9 @@ class BatchableCellCounter(private val context: Context) : Batchable {
         try {
             output.output()
         } catch (te: TransformerException) {
-            displayErrorDialog(fileType = "XML")
+            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
-            displayErrorDialog()
-        }
-        MessageDialog(
-            IJ.getInstance(),
-            "Saved",
-            "The colocalization results have successfully been saved to the specified file."
-        )
-    }
-
-    // TODO(tiger-cross): Reduce duplication here.
-    private fun displayErrorDialog(fileType: String = "") {
-        GenericDialog("Error").apply {
-            addMessage("Unable to save results to $fileType file. Ensure the output file is not currently open by other programs and try again.")
-            hideCancelButton()
-            showDialog()
+            displayOutputFileErrorDialog()
         }
     }
 }
