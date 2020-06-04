@@ -28,6 +28,8 @@ class CSVColocalizationOutput(
         if (result.overlappingThreeChannelCells != null) {
             outputData.add(arrayOf("Transduced cells in both morphology channels", result.overlappingThreeChannelCells.size.toString(), "", "", "", "", ""))
         }
+        val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
+        outputData.add(arrayOf("Transduction Efficiency", "$transductionEfficiency%", "", "", "", "", ""))
         outputData.add(arrayOf("--- Transduced Channel Analysis, Colocalized Cells ---", "", "", "", "", ""))
 
         // Per-cell analysis
