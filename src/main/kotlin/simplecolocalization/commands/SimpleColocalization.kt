@@ -356,7 +356,6 @@ class SimpleColocalization : Command, Previewable {
             gaussianBlurSigma
         )
 
-
         // Allow cells in the transduced channel to have unbounded area
         val transducedCells = filterCellsByIntensity(
             cellSegmentationService.extractCells(
