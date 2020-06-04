@@ -13,6 +13,7 @@ import javax.xml.transform.TransformerException
 import net.imagej.ImageJ
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
+import org.scijava.app.StatusService
 import org.scijava.command.Command
 import org.scijava.command.Previewable
 import org.scijava.log.LogService
@@ -48,6 +49,9 @@ class SimpleCellCounter : Command, Previewable {
 
     @Parameter
     private lateinit var logService: LogService
+
+    @Parameter
+    private lateinit var statusService: StatusService
 
     @Parameter
     private lateinit var cellSegmentationService: CellSegmentationService
@@ -177,6 +181,8 @@ class SimpleCellCounter : Command, Previewable {
             return
         }
 
+        statusService.showStatus(0, 100, "Starting...")
+
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
             val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
@@ -197,6 +203,8 @@ class SimpleCellCounter : Command, Previewable {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
         }
+
+        statusService.showStatus(100, 100, "Done!")
 
         writeOutput(result.count, image.title)
 
