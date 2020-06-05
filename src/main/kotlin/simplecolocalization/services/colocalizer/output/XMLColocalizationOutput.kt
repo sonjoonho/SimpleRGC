@@ -105,6 +105,11 @@ class XMLColocalizationOutput(
                 doc
             )
         }
+        addAttribute("MeanIntensityOfColocalizedCells",
+            (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(),
+            summary,
+            doc
+        )
     }
 
     @Throws(TransformerException::class, IOException::class)
