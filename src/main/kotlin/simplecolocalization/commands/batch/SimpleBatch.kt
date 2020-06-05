@@ -43,6 +43,7 @@ class SimpleBatch : Command {
         label = "Which plugin do you want to run in batch mode?",
         choices = [PluginChoice.SIMPLE_CELL_COUNTER, PluginChoice.SIMPLE_COLOCALIZATION],
         required = true,
+        persist = true,
         style = "radioButtonVertical"
     )
     private var pluginChoice = PluginChoice.SIMPLE_CELL_COUNTER
@@ -50,14 +51,15 @@ class SimpleBatch : Command {
     @Parameter(
         label = "Input folder:",
         required = true,
-        persist = false,
+        persist = true,
         style = "directory"
     )
     private lateinit var inputFolder: File
 
     @Parameter(
         label = "Batch process files in nested sub-folders?",
-        required = true
+        required = true,
+        persist = true
     )
     private var shouldProcessFilesInNestedFolders: Boolean = true
 
@@ -78,7 +80,7 @@ class SimpleBatch : Command {
         min = "1",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     private var targetChannel = 1
 
@@ -91,7 +93,7 @@ class SimpleBatch : Command {
         min = "0",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     var allCellsChannel = 0
 
@@ -104,7 +106,7 @@ class SimpleBatch : Command {
         min = "1",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     private var transducedChannel = 2
 
@@ -123,7 +125,7 @@ class SimpleBatch : Command {
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
-        persist = false
+        persist = true
     )
     var cellDiameterText = "0.0-30.0"
 
@@ -138,7 +140,7 @@ class SimpleBatch : Command {
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
     var localThresholdRadius = 20
 
@@ -150,7 +152,7 @@ class SimpleBatch : Command {
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
-        persist = false
+        persist = true
     )
     var allCellDiameterText = "0.0-30.0"
 
@@ -162,7 +164,7 @@ class SimpleBatch : Command {
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
     private var gaussianBlurSigma = 3.0
 
@@ -187,7 +189,7 @@ class SimpleBatch : Command {
         label = "Results Output:",
         choices = [OutputFormat.CSV, OutputFormat.XML],
         required = true,
-        persist = false,
+        persist = true,
         style = "radioButtonVertical"
     )
     private var outputFormat = OutputFormat.CSV
@@ -195,7 +197,7 @@ class SimpleBatch : Command {
     @Parameter(
         label = "Output file:",
         required = true,
-        persist = false,
+        persist = true,
         style = "save"
     )
     private lateinit var outputFile: File
