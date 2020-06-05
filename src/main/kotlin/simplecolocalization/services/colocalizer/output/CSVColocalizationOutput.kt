@@ -30,6 +30,7 @@ class CSVColocalizationOutput(
         }
         val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
         outputData.add(arrayOf("Transduction Efficiency", "$transductionEfficiency%", "", "", "", "", ""))
+        outputData.add(arrayOf("Mean intensity of colocalized cells", (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(), "", "", "", "", ""))
         outputData.add(arrayOf("--- Transduced Channel Analysis, Colocalized Cells ---", "", "", "", "", ""))
 
         // Per-cell analysis

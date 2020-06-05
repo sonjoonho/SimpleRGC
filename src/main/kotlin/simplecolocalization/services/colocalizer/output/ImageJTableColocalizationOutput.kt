@@ -64,9 +64,16 @@ class ImageJTableColocalizationOutput(
         }
 
         val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
-
         labelColumn.add("Transduction Efficiency (rounded to nearest integer) %")
         countColumn.add(transductionEfficiency.roundToInt())
+        areaColumn.add(0)
+        medianColumn.add(0)
+        meanColumn.add(0)
+        integratedDensityColumn.add(0)
+        rawIntegratedDensityColumn.add(0)
+      
+        labelColumn.add("Mean intensity of colocalized cells")
+        countColumn.add(result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size)
         areaColumn.add(0)
         medianColumn.add(0)
         meanColumn.add(0)
