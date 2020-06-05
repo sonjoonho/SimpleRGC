@@ -7,6 +7,7 @@ import ij.gui.GenericDialog
 import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
+import ij.plugin.frame.RoiManager
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
 import java.io.File
@@ -18,7 +19,9 @@ import net.imagej.ImageJ
 import net.imagej.ops.OpService
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
+import org.scijava.app.StatusService
 import org.scijava.command.Command
+import org.scijava.command.Previewable
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
@@ -35,6 +38,7 @@ import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
 import simplecolocalization.services.colocalizer.ColocalizationAnalysis
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
+import simplecolocalization.services.colocalizer.drawCells
 import simplecolocalization.services.colocalizer.output.CSVColocalizationOutput
 import simplecolocalization.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplecolocalization.services.colocalizer.output.XMLColocalizationOutput
@@ -42,12 +46,15 @@ import simplecolocalization.services.colocalizer.resetRoiManager
 import simplecolocalization.widgets.AlignedTextWidget
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
-class SimpleColocalization : Command {
+class SimpleColocalization : Command, Previewable {
 
     private val intensityPercentageThreshold: Float = 90f
 
     @Parameter
     private lateinit var logService: LogService
+
+    @Parameter
+    private lateinit var statusService: StatusService
 
     @Parameter
     private lateinit var cellSegmentationService: CellSegmentationService
@@ -206,6 +213,13 @@ class SimpleColocalization : Command {
     )
     private var outputFile: File? = null
 
+    @Parameter(
+        visibility = ItemVisibility.INVISIBLE,
+        persist = false,
+        callback = "previewChanged"
+    )
+    private var preview: Boolean = false
+
     /**
      * Result of transduction analysis for output.
      * @property targetCellCount Number of red channel cells.
@@ -262,6 +276,7 @@ class SimpleColocalization : Command {
             return
         }
 
+        statusService.showStatus(100, 100, "Done!")
         writeOutput(result)
 
         image.show()
@@ -340,10 +355,12 @@ class SimpleColocalization : Command {
             localThresholdRadius,
             gaussianBlurSigma
         )
+
+        // Allow cells in the transduced channel to have unbounded area
         val transducedCells = filterCellsByIntensity(
             cellSegmentationService.extractCells(
                 transducedChannel,
-                cellDiameterRange,
+                CellDiameterRange(cellDiameterRange.smallest, Double.MAX_VALUE),
                 localThresholdRadius,
                 gaussianBlurSigma
             ),
@@ -358,6 +375,7 @@ class SimpleColocalization : Command {
                 gaussianBlurSigma
             ) else null
 
+        statusService.showStatus(80, 100, "Analysing transduction...")
         logService.info("Starting analysis")
 
         // Target layer is based and transduced layer is overlaid.
@@ -453,6 +471,48 @@ class SimpleColocalization : Command {
             imp.show()
             ij.command().run(SimpleColocalization::class.java, true)
         }
+    }
+
+    override fun preview() {
+        if (preview) {
+            val image = WindowManager.getCurrentImage()
+            if (image == null) {
+                MessageDialog(IJ.getInstance(), "Error", "There is no file open")
+                return
+            }
+
+            val cellDiameterRange: CellDiameterRange
+            val allCellDiameterRange: CellDiameterRange?
+            try {
+                cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
+                allCellDiameterRange =
+                    if (isAllCellsEnabled()) CellDiameterRange.parseFromText(allCellDiameterText) else null
+            } catch (e: DiameterParseException) {
+                cancel()
+                return
+            }
+
+            val result = try {
+                process(image, cellDiameterRange, allCellDiameterRange)
+            } catch (e: ChannelDoesNotExistException) {
+                cancel()
+                return
+            }
+
+            image.show()
+            drawCells(image, result.overlappingTwoChannelCells)
+        }
+    }
+
+    override fun cancel() {
+        val roiManager = RoiManager.getRoiManager()
+        roiManager.reset()
+        roiManager.close()
+    }
+
+    /** Called when the preview parameter value changes. */
+    private fun previewChanged() {
+        if (!preview) cancel()
     }
 }
 

@@ -62,6 +62,14 @@ class ImageJTableColocalizationOutput(
             rawIntegratedDensityColumn.add(0)
         }
 
+        labelColumn.add("Mean intensity of colocalized cells")
+        countColumn.add(result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size)
+        areaColumn.add(0)
+        medianColumn.add(0)
+        meanColumn.add(0)
+        integratedDensityColumn.add(0)
+        rawIntegratedDensityColumn.add(0)
+
         labelColumn.add("--- Transduced Channel Analysis, Colocalized Cells ---")
         countColumn.add(0)
         areaColumn.add(0)
