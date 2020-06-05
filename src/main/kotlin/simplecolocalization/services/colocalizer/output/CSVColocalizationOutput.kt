@@ -28,6 +28,7 @@ class CSVColocalizationOutput(
         if (result.overlappingThreeChannelCells != null) {
             outputData.add(arrayOf("Transduced cells in both morphology channels", result.overlappingThreeChannelCells.size.toString(), "", "", "", "", ""))
         }
+        outputData.add(arrayOf("Mean intensity of colocalized cells", (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(), "", "", "", "", ""))
         outputData.add(arrayOf("--- Transduced Channel Analysis, Colocalized Cells ---", "", "", "", "", ""))
 
         // Per-cell analysis
