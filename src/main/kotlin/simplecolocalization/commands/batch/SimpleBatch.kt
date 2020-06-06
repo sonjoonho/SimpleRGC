@@ -132,7 +132,7 @@ class SimpleBatch : Command {
      */
     @Parameter(
         label = "Local Threshold Radius",
-        // TODO: Improve this description to make more intuitive.
+        // TODO(#133): Improve this description to make more intuitive.
         description = "The radius of the local domain over which the threshold will be computed.",
         min = "1",
         stepSize = "1",
@@ -238,7 +238,7 @@ class SimpleBatch : Command {
             )
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
-        // TODO(tiger-cross): Think more about allCellsDiameter and where to pass it.
+        // TODO(#136): Think more about allCellsDiameter and where to pass it.
         strategy.process(
             openFiles(files),
             cellDiameterRange,
