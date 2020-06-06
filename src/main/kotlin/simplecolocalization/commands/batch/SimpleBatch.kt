@@ -17,6 +17,7 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.NumberWidget
+import simplecolocalization.utils.AlphanumComparator
 import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.DiameterParseException
@@ -260,7 +261,7 @@ class SimpleBatch : Command {
             file.walkTopDown().filter { f -> !f.isDirectory }.toList()
         } else {
             file.listFiles()?.filter { f -> !f.isDirectory }?.toList() ?: listOf(file)
-        }
+        }.sortedWith(AlphanumFileComparator)
     }
 
     private fun openFiles(inputFiles: List<File>): List<ImagePlus> {
@@ -327,6 +328,14 @@ class SimpleBatch : Command {
             ij.launch()
 
             ij.command().run(SimpleBatch::class.java, true)
+        }
+    }
+}
+
+class AlphanumFileComparator {
+    companion object : Comparator<File> {
+        override fun compare(f1: File, f2: File): Int {
+            return AlphanumComparator.compare(f1.absolutePath, f2.absolutePath)
         }
     }
 }
