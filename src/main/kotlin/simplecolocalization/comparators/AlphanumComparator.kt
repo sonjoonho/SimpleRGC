@@ -1,4 +1,6 @@
-package simplecolocalization.utils
+package simplecolocalization.comparators
+
+import java.io.File
 
 /*
  * The Alphanum Algorithm is an improved sorting algorithm for strings
@@ -30,10 +32,14 @@ package simplecolocalization.utils
  * USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+/**
+ * Custom string comparator for applying the Alphanum Algorithm described above.
+ */
 class AlphanumComparator {
 
     companion object : Comparator<String> {
-        /** Length of string is passed in for improved efficiency (only need to calculate it once)  */
+
+        /** Length of string is passed in for improved efficiency (only need to calculate it once).  */
         private fun getChunk(s: String, slength: Int, initialMarker: Int): String {
             var marker = initialMarker
             val chunk = StringBuilder()
@@ -96,6 +102,18 @@ class AlphanumComparator {
                 if (result != 0) return result
             }
             return s1Length - s2Length
+        }
+    }
+}
+
+/**
+ * Custom comparator for ordering File objects based on file path.
+ * Uses the Alphanum Algorithm.
+ */
+class AlphanumFileComparator {
+    companion object : Comparator<File> {
+        override fun compare(f1: File, f2: File): Int {
+            return AlphanumComparator.compare(f1.absolutePath, f2.absolutePath)
         }
     }
 }
