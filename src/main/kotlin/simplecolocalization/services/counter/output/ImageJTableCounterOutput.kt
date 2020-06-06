@@ -12,7 +12,7 @@ class ImageJTableCounterOutput(private val uiService: UIService) : CounterOutput
     override fun addCountForFile(count: Int, file: String) {
         countColumn.add(count)
 
-        // TODO(kz): Implement storing and displaying filenames
+        // TODO(#131): Implement storing and displaying filenames
     }
 
     /**

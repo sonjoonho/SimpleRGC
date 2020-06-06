@@ -96,7 +96,7 @@ class SimpleCellCounter : Command, Previewable {
      */
     @Parameter(
         label = "Local Threshold Radius:",
-        // TODO: Improve this description to make more intuitive.
+        // TODO(#133): Improve this description to make more intuitive.
         description = "The radius of the local domain over which the threshold will be computed.",
         min = "1",
         stepSize = "1",
@@ -306,6 +306,7 @@ class SimpleCellCounter : Command, Previewable {
             }
 
             image.show()
+            logService.info(result.cells.size)
             drawCells(image, result.cells)
         }
     }

@@ -48,7 +48,8 @@ import simplecolocalization.widgets.AlignedTextWidget
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
 class SimpleColocalization : Command, Previewable {
 
-    private val intensityPercentageThreshold: Float = 90f
+    @Parameter
+    private var intensityPercentageThreshold: Float = 60f
 
     @Parameter
     private lateinit var logService: LogService
@@ -147,7 +148,7 @@ class SimpleColocalization : Command, Previewable {
      */
     @Parameter(
         label = "Local Threshold Radius",
-        // TODO: Improve this description to make more intuitive.
+        // TODO(#133): Improve this description to make more intuitive.
         description = "The radius of the local domain over which the threshold will be computed.",
         min = "1",
         stepSize = "1",
@@ -227,7 +228,7 @@ class SimpleColocalization : Command, Previewable {
      * @property overlappingTwoChannelCells List of cells which overlap two channels.
      * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
      *
-     * TODO(tiger-cross): Discuss whether we want to use targetCellCount in the single colocalisation plugin
+     * TODO(#134): Discuss whether we want to use targetCellCount in the single colocalisation plugin
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
@@ -254,7 +255,7 @@ class SimpleColocalization : Command, Previewable {
             return
         }
 
-        // TODO(sonjoonho): Remove duplication in this code fragment.
+        // TODO(#135): Remove duplication in this code fragment.
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
             val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
