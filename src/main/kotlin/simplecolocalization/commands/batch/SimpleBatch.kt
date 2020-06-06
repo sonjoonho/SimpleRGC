@@ -40,7 +40,7 @@ class SimpleBatch : Command {
     }
 
     @Parameter(
-        label = "Which plugin do you want to run in batch mode?",
+        label = "Which plugin would you like to run in batch mode?",
         choices = [PluginChoice.SIMPLE_CELL_COUNTER, PluginChoice.SIMPLE_COLOCALIZATION],
         required = true,
         style = "radioButtonVertical"
@@ -48,7 +48,7 @@ class SimpleBatch : Command {
     private var pluginChoice = PluginChoice.SIMPLE_CELL_COUNTER
 
     @Parameter(
-        label = "Input folder:",
+        label = "Input folder",
         required = true,
         persist = false,
         style = "directory"
@@ -74,7 +74,7 @@ class SimpleBatch : Command {
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Cell Morphology Channel 1",
+        label = "Cell morphology channel 1",
         min = "1",
         stepSize = "1",
         required = true,
@@ -87,7 +87,7 @@ class SimpleBatch : Command {
      * By default this is the 0 (disabled).
      */
     @Parameter(
-        label = "Cell Morphology Channel 2 (Colocalization Only, 0 to disable):",
+        label = "Cell morphology channel 2 (colocalization only, 0 to disable)",
         min = "0",
         stepSize = "1",
         required = true,
@@ -100,7 +100,7 @@ class SimpleBatch : Command {
      * By default this is the 2 (green) channel.
      */
     @Parameter(
-        label = "Transduction Channel (Colocalization Only)",
+        label = "Transduction channel (colocalization only)",
         min = "1",
         stepSize = "1",
         required = true,
@@ -109,7 +109,7 @@ class SimpleBatch : Command {
     private var transducedChannel = 2
 
     @Parameter(
-        label = "Image Processing Parameters:",
+        label = "Image processing parameters",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
@@ -119,7 +119,7 @@ class SimpleBatch : Command {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Cell Diameter for Morphology Channel 1 (px)",
+        label = "Cell diameter for morphology channel 1 (px)",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
@@ -131,7 +131,7 @@ class SimpleBatch : Command {
      * Used as the size of the window over which the threshold will be locally computed.
      */
     @Parameter(
-        label = "Local Threshold Radius",
+        label = "Local threshold radius",
         // TODO(#133): Improve this description to make more intuitive.
         description = "The radius of the local domain over which the threshold will be computed.",
         min = "1",
@@ -146,7 +146,7 @@ class SimpleBatch : Command {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Cell Diameter (px) for Morphology Channel 2 (px) (colocalization only, only if enabled)",
+        label = "Cell diameter for morphology channel 2 (px) (colocalization only, if enabled)",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
@@ -155,9 +155,9 @@ class SimpleBatch : Command {
     var allCellDiameterText = "0.0-30.0"
 
     @Parameter(
-        label = "Gaussian Blur Sigma",
+        label = "Gaussian blur sigma",
         description = "Sigma value used for blurring the image during the processing," +
-            " a lower value is recommended if there are lots of cells densely packed together",
+            " a lower value is recommended if there is a high cell density",
         min = "1",
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
@@ -167,7 +167,7 @@ class SimpleBatch : Command {
     private var gaussianBlurSigma = 3.0
 
     @Parameter(
-        label = "Output Parameters:",
+        label = "Output parameters",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
@@ -184,7 +184,7 @@ class SimpleBatch : Command {
     }
 
     @Parameter(
-        label = "Results Output:",
+        label = "Results output",
         choices = [OutputFormat.CSV, OutputFormat.XML],
         required = true,
         persist = false,
@@ -193,7 +193,7 @@ class SimpleBatch : Command {
     private var outputFormat = OutputFormat.CSV
 
     @Parameter(
-        label = "Output file:",
+        label = "Output file",
         required = true,
         persist = false,
         style = "save"

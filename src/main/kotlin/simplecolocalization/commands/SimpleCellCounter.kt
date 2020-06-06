@@ -64,7 +64,7 @@ class SimpleCellCounter : Command, Previewable {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Select Channel To Use:",
+        label = "Select channel to use",
         min = "1",
         stepSize = "1",
         required = true,
@@ -73,7 +73,7 @@ class SimpleCellCounter : Command, Previewable {
     var targetChannel = 1
 
     @Parameter(
-        label = "Image Processing Parameters:",
+        label = "Image processing parameters",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
@@ -83,7 +83,7 @@ class SimpleCellCounter : Command, Previewable {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Cell Diameter (px):",
+        label = "Cell diameter (px)",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
@@ -95,7 +95,7 @@ class SimpleCellCounter : Command, Previewable {
      * Used as the size of the window over which the threshold will be locally computed.
      */
     @Parameter(
-        label = "Local Threshold Radius:",
+        label = "Local threshold radius",
         // TODO(#133): Improve this description to make more intuitive.
         description = "The radius of the local domain over which the threshold will be computed.",
         min = "1",
@@ -107,7 +107,7 @@ class SimpleCellCounter : Command, Previewable {
     var localThresholdRadius = 20
 
     @Parameter(
-        label = "Gaussian Blur Sigma:",
+        label = "Gaussian blur sigma",
         description = "Sigma value used for blurring the image during the processing," +
             " a lower value is recommended if there are lots of cells densely packed together",
         min = "1",
@@ -119,14 +119,14 @@ class SimpleCellCounter : Command, Previewable {
     var gaussianBlurSigma = 3.0
 
     @Parameter(
-        label = "Remove Axons",
+        label = "Remove axons",
         required = true,
         persist = true
     )
     private var shouldRemoveAxons: Boolean = false
 
     @Parameter(
-        label = "Output Parameters:",
+        label = "Output parameters",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
@@ -142,7 +142,7 @@ class SimpleCellCounter : Command, Previewable {
     }
 
     @Parameter(
-        label = "Results Output:",
+        label = "Results output",
         choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
         required = true,
         persist = true,
@@ -151,7 +151,7 @@ class SimpleCellCounter : Command, Previewable {
     private var outputFormat = OutputFormat.DISPLAY
 
     @Parameter(
-        label = "Output File (if saving):",
+        label = "Output File (if saving)",
         style = "save",
         required = false
     )
