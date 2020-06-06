@@ -39,8 +39,6 @@ class BatchableColocalizer(
     ) {
         val simpleColocalization = SimpleColocalization()
 
-        // TODO(sonjoonho): I hate this
-
         simpleColocalization.localThresholdRadius = localThresholdRadius
         simpleColocalization.targetChannel = targetChannel
         simpleColocalization.transducedChannel = transducedChannel
