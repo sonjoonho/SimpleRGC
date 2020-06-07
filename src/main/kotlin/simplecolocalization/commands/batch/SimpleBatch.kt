@@ -138,6 +138,51 @@ class SimpleBatch : Command {
         return inputImages
     }
 
+    /** Runs BatchableCellCounter, called in action listener for "Ok" button. */
+    private fun runSimpleCellCounter(
+        inputFolder: File?,
+        shouldProcessFilesInNestedFolders: Boolean,
+        channel: Int,
+        thresholdRadius: Int,
+        gaussianBlurSigma: Double,
+        outputFormat: String,
+        outputFile: File?
+    ) {
+        if (inputFolder == null) {
+            MessageDialog(
+                IJ.getInstance(), "Error", "No input folder selected"
+            )
+        } else if (outputFile == null) {
+            MessageDialog(
+                IJ.getInstance(), "Error", "No output file selected"
+            )
+        } else if (!inputFolder.exists()) {
+            MessageDialog(
+                IJ.getInstance(), "Error",
+                "The input folder could not be opened. Please create it if it does not already exist"
+            )
+        } else {
+            val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
+
+            val cellCounter = BatchableCellCounter(channel, context)
+
+            // TODO: Use the user input cell diameter range
+            cellCounter.process(
+                openFiles(files),
+                CellDiameterRange(0.0, 100.0),
+                thresholdRadius,
+                gaussianBlurSigma,
+                outputFormat,
+                outputFile
+            )
+            MessageDialog(
+                IJ.getInstance(),
+                "Saved",
+                "The batch processing results have successfully been saved to the specified file."
+            )
+        }
+    }
+
     /** Creates the Simple Cell Counter GUI. */
     private fun simpleCellCounterPanel(): JPanel {
         // TODO: Make this pretty
@@ -145,7 +190,6 @@ class SimpleBatch : Command {
         val panel = JPanel()
         panel.layout = GridLayout(0, 1)
 
-        // TODO: Handle no directory chosen (when inputFolder is null)
         var inputFolder: File? = null
         val button = addFileChooser(panel, "Input folder")
         button.addActionListener {
@@ -190,7 +234,6 @@ class SimpleBatch : Command {
         resultsOutputPanel.add(saveAsXMLButton)
         panel.add(resultsOutputPanel)
 
-        // TODO: Handle no file selected (when outputFile is null)
         var outputFile: File? = null
         val browseButton = addFileChooser(panel, "Output File (if saving)")
         browseButton.addActionListener {
@@ -205,32 +248,71 @@ class SimpleBatch : Command {
         val okButton = JButton("Ok")
         panel.add(okButton)
         okButton.addActionListener {
+            val shouldProcessFilesInNestedFolders = shouldProcessFilesInNestedFoldersCheckbox.isSelected
             val channel = channelSpinner.value as Int
             val thresholdRadius = thresholdRadiusSpinner.value as Int
             val gaussianBlurSigma = (gaussianBlurSpinner.value as Int).toDouble()
-            // val removeAxons = removeAxonsCheckbox.isSelected
             val outputFormat = when {
                 saveAsCSVButton.isSelected -> OutputFormat.CSV
                 saveAsXMLButton.isSelected -> OutputFormat.XML
-                else -> // TODO: Handle no output format selected
-                    ""
+                else -> ""
             }
+            runSimpleCellCounter(
+                inputFolder,
+                shouldProcessFilesInNestedFolders,
+                channel,
+                thresholdRadius,
+                gaussianBlurSigma,
+                outputFormat,
+                outputFile
+                )
+        }
 
-            // TODO: handle the null inputFolder correctly
-            val files = getAllFiles(inputFolder!!, shouldProcessFilesInNestedFoldersCheckbox.isSelected)
+        return panel
+    }
 
-            val cellCounter = BatchableCellCounter(channel, context)
-
-            // TODO: Use the user input cell diameter range
-            cellCounter.process(openFiles(files), CellDiameterRange(0.0, 100.0), thresholdRadius, gaussianBlurSigma, outputFormat, outputFile!!)
+    /** Runs BatchableColocalizer, called in action listener for "Ok" button. */
+    private fun runSimpleColocalizer(
+        inputFolder: File?,
+        shouldProcessFilesInNestedFolders: Boolean,
+        thresholdRadius: Int,
+        gaussianBlurSigma: Double,
+        outputFormat: String,
+        targetChannel: Int,
+        transducedChannel: Int,
+        allCellsChannel: Int,
+        outputFile: File?
+    ) {
+        if (inputFolder == null) {
+            MessageDialog(
+                IJ.getInstance(), "Error", "No input folder selected"
+            )
+        } else if (outputFile == null) {
+            MessageDialog(
+                IJ.getInstance(), "Error", "No output file selected"
+            )
+        } else if (!inputFolder.exists()) {
+            MessageDialog(
+                IJ.getInstance(), "Error",
+                "The input folder could not be opened. Please create it if it does not already exist"
+            )
+        } else {
+            val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
+            val colocalizer = BatchableColocalizer(targetChannel, transducedChannel, allCellsChannel, context)
+            colocalizer.process(
+                openFiles(files),
+                CellDiameterRange(0.0, 100.0),
+                thresholdRadius,
+                gaussianBlurSigma,
+                outputFormat,
+                outputFile
+            )
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
                 "The batch processing results have successfully been saved to the specified file."
             )
         }
-
-        return panel
     }
 
     /** Creates the Simple Colocalizer GUI. */
@@ -239,7 +321,6 @@ class SimpleBatch : Command {
         val panel = JPanel()
         panel.layout = GridLayout(0, 1)
 
-        // TODO: Handle no directory chosen (when inputFolder is null)
         var inputFolder: File? = null
         val button = addFileChooser(panel, "Input folder")
         button.addActionListener {
@@ -298,7 +379,6 @@ class SimpleBatch : Command {
         resultsOutputPanel.add(saveAsXMLButton)
         panel.add(resultsOutputPanel)
 
-        // TODO: Handle no file selected (when outputFile is null)
         var outputFile: File? = null
         val browseButton = addFileChooser(panel, "Output File (if saving)")
         browseButton.addActionListener {
@@ -313,26 +393,27 @@ class SimpleBatch : Command {
         val okButton = JButton("Ok")
         panel.add(okButton)
         okButton.addActionListener {
-            // TODO: handle the null inputFolder correctly
-            val files = getAllFiles(inputFolder!!, shouldProcessFilesInNestedFoldersCheckbox.isSelected)
+            val shouldProcessFilesInNestedFolders = shouldProcessFilesInNestedFoldersCheckbox.isSelected
             val thresholdRadius = thresholdRadiusSpinner.value as Int
             val gaussianBlurSigma = (gaussianBlurSpinner.value as Int).toDouble()
             val outputFormat = when {
                 saveAsCSVButton.isSelected -> OutputFormat.CSV
                 saveAsXMLButton.isSelected -> OutputFormat.XML
-                else -> // TODO: Handle no output format selected
-                    ""
+                else -> ""
             }
             val targetChannel = targetChannelSpinner.value as Int
             val transducedChannel = transducedChannelSpinner.value as Int
             val allCellsChannel = allCellsChannelSpinner.value as Int
-            val colocalizer = BatchableColocalizer(targetChannel, transducedChannel, allCellsChannel, context)
-            colocalizer.process(openFiles(files), CellDiameterRange(0.0, 100.0), thresholdRadius, gaussianBlurSigma, outputFormat, outputFile!!)
-            MessageDialog(
-                IJ.getInstance(),
-                "Saved",
-                "The batch processing results have successfully been saved to the specified file."
-            )
+            runSimpleColocalizer(
+                inputFolder,
+                shouldProcessFilesInNestedFolders,
+                thresholdRadius,
+                gaussianBlurSigma,
+                outputFormat,
+                targetChannel,
+                transducedChannel,
+                allCellsChannel,
+                outputFile)
         }
 
         return panel
