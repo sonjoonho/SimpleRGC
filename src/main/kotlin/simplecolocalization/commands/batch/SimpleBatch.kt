@@ -4,22 +4,29 @@ import ij.IJ
 import ij.ImagePlus
 import ij.gui.MessageDialog
 import ij.io.Opener
+import java.awt.Container
+import java.awt.GridLayout
 import java.io.File
+import javax.swing.ButtonGroup
+import javax.swing.JButton
+import javax.swing.JCheckBox
+import javax.swing.JFileChooser
+import javax.swing.JFrame
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JRadioButton
+import javax.swing.JSpinner
+import javax.swing.JTabbedPane
+import javax.swing.SpinnerNumberModel
 import loci.formats.UnknownFormatException
 import loci.plugins.BF
 import loci.plugins.`in`.ImporterOptions
-import net.imagej.ImageJ
 import org.scijava.Context
-import org.scijava.ItemVisibility
 import org.scijava.command.Command
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
-import org.scijava.ui.UIService
-import org.scijava.widget.NumberWidget
 import simplecolocalization.services.CellDiameterRange
-import simplecolocalization.services.CellSegmentationService
-import simplecolocalization.services.DiameterParseException
 import simplecolocalization.widgets.AlignedTextWidget
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
@@ -29,230 +36,50 @@ class SimpleBatch : Command {
     private lateinit var logService: LogService
 
     @Parameter
-    private lateinit var uiService: UIService
-
-    @Parameter
     private lateinit var context: Context
 
-    object PluginChoice {
-        const val SIMPLE_CELL_COUNTER = "SimpleCellCounter"
-        const val SIMPLE_COLOCALIZATION = "SimpleColocalization"
-    }
-
-    @Parameter(
-        label = "Which plugin would you like to run in batch mode?",
-        choices = [PluginChoice.SIMPLE_CELL_COUNTER, PluginChoice.SIMPLE_COLOCALIZATION],
-        required = true,
-        style = "radioButtonVertical"
-    )
-    private var pluginChoice = PluginChoice.SIMPLE_CELL_COUNTER
-
-    @Parameter(
-        label = "Input folder",
-        required = true,
-        persist = false,
-        style = "directory"
-    )
-    private lateinit var inputFolder: File
-
-    @Parameter(
-        label = "Batch process files in nested sub-folders?",
-        required = true
-    )
-    private var shouldProcessFilesInNestedFolders: Boolean = true
-
-    @Parameter(
-        label = "<html><div align=\"right\">\nWhen performing batch colocalization, ensure that <br />all input images have the same channel ordering as<br />specified below.</div></html>",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private var colocalizationInstruction = ""
-
-    /**
-     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
-     * the channels available at the parameter initialisation stage.
-     * By default this is 1 (red) channel.
-     */
-    @Parameter(
-        label = "Cell morphology channel 1",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = false
-    )
-    private var targetChannel = 1
-
-    /**
-     * Specify the channel for the all cells channel.
-     * By default this is the 0 (disabled).
-     */
-    @Parameter(
-        label = "Cell morphology channel 2 (colocalization only, 0 to disable)",
-        min = "0",
-        stepSize = "1",
-        required = true,
-        persist = false
-    )
-    var allCellsChannel = 0
-
-    /**
-     * Specify the channel for the transduced cells.
-     * By default this is the 2 (green) channel.
-     */
-    @Parameter(
-        label = "Transduction channel (colocalization only)",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = false
-    )
-    private var transducedChannel = 2
-
-    @Parameter(
-        label = "Image processing parameters",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var processingParametersHeader: String
-
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter for morphology channel 1 (px)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = false
-    )
-    var cellDiameterText = "0.0-30.0"
-
-    /**
-     * Used as the size of the window over which the threshold will be locally computed.
-     */
-    @Parameter(
-        label = "Local threshold radius",
-        // TODO(#133): Improve this description to make more intuitive.
-        description = "The radius of the local domain over which the threshold will be computed.",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    var localThresholdRadius = 20
-
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter for morphology channel 2 (px) (colocalization only, if enabled)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = false
-    )
-    var allCellDiameterText = "0.0-30.0"
-
-    @Parameter(
-        label = "Gaussian blur sigma",
-        description = "Sigma value used for blurring the image during the processing," +
-            " a lower value is recommended if there is a high cell density",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = false
-    )
-    private var gaussianBlurSigma = 3.0
-
-    @Parameter(
-        label = "Output parameters",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var outputParametersHeader: String
-
-    /**
-     * The user can optionally output the results to a file.
-     *
-     * TODO(Arjun): Reinstate a parameter for this once display output is built
-     */
     object OutputFormat {
         const val CSV = "Save as CSV file"
         const val XML = "Save as XML file"
     }
 
-    @Parameter(
-        label = "Results output",
-        choices = [OutputFormat.CSV, OutputFormat.XML],
-        required = true,
-        persist = false,
-        style = "radioButtonVertical"
-    )
-    private var outputFormat = OutputFormat.CSV
+    /** Adds a spinner with the given label and model to the container, returning the JSpinner. */
+    private fun addSpinner(container: Container, labelName: String, model: SpinnerNumberModel): JSpinner {
+        val panel = JPanel()
+        val label = JLabel(labelName)
+        val spinner = JSpinner(model)
+        label.labelFor = spinner
+        panel.add(label)
+        panel.add(spinner)
+        container.add(panel)
+        return spinner
+    }
 
-    @Parameter(
-        label = "Output file",
-        required = true,
-        persist = false,
-        style = "save"
-    )
-    private lateinit var outputFile: File
+    /** Adds a checkbox with the given label to the container, returning the JCheckBox. */
+    private fun addCheckBox(container: Container, labelName: String): JCheckBox {
+        val panel = JPanel()
+        val label = JLabel(labelName)
+        val checkBox = JCheckBox()
+        label.labelFor = checkBox
+        panel.add(label)
+        panel.add(checkBox)
+        container.add(panel)
+        return checkBox
+    }
 
-    override fun run() {
-        if (!inputFolder.exists()) {
-            MessageDialog(
-                IJ.getInstance(), "Error",
-                "The input folder could not be opened. Please create it if it does not already exist"
-            )
-            return
-        }
+    /** Adds a file chooser with the given label to the container, returning the browseButton so an
+     *  action listener can be added by the caller.
+     */
+    private fun addFileChooser(container: Container, labelName: String): JButton {
+        val panel = JPanel()
+        val label = JLabel(labelName)
+        val browseButton = JButton("Browse")
+        label.labelFor = browseButton
+        panel.add(label)
+        panel.add(browseButton)
+        container.add(panel)
 
-        val cellDiameterRange: CellDiameterRange
-        try {
-            cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
-        } catch (e: DiameterParseException) {
-            MessageDialog(IJ.getInstance(), "Error", e.message)
-            return
-        }
-
-        // Validate output file extension.
-        when (outputFormat) {
-            OutputFormat.CSV -> {
-                if (!outputFile.path.endsWith(".csv", ignoreCase = true)) {
-                    outputFile = File("${outputFile.path}.csv")
-                }
-            }
-        }
-
-        val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
-
-        val strategy = when (pluginChoice) {
-            PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(targetChannel, context)
-            PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(
-                targetChannel,
-                transducedChannel,
-                allCellsChannel,
-                context
-            )
-            else -> throw IllegalArgumentException("Invalid plugin choice provided")
-        }
-        // TODO(#136): Think more about allCellsDiameter and where to pass it.
-        strategy.process(
-            openFiles(files),
-            cellDiameterRange,
-            localThresholdRadius,
-            gaussianBlurSigma,
-            outputFormat,
-            outputFile
-        )
-
-        MessageDialog(
-            IJ.getInstance(),
-            "Saved",
-            "The batch processing results have successfully been saved to the specified file."
-        )
+        return browseButton
     }
 
     private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
@@ -308,25 +135,131 @@ class SimpleBatch : Command {
                 )
             }
         }
-
         return inputImages
     }
 
-    companion object {
-        /**
-         * Entry point to directly open the plugin, used for debugging purposes.
-         *
-         * @throws Exception
-         */
-        @Throws(Exception::class)
-        @JvmStatic
-        fun main(args: Array<String>) {
-            val ij = ImageJ()
+    /** Creates the Simple Cell Counter GUI. */
+    private fun simpleCellCounterPanel(): JPanel {
+        // TODO: Make this pretty, add a layout manager
+        // TODO: Make User parameters persist
+        val panel = JPanel()
+        panel.layout = GridLayout(0, 1)
 
-            ij.context().inject(CellSegmentationService())
-            ij.launch()
-
-            ij.command().run(SimpleBatch::class.java, true)
+        // TODO: Handle no directory chosen (when inputFolder is null)
+        var inputFolder: File? = null
+        val button = addFileChooser(panel, "Input folder")
+        button.addActionListener {
+            val fileChooser = JFileChooser()
+            fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+            val i = fileChooser.showOpenDialog(panel)
+            if (i == JFileChooser.APPROVE_OPTION) {
+                inputFolder = fileChooser.selectedFile
+            }
         }
+
+        val shouldProcessFilesInNestedFoldersCheckbox = addCheckBox(panel, "Batch process in nested sub-folders?")
+
+        val channelModel = SpinnerNumberModel(1, 0, 10, 1)
+        val channelSpinner = addSpinner(panel, "Select channel to use", channelModel)
+
+        val imageProcessingParametersLabel = JLabel("Image processing parameters")
+        panel.add(imageProcessingParametersLabel)
+
+        // TODO: Hook this up so it actually works
+        val cellDiameterLabel = JLabel("Cell diameter(px)")
+        val cellDiameterWidget = AlignedTextWidget()
+        panel.add(cellDiameterLabel)
+
+        val thresholdRadiusModel = SpinnerNumberModel(20, 1, 1000, 1)
+        val thresholdRadiusSpinner = addSpinner(panel, "Local threshold radius", thresholdRadiusModel)
+
+        val gaussianBlurModel = SpinnerNumberModel(3, 1, 50, 1)
+        val gaussianBlurSpinner = addSpinner(panel, "Gaussian blur sigma", gaussianBlurModel)
+
+        // TODO: Make removeAxons actually do something
+        val removeAxonsCheckbox = addCheckBox(panel, "Remove Axons")
+
+        val outputParamsLabel = JLabel("Output parameters")
+        panel.add(outputParamsLabel)
+
+        val resultsOutputPanel = JPanel()
+        val resultsOutputLabel = JLabel("Results output")
+        val saveAsCSVButton = JRadioButton("Save as a CSV file")
+        val saveAsXMLButton = JRadioButton("Save as XML file")
+        val bg = ButtonGroup()
+        bg.add(saveAsCSVButton); bg.add(saveAsXMLButton)
+        resultsOutputPanel.add(resultsOutputLabel)
+        resultsOutputPanel.add(saveAsCSVButton)
+        resultsOutputPanel.add(saveAsXMLButton)
+        panel.add(resultsOutputPanel)
+
+        // TODO: Handle no file selected (when outputFile is null)
+        var outputFile: File? = null
+        val browseButton = addFileChooser(panel, "Output File (if saving)")
+        browseButton.addActionListener {
+            val fileChooser = JFileChooser()
+            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+            val i = fileChooser.showOpenDialog(panel)
+            if (i == JFileChooser.APPROVE_OPTION) {
+                outputFile = fileChooser.selectedFile
+            }
+        }
+
+        val okButton = JButton("Ok")
+        panel.add(okButton)
+        okButton.addActionListener {
+            val channel = channelSpinner.value as Int
+            val thresholdRadius = thresholdRadiusSpinner.value as Int
+            val gaussianBlurSigma = (gaussianBlurSpinner.value as Int).toDouble()
+            // val removeAxons = removeAxonsCheckbox.isSelected
+            val outputFormat = when {
+                saveAsCSVButton.isSelected -> OutputFormat.CSV
+                saveAsXMLButton.isSelected -> OutputFormat.XML
+                else -> // TODO: Handle no output format selected
+                    ""
+            }
+
+            val shouldProcessFilesInNestedFolders = shouldProcessFilesInNestedFoldersCheckbox.isSelected
+
+            // TODO: handle the null inputFolder correctly
+            val files = getAllFiles(inputFolder!!, shouldProcessFilesInNestedFolders)
+
+            val cellCounter = BatchableCellCounter(channel, context)
+
+            // TODO: Use the user input cell diameter range
+            cellCounter.process(openFiles(files), CellDiameterRange(0.0, 100.0), thresholdRadius, gaussianBlurSigma, outputFormat, outputFile!!)
+            MessageDialog(
+                IJ.getInstance(),
+                "Saved",
+                "The batch processing results have successfully been saved to the specified file."
+            )
+        }
+
+        return panel
+    }
+
+    /** Creates the Simple Colocalizer GUI. */
+    private fun simpleColocalizerPanel(): JPanel {
+        // TODO: Create panel for Simple Colocalizer
+        return JPanel()
+    }
+
+    private fun gui() {
+        val frame = JFrame()
+        val simpleCellCounterPanel = simpleCellCounterPanel()
+        val simpleColocalizerPanel = simpleColocalizerPanel()
+        val tp = JTabbedPane()
+        tp.setBounds(10, 10, 700, 700)
+        tp.add("Simple Cell Counter", simpleCellCounterPanel)
+        tp.add("Simple Colocalizer", simpleColocalizerPanel)
+        frame.add(tp)
+        frame.setSize(800, 800)
+
+        frame.layout = null
+        frame.isVisible = true
+    }
+
+    override fun run() {
+        gui()
     }
 }
