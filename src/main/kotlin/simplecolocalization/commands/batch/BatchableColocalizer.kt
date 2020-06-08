@@ -26,7 +26,6 @@ import simplecolocalization.services.CellDiameterRange
 class BatchableColocalizer(
     private val targetChannel: Int,
     private val transducedChannel: Int,
-    private val allChannel: Int,
     private val context: Context
 ) : Batchable {
     override fun process(
@@ -42,12 +41,11 @@ class BatchableColocalizer(
         simpleColocalization.localThresholdRadius = localThresholdRadius
         simpleColocalization.targetChannel = targetChannel
         simpleColocalization.transducedChannel = transducedChannel
-        simpleColocalization.allCellsChannel = allChannel
         context.inject(simpleColocalization)
 
         val analyses = inputImages.mapNotNull {
             try {
-                simpleColocalization.process(it, cellDiameterRange, null)
+                simpleColocalization.process(it, cellDiameterRange)
             } catch (e: ChannelDoesNotExistException) {
                 MessageDialog(IJ.getInstance(), "Error", e.message)
                 null
@@ -83,8 +81,7 @@ class BatchableColocalizer(
         outputData.addAll(fileNameAndAnalysis.map {
             val totalTargetCells = it.second.targetCellCount.toString()
             val totalTransducedTargetCells = it.second.overlappingTwoChannelCells.size.toString()
-            val threeChannelCells = if (it.second.overlappingThreeChannelCells != null) it.second.overlappingThreeChannelCells!!.size.toString() else "N/A"
-            arrayOf(it.first.replace(",", ""), totalTargetCells, totalTransducedTargetCells, threeChannelCells)
+            arrayOf(it.first.replace(",", ""), totalTargetCells, totalTransducedTargetCells)
         })
         csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
     }
@@ -148,13 +145,5 @@ class BatchableColocalizer(
             summary,
             doc
         )
-        if (result.overlappingThreeChannelCells != null) {
-            addAttribute(
-                "NumCellsOverlappingThreeChannels",
-                result.overlappingThreeChannelCells.size.toString(),
-                summary,
-                doc
-            )
-        }
     }
 }
