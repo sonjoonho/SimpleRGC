@@ -73,7 +73,7 @@ class SimpleColocalization : Command, Previewable {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Select Channels To Use:",
+        label = "Channel selection",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
@@ -85,7 +85,7 @@ class SimpleColocalization : Command, Previewable {
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Cell Morphology Channel 1:",
+        label = "Cell morphology channel 1",
         min = "1",
         stepSize = "1",
         required = true,
@@ -98,7 +98,7 @@ class SimpleColocalization : Command, Previewable {
      * By default this is the 0 (disabled).
      */
     @Parameter(
-        label = "Cell Morphology Channel 2 (0 to disable):",
+        label = "Cell morphology channel 2 (0 to disable)",
         min = "0",
         stepSize = "1",
         required = true,
@@ -115,7 +115,7 @@ class SimpleColocalization : Command, Previewable {
      * By default this is the 2 (green) channel.
      */
     @Parameter(
-        label = "Transduction Channel:",
+        label = "Transduction channel",
         min = "1",
         stepSize = "1",
         required = true,
@@ -124,7 +124,7 @@ class SimpleColocalization : Command, Previewable {
     var transducedChannel = 2
 
     @Parameter(
-        label = "Preprocessing Parameters:",
+        label = "Preprocessing parameters",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
@@ -134,7 +134,7 @@ class SimpleColocalization : Command, Previewable {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Cell Diameter for Morphology Channel 1 (px)",
+        label = "Cell diameter for morphology channel 1 (px)",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
@@ -146,8 +146,8 @@ class SimpleColocalization : Command, Previewable {
      * Used as the size of the window over which the threshold will be locally computed.
      */
     @Parameter(
-        label = "Local Threshold Radius",
-        // TODO: Improve this description to make more intuitive.
+        label = "Local threshold radius",
+        // TODO(#133): Improve this description to make more intuitive.
         description = "The radius of the local domain over which the threshold will be computed.",
         min = "1",
         stepSize = "1",
@@ -161,7 +161,7 @@ class SimpleColocalization : Command, Previewable {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Cell Diameter (px) for Morphology Channel 2 (px) (only if enabled)",
+        label = "Cell diameter (px) for morphology channel 2 (px) (only if enabled)",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
@@ -170,7 +170,7 @@ class SimpleColocalization : Command, Previewable {
     var allCellDiameterText = "0.0-30.0"
 
     @Parameter(
-        label = "Gaussian Blur Sigma",
+        label = "Gaussian blur sigma",
         description = "Sigma value used for blurring the image during the processing," +
             " a lower value is recommended if there are lots of cells densely packed together",
         min = "1",
@@ -182,7 +182,7 @@ class SimpleColocalization : Command, Previewable {
     var gaussianBlurSigma = 3.0
 
     @Parameter(
-        label = "Output Parameters:",
+        label = "Output parameters",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
@@ -207,7 +207,7 @@ class SimpleColocalization : Command, Previewable {
     private var outputFormat = OutputFormat.DISPLAY
 
     @Parameter(
-        label = "Output File (if saving):",
+        label = "Output file (if saving):",
         style = "save",
         required = false
     )
@@ -226,7 +226,6 @@ class SimpleColocalization : Command, Previewable {
      * @property overlappingTransducedIntensityAnalysis Quantification of each transduced cell overlapping target cells.
      * @property overlappingTwoChannelCells List of cells which overlap two channels.
      * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
-     *
      *
      */
     data class TransductionResult(
@@ -254,7 +253,7 @@ class SimpleColocalization : Command, Previewable {
             return
         }
 
-        // TODO(sonjoonho): Remove duplication in this code fragment.
+        // TODO(#135): Remove duplication in this code fragment.
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
             val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
@@ -307,7 +306,7 @@ class SimpleColocalization : Command, Previewable {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
-                "The colocalization results have successfully been saved to the specified file."
+                "The colocalization results have successfully been saved to the specified file"
             )
         }
     }

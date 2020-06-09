@@ -104,7 +104,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
     private fun detectAxons(image: ImagePlus): List<Roi> {
         // Empirically, the values of sigma, upperThresh and lowerThresh
         // proved the most effective on test images.
-        // TODO(willburr): Investigate optimum parameters for Line Detector
+        // TODO(#132): Investigate optimum parameters for Line Detector
         val contours = LineDetector().detectLines(
             image.processor, 1.61, 15.0, 5.0,
             0.0, 0.0, false, true, true, true
