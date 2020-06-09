@@ -197,7 +197,7 @@ class SimpleBatch : Command {
     @Parameter(
         label = "Output file",
         required = true,
-        persist = true,
+        persist = false,
         style = "save"
     )
     private lateinit var outputFile: File
