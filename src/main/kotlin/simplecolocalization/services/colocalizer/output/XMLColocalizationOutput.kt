@@ -97,14 +97,6 @@ class XMLColocalizationOutput(
             summary,
             doc
         )
-        if (result.overlappingThreeChannelCells != null) {
-            addAttribute(
-                "TransducedCellsInBothMorphologyChannels",
-                result.overlappingThreeChannelCells.size.toString(),
-                summary,
-                doc
-            )
-        }
         addAttribute("MeanIntensityOfColocalizedCells",
             (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(),
             summary,
