@@ -227,7 +227,6 @@ class SimpleColocalization : Command, Previewable {
      * @property overlappingTwoChannelCells List of cells which overlap two channels.
      * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
      *
-     * TODO(#134): Discuss whether we want to use targetCellCount in the single colocalisation plugin
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
