@@ -32,10 +32,8 @@ import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
 import simplecolocalization.services.DiameterParseException
-import simplecolocalization.services.cellcomparator.PixelCellComparator
 import simplecolocalization.services.cellcomparator.SubsetPixelCellComparator
 import simplecolocalization.services.colocalizer.BucketedNaiveColocalizer
-import simplecolocalization.services.colocalizer.ColocalizationAnalysis
 import simplecolocalization.services.colocalizer.PositionedCell
 import simplecolocalization.services.colocalizer.addToRoiManager
 import simplecolocalization.services.colocalizer.drawCells
@@ -101,23 +99,6 @@ class SimpleColocalization : Command, Previewable {
     private var shouldRemoveAxonsFromTargetChannel: Boolean = false
 
     /**
-     * Specify the channel for the all cells channel.
-     * By default this is the 0 (disabled).
-     */
-    @Parameter(
-        label = "Cell morphology channel 2 (0 to disable)",
-        min = "0",
-        stepSize = "1",
-        required = true,
-        persist = true
-    )
-    var allCellsChannel = 0
-
-    private fun isAllCellsEnabled(): Boolean {
-        return allCellsChannel > 0
-    }
-
-    /**
      * Specify the channel for the transduced cells.
      * By default this is the 2 (green) channel.
      */
@@ -170,18 +151,6 @@ class SimpleColocalization : Command, Previewable {
         persist = true
     )
     var localThresholdRadius = 30
-
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter (px) for morphology channel 2 (px) (only if enabled)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = true
-    )
-    var allCellDiameterText = "0.0-30.0"
 
     @Parameter(
         label = "Gaussian blur sigma",
@@ -239,14 +208,12 @@ class SimpleColocalization : Command, Previewable {
      * @property targetCellCount Number of red channel cells.
      * @property overlappingTransducedIntensityAnalysis Quantification of each transduced cell overlapping target cells.
      * @property overlappingTwoChannelCells List of cells which overlap two channels.
-     * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
      *
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
         val overlappingTransducedIntensityAnalysis: Array<CellColocalizationService.CellAnalysis>,
-        val overlappingTwoChannelCells: List<PositionedCell>,
-        val overlappingThreeChannelCells: List<PositionedCell>?
+        val overlappingTwoChannelCells: List<PositionedCell>
     )
 
     override fun run() {
@@ -257,11 +224,8 @@ class SimpleColocalization : Command, Previewable {
         }
 
         val cellDiameterRange: CellDiameterRange
-        val allCellDiameterRange: CellDiameterRange?
         try {
             cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
-            allCellDiameterRange =
-                if (isAllCellsEnabled()) CellDiameterRange.parseFromText(allCellDiameterText) else null
         } catch (e: DiameterParseException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -283,7 +247,7 @@ class SimpleColocalization : Command, Previewable {
         resetRoiManager()
 
         val result = try {
-            process(image, cellDiameterRange, allCellDiameterRange)
+            process(image, cellDiameterRange)
         } catch (e: ChannelDoesNotExistException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -329,8 +293,7 @@ class SimpleColocalization : Command, Previewable {
     @Throws(ChannelDoesNotExistException::class)
     fun process(
         image: ImagePlus,
-        cellDiameterRange: CellDiameterRange,
-        allCellDiameterRange: CellDiameterRange? = null
+        cellDiameterRange: CellDiameterRange
     ): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
@@ -341,25 +304,17 @@ class SimpleColocalization : Command, Previewable {
             throw ChannelDoesNotExistException("Transduced channel selected ($transducedChannel) does not exist. There are ${imageChannels.size} channels available")
         }
 
-        if (isAllCellsEnabled() && allCellsChannel > imageChannels.size) {
-            throw ChannelDoesNotExistException("All cells channel selected ($allCellsChannel) does not exist. There are ${imageChannels.size} channels available")
-        }
-
         return analyseTransduction(
             imageChannels[targetChannel - 1],
             imageChannels[transducedChannel - 1],
-            cellDiameterRange,
-            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null,
-            allCellDiameterRange
+            cellDiameterRange
         )
     }
 
     fun analyseTransduction(
         targetChannel: ImagePlus,
         transducedChannel: ImagePlus,
-        cellDiameterRange: CellDiameterRange,
-        allCellsChannel: ImagePlus? = null,
-        allCellDiameterRange: CellDiameterRange?
+        cellDiameterRange: CellDiameterRange
     ): TransductionResult {
         logService.info("Starting extraction")
         val targetCells = cellSegmentationService.extractCells(
@@ -381,14 +336,6 @@ class SimpleColocalization : Command, Previewable {
             ),
             transducedChannel
         )
-        // TODO(#105) ^^
-        val allCells =
-            if (allCellsChannel != null && allCellDiameterRange != null) cellSegmentationService.extractCells(
-                allCellsChannel,
-                allCellDiameterRange,
-                localThresholdRadius,
-                gaussianBlurSigma
-            ) else null
 
         statusService.showStatus(80, 100, "Analysing transduction...")
         logService.info("Starting analysis")
@@ -406,23 +353,12 @@ class SimpleColocalization : Command, Previewable {
             targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }.toTypedArray()
         )
 
-        var allCellsAnalysis: ColocalizationAnalysis? = null
-        if (allCells != null) {
-            allCellsAnalysis = BucketedNaiveColocalizer(
-                cellDiameterRange.largest.toInt(),
-                allCellsChannel!!.width,
-                allCellsChannel.height,
-                PixelCellComparator(threshold = 0.01f)
-            ).analyseColocalization(targetTransducedAnalysis.overlappingOverlaid, allCells)
-        }
-
         // We return the overlapping target channel instead of transduced channel as we want to mark the target layer,
         // not the transduced layer.
         return TransductionResult(
             targetCellCount = targetCells.size,
             overlappingTransducedIntensityAnalysis = transductionIntensityAnalysis,
-            overlappingTwoChannelCells = targetTransducedAnalysis.overlappingBase,
-            overlappingThreeChannelCells = allCellsAnalysis?.overlappingBase
+            overlappingTwoChannelCells = targetTransducedAnalysis.overlappingBase
         )
     }
 
@@ -497,18 +433,15 @@ class SimpleColocalization : Command, Previewable {
             }
 
             val cellDiameterRange: CellDiameterRange
-            val allCellDiameterRange: CellDiameterRange?
             try {
                 cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
-                allCellDiameterRange =
-                    if (isAllCellsEnabled()) CellDiameterRange.parseFromText(allCellDiameterText) else null
             } catch (e: DiameterParseException) {
                 cancel()
                 return
             }
 
             val result = try {
-                process(image, cellDiameterRange, allCellDiameterRange)
+                process(image, cellDiameterRange)
             } catch (e: ChannelDoesNotExistException) {
                 cancel()
                 return
