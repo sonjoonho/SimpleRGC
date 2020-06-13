@@ -53,16 +53,6 @@ class ImageJTableColocalizationOutput(
         integratedDensityColumn.add(0)
         rawIntegratedDensityColumn.add(0)
 
-        if (result.overlappingThreeChannelCells != null) {
-            labelColumn.add("Transduced cells in both morphology channels")
-            countColumn.add(result.overlappingThreeChannelCells.size)
-            areaColumn.add(0)
-            medianColumn.add(0)
-            meanColumn.add(0)
-            integratedDensityColumn.add(0)
-            rawIntegratedDensityColumn.add(0)
-        }
-
         val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
         labelColumn.add("Transduction Efficiency (rounded to nearest integer) %")
         countColumn.add(transductionEfficiency.roundToInt())

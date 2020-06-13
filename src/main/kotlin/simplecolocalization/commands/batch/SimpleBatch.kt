@@ -86,19 +86,6 @@ class SimpleBatch : Command {
     private var targetChannel = 1
 
     /**
-     * Specify the channel for the all cells channel.
-     * By default this is the 0 (disabled).
-     */
-    @Parameter(
-        label = "Cell morphology channel 2 (colocalization only, 0 to disable)",
-        min = "0",
-        stepSize = "1",
-        required = true,
-        persist = true
-    )
-    var allCellsChannel = 0
-
-    /**
      * Specify the channel for the transduced cells.
      * By default this is the 2 (green) channel.
      */
@@ -144,18 +131,6 @@ class SimpleBatch : Command {
         persist = true
     )
     var localThresholdRadius = 20
-
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter for morphology channel 2 (px) (colocalization only, if enabled)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = true
-    )
-    var allCellDiameterText = "0.0-30.0"
 
     @Parameter(
         label = "Gaussian blur sigma",
@@ -236,7 +211,6 @@ class SimpleBatch : Command {
             PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(
                 targetChannel,
                 transducedChannel,
-                allCellsChannel,
                 context
             )
             else -> throw IllegalArgumentException("Invalid plugin choice provided")

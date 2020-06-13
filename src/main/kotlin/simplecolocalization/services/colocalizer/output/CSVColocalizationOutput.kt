@@ -25,9 +25,6 @@ class CSVColocalizationOutput(
         outputData.add(arrayOf("--- Summary ---", "", "", ""))
         outputData.add(arrayOf("Total number of cells in cell morphology channel 1", result.targetCellCount.toString(), "", "", "", "", ""))
         outputData.add(arrayOf("Transduced cells in channel 1", result.overlappingTwoChannelCells.size.toString(), "", "", "", "", ""))
-        if (result.overlappingThreeChannelCells != null) {
-            outputData.add(arrayOf("Transduced cells in both morphology channels", result.overlappingThreeChannelCells.size.toString(), "", "", "", "", ""))
-        }
         val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
         outputData.add(arrayOf("Transduction Efficiency (%)", transductionEfficiency.toString(), "", "", "", "", ""))
         outputData.add(arrayOf("Mean intensity of colocalized cells", (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(), "", "", "", "", ""))
