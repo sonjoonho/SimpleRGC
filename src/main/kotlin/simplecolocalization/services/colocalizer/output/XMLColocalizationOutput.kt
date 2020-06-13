@@ -97,6 +97,10 @@ class XMLColocalizationOutput(
             summary,
             doc
         )
+
+        val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
+        addAttribute("TransductionEfficiency (%)", transductionEfficiency.toString(), summary, doc)
+
         addAttribute("MeanIntensityOfColocalizedCells",
             (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(),
             summary,
