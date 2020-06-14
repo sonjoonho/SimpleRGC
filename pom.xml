@@ -70,7 +70,7 @@
         <relativePath/>
     </parent>
     <properties>
-        <package-name>simplecolocalization</package-name>
+        <package-name>simplergc</package-name>
         <license.licenseName>MIT</license.licenseName>
         <license.copyrightOwners>Joon-Ho Son</license.copyrightOwners>
         <kotlin.version>1.3.50</kotlin.version>
