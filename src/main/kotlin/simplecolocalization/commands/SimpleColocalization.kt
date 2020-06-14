@@ -83,7 +83,7 @@ class SimpleColocalization : Command, Previewable {
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Cell morphology channel 1",
+        label = "Cell morphology channel",
         min = "1",
         stepSize = "1",
         required = true,
@@ -92,7 +92,7 @@ class SimpleColocalization : Command, Previewable {
     var targetChannel = 1
 
     @Parameter(
-        label = "Remove axons from Cell morphology channel 1",
+        label = "Exclude axons from cell morphology channel",
         required = true,
         persist = true
     )
@@ -112,7 +112,7 @@ class SimpleColocalization : Command, Previewable {
     var transducedChannel = 2
 
     @Parameter(
-        label = "Remove axons from transduction channel",
+        label = "Exclude axons from transduction channel",
         required = true,
         persist = true
     )
