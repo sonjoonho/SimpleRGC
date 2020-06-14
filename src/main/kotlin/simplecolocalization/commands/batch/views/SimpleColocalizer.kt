@@ -1,7 +1,10 @@
 package simplecolocalization.commands.batch.views
 
+import ij.IJ
+import ij.gui.MessageDialog
 import java.awt.GridLayout
 import java.io.File
+import java.io.FileNotFoundException
 import javax.swing.ButtonGroup
 import javax.swing.JButton
 import javax.swing.JFileChooser
@@ -107,18 +110,28 @@ fun simpleColocalizerPanel(context: Context): JPanel {
         val targetChannel = targetChannelSpinner.value as Int
         val transducedChannel = transducedChannelSpinner.value as Int
         val allCellsChannel = allCellsChannelSpinner.value as Int
-        runSimpleColocalizer(
-            inputFolder,
-            shouldProcessFilesInNestedFolders,
-            thresholdRadius,
-            gaussianBlurSigma,
-            outputFormat,
-            targetChannel,
-            transducedChannel,
-            allCellsChannel,
-            outputFile,
-            context
-        )
+
+        try {
+            runSimpleColocalizer(
+                inputFolder,
+                shouldProcessFilesInNestedFolders,
+                thresholdRadius,
+                gaussianBlurSigma,
+                outputFormat,
+                targetChannel,
+                transducedChannel,
+                allCellsChannel,
+                outputFile,
+                context
+            )
+            MessageDialog(
+                IJ.getInstance(),
+                "Saved",
+                "The batch processing results have successfully been saved to the specified file."
+            )
+        } catch (e: FileNotFoundException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
+        }
     }
     return panel
 }

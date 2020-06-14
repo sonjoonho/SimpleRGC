@@ -1,7 +1,10 @@
 package simplecolocalization.commands.batch.views
 
+import ij.IJ
+import ij.gui.MessageDialog
 import java.awt.GridLayout
 import java.io.File
+import java.io.FileNotFoundException
 import javax.swing.ButtonGroup
 import javax.swing.JButton
 import javax.swing.JFileChooser
@@ -95,17 +98,25 @@ fun simpleCellCounterPanel(context: Context): JPanel {
             saveAsXMLButton.isSelected -> SimpleBatch.OutputFormat.XML
             else -> ""
         }
-        runSimpleCellCounter(
-            inputFolder,
-            shouldProcessFilesInNestedFolders,
-            channel,
-            thresholdRadius,
-            gaussianBlurSigma,
-            outputFormat,
-            outputFile,
-            context
-        )
+        try {
+            runSimpleCellCounter(
+                inputFolder,
+                shouldProcessFilesInNestedFolders,
+                channel,
+                thresholdRadius,
+                gaussianBlurSigma,
+                outputFormat,
+                outputFile,
+                context
+            )
+            MessageDialog(
+                IJ.getInstance(),
+                "Saved",
+                "The batch processing results have successfully been saved to the specified file"
+            )
+        } catch (e: FileNotFoundException) {
+            MessageDialog(IJ.getInstance(), "Error", e.message)
+        }
     }
-
     return panel
 }
