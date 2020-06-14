@@ -122,7 +122,12 @@ class CellSegmentationService : AbstractService(), ImageJService {
 
         val contours = LineDetector().detectLines(
             image.processor, sigma, upperThresh, lowerThresh,
-            0.0, Double.MAX_VALUE, false, true, true, true
+            0.0, // Minimum axon length
+            Double.MAX_VALUE, // Maximum axon length
+            false, // Axons are not dark
+            true, // Correct the line position if it has different contrast on each side of it
+            true, // Estimate width of the line
+            true // Extend the line
         )
         val axons = mutableListOf<Roi>()
         // Convert to Rois.
@@ -142,16 +147,18 @@ class CellSegmentationService : AbstractService(), ImageJService {
         return axons
     }
 
+    /** Estimate the sigma for the derivatives used in axon detection. See https://imagej.net/Ridge_Detection. */
     private fun estimateSigma(lineWidth: Double) = lineWidth / (2 * sqrt(3.0)) + 0.5
 
+    /** Estimate the threshold (low/high) used in axon detection. See https://imagej.net/Ridge_Detection. */
     private fun estimateThreshold(lineWidth: Double, sigma: Double, contrast: Int): Double {
         return floor(
             abs(
                 -2 * contrast * (lineWidth / 2.0) /
                     (sqrt(2 * PI) * sigma.pow(3)) *
                     exp(-((lineWidth / 2.0) * (lineWidth / 2.0)) / (2 * sigma * sigma))
-            )
-        ) * THRESHOLD_MULTIPLIER
+            ) * THRESHOLD_MULTIPLIER
+        )
     }
 
     /** Remove axon rois from the (thresholded) image. */
