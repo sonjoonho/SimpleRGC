@@ -115,7 +115,6 @@ class CellSegmentationService : AbstractService(), ImageJService {
      * Uses Ridge Detection plugin's LineDetector.
      */
     private fun detectAxons(image: ImagePlus, axonWidth: Double): List<Roi> {
-
         // Estimate parameters for removing axons
         val sigma = estimateSigma(axonWidth)
         val lowerThresh = estimateThreshold(axonWidth, sigma, CONTRAST_LOW)
