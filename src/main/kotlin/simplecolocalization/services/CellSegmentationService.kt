@@ -30,11 +30,13 @@ import org.scijava.service.Service
 import simplecolocalization.DummyRoiManager
 import simplecolocalization.services.colocalizer.PositionedCell
 
-// Constants used in estimating parameters for ridge detection
+// Constants used in estimating parameters for axon removal
 // Taken from https://github.com/thorstenwagner/ij-ridgedetection
 const val CONTRAST_LOW = 87
 const val CONTRAST_HIGH = 230
 const val THRESHOLD_MULTIPLIER = 0.17
+
+// Optimal parameter for axon removal based on experimentation
 const val AXON_WIDTH = 3.5
 
 @Plugin(type = Service::class)
