@@ -5,4 +5,3 @@
     <inspection_tool class="RedundantSemicolon" enabled="true" level="ERROR" enabled_by_default="true" />
   </profile>
 </component>
-
