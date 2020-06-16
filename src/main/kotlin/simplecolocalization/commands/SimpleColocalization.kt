@@ -83,13 +83,20 @@ class SimpleColocalization : Command, Previewable {
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Cell morphology channel 1",
+        label = "Cell morphology channel",
         min = "1",
         stepSize = "1",
         required = true,
         persist = true
     )
     var targetChannel = 1
+
+    @Parameter(
+        label = "Exclude axons from cell morphology channel",
+        required = true,
+        persist = true
+    )
+    private var shouldRemoveAxonsFromTargetChannel: Boolean = false
 
     /**
      * Specify the channel for the transduced cells.
@@ -103,6 +110,13 @@ class SimpleColocalization : Command, Previewable {
         persist = true
     )
     var transducedChannel = 2
+
+    @Parameter(
+        label = "Exclude axons from transduction channel",
+        required = true,
+        persist = true
+    )
+    private var shouldRemoveAxonsFromTransductionChannel: Boolean = false
 
     @Parameter(
         label = "Preprocessing parameters",
@@ -307,7 +321,8 @@ class SimpleColocalization : Command, Previewable {
             targetChannel,
             cellDiameterRange,
             localThresholdRadius,
-            gaussianBlurSigma
+            gaussianBlurSigma,
+            shouldRemoveAxonsFromTargetChannel
         )
 
         // Allow cells in the transduced channel to have unbounded area
@@ -316,7 +331,8 @@ class SimpleColocalization : Command, Previewable {
                 transducedChannel,
                 CellDiameterRange(cellDiameterRange.smallest, Double.MAX_VALUE),
                 localThresholdRadius,
-                gaussianBlurSigma
+                gaussianBlurSigma,
+                shouldRemoveAxonsFromTransductionChannel
             ),
             transducedChannel
         )
