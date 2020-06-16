@@ -16,7 +16,11 @@ import ij.process.FloatPolygon
 import ij.process.ImageConverter
 import java.awt.Color
 import java.lang.Math.PI
+import kotlin.math.abs
+import kotlin.math.exp
+import kotlin.math.floor
 import kotlin.math.pow
+import kotlin.math.sqrt
 import net.imagej.ImageJService
 import org.scijava.app.StatusService
 import org.scijava.plugin.Parameter
@@ -25,6 +29,15 @@ import org.scijava.service.AbstractService
 import org.scijava.service.Service
 import simplecolocalization.DummyRoiManager
 import simplecolocalization.services.colocalizer.PositionedCell
+
+// Constants used in estimating parameters for axon removal
+// Taken from https://github.com/thorstenwagner/ij-ridgedetection
+const val CONTRAST_LOW = 87
+const val CONTRAST_HIGH = 230
+const val THRESHOLD_MULTIPLIER = 0.17
+
+// Optimal parameter for axon removal based on experimentation
+const val AXON_WIDTH = 3.5
 
 @Plugin(type = Service::class)
 class CellSegmentationService : AbstractService(), ImageJService {
@@ -53,7 +66,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
         )
 
         if (shouldRemoveAxons) {
-            removeAxons(image, detectAxons(image))
+            removeAxons(image, detectAxons(image, AXON_WIDTH))
         }
 
         // Apply Gaussian Blur to group larger speckles.
@@ -101,13 +114,20 @@ class CellSegmentationService : AbstractService(), ImageJService {
      *
      * Uses Ridge Detection plugin's LineDetector.
      */
-    private fun detectAxons(image: ImagePlus): List<Roi> {
-        // Empirically, the values of sigma, upperThresh and lowerThresh
-        // proved the most effective on test images.
-        // TODO(#132): Investigate optimum parameters for Line Detector
+    private fun detectAxons(image: ImagePlus, axonWidth: Double): List<Roi> {
+        // Estimate parameters for removing axons
+        val sigma = estimateSigma(axonWidth)
+        val lowerThresh = estimateThreshold(axonWidth, sigma, CONTRAST_LOW)
+        val upperThresh = estimateThreshold(axonWidth, sigma, CONTRAST_HIGH)
+
         val contours = LineDetector().detectLines(
-            image.processor, 1.61, 15.0, 5.0,
-            0.0, 0.0, false, true, true, true
+            image.processor, sigma, upperThresh, lowerThresh,
+            0.0, // Minimum axon length
+            Double.MAX_VALUE, // Maximum axon length
+            false, // Axons are not dark
+            true, // Correct the line position if it has different contrast on each side of it
+            true, // Estimate width of the line
+            true // Extend the line
         )
         val axons = mutableListOf<Roi>()
         // Convert to Rois.
@@ -125,6 +145,20 @@ class CellSegmentationService : AbstractService(), ImageJService {
             axons.add(r)
         }
         return axons
+    }
+
+    /** Estimate the sigma for the derivatives used in axon detection. See https://imagej.net/Ridge_Detection. */
+    private fun estimateSigma(lineWidth: Double) = lineWidth / (2 * sqrt(3.0)) + 0.5
+
+    /** Estimate the threshold (low/high) used in axon detection. See https://imagej.net/Ridge_Detection. */
+    private fun estimateThreshold(lineWidth: Double, sigma: Double, contrast: Int): Double {
+        return floor(
+            abs(
+                -2 * contrast * (lineWidth / 2.0) /
+                    (sqrt(2 * PI) * sigma.pow(3)) *
+                    exp(-((lineWidth / 2.0) * (lineWidth / 2.0)) / (2 * sigma * sigma))
+            ) * THRESHOLD_MULTIPLIER
+        )
     }
 
     /** Remove axon rois from the (thresholded) image. */
