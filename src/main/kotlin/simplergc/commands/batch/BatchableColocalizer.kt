@@ -27,7 +27,6 @@ import simplergc.services.CellDiameterRange
 class BatchableColocalizer(
     private val targetChannel: Int,
     private val transducedChannel: Int,
-    private val allChannel: Int,
     private val context: Context
 ) : Batchable {
     override fun process(
@@ -43,7 +42,6 @@ class BatchableColocalizer(
         rgcTransduction.localThresholdRadius = localThresholdRadius
         rgcTransduction.targetChannel = targetChannel
         rgcTransduction.transducedChannel = transducedChannel
-        rgcTransduction.allCellsChannel = allChannel
         context.inject(rgcTransduction)
 
         val analyses = inputImages.mapNotNull {
@@ -84,8 +82,7 @@ class BatchableColocalizer(
         outputData.addAll(fileNameAndAnalysis.map {
             val totalTargetCells = it.second.targetCellCount.toString()
             val totalTransducedTargetCells = it.second.overlappingTwoChannelCells.size.toString()
-            val threeChannelCells = if (it.second.overlappingThreeChannelCells != null) it.second.overlappingThreeChannelCells!!.size.toString() else "N/A"
-            arrayOf(it.first.replace(",", ""), totalTargetCells, totalTransducedTargetCells, threeChannelCells)
+            arrayOf(it.first.replace(",", ""), totalTargetCells, totalTransducedTargetCells)
         })
         csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
     }
@@ -149,13 +146,5 @@ class BatchableColocalizer(
             summary,
             doc
         )
-        if (result.overlappingThreeChannelCells != null) {
-            addAttribute(
-                "NumCellsOverlappingThreeChannels",
-                result.overlappingThreeChannelCells.size.toString(),
-                summary,
-                doc
-            )
-        }
     }
 }

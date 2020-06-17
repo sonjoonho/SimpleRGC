@@ -43,6 +43,7 @@ class RGCBatch : Command {
         label = "Which plugin would you like to run in batch mode?",
         choices = [PluginChoice.RGCCounter, PluginChoice.RGCTransduction],
         required = true,
+        persist = true,
         style = "radioButtonVertical"
     )
     private var pluginChoice = PluginChoice.RGCCounter
@@ -50,14 +51,15 @@ class RGCBatch : Command {
     @Parameter(
         label = "Input folder",
         required = true,
-        persist = false,
+        persist = true,
         style = "directory"
     )
     private lateinit var inputFolder: File
 
     @Parameter(
         label = "Batch process files in nested sub-folders?",
-        required = true
+        required = true,
+        persist = true
     )
     private var shouldProcessFilesInNestedFolders: Boolean = true
 
@@ -78,22 +80,9 @@ class RGCBatch : Command {
         min = "1",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     private var targetChannel = 1
-
-    /**
-     * Specify the channel for the all cells channel.
-     * By default this is the 0 (disabled).
-     */
-    @Parameter(
-        label = "Cell morphology channel 2 (colocalization only, 0 to disable)",
-        min = "0",
-        stepSize = "1",
-        required = true,
-        persist = false
-    )
-    var allCellsChannel = 0
 
     /**
      * Specify the channel for the transduced cells.
@@ -104,7 +93,7 @@ class RGCBatch : Command {
         min = "1",
         stepSize = "1",
         required = true,
-        persist = false
+        persist = true
     )
     private var transducedChannel = 2
 
@@ -123,7 +112,7 @@ class RGCBatch : Command {
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
-        persist = false
+        persist = true
     )
     var cellDiameterText = "0.0-30.0"
 
@@ -138,21 +127,9 @@ class RGCBatch : Command {
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
     var localThresholdRadius = 20
-
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter for morphology channel 2 (px) (colocalization only, if enabled)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = false
-    )
-    var allCellDiameterText = "0.0-30.0"
 
     @Parameter(
         label = "Gaussian blur sigma",
@@ -162,7 +139,7 @@ class RGCBatch : Command {
         stepSize = "1",
         style = NumberWidget.SPINNER_STYLE,
         required = true,
-        persist = false
+        persist = true
     )
     private var gaussianBlurSigma = 3.0
 
@@ -187,7 +164,7 @@ class RGCBatch : Command {
         label = "Results output",
         choices = [OutputFormat.CSV, OutputFormat.XML],
         required = true,
-        persist = false,
+        persist = true,
         style = "radioButtonVertical"
     )
     private var outputFormat = OutputFormat.CSV
@@ -233,7 +210,6 @@ class RGCBatch : Command {
             PluginChoice.RGCTransduction -> BatchableColocalizer(
                 targetChannel,
                 transducedChannel,
-                allCellsChannel,
                 context
             )
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
@@ -260,7 +236,7 @@ class RGCBatch : Command {
             file.walkTopDown().filter { f -> !f.isDirectory }.toList()
         } else {
             file.listFiles()?.filter { f -> !f.isDirectory }?.toList() ?: listOf(file)
-        }
+        }.sortedWith(AlphanumFileComparator)
     }
 
     private fun openFiles(inputFiles: List<File>): List<ImagePlus> {
