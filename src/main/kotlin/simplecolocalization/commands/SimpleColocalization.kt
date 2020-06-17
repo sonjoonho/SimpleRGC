@@ -28,7 +28,6 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
-import org.scijava.widget.TextWidget
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
