@@ -32,10 +32,8 @@ import simplergc.services.CellColocalizationService
 import simplergc.services.CellDiameterRange
 import simplergc.services.CellSegmentationService
 import simplergc.services.DiameterParseException
-import simplergc.services.cellcomparator.PixelCellComparator
 import simplergc.services.cellcomparator.SubsetPixelCellComparator
 import simplergc.services.colocalizer.BucketedNaiveColocalizer
-import simplergc.services.colocalizer.ColocalizationAnalysis
 import simplergc.services.colocalizer.PositionedCell
 import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
