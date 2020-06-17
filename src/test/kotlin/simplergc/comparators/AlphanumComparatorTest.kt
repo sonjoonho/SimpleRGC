@@ -1,4 +1,4 @@
-package simplecolocalization.comparators
+package simplergc.comparators
 
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FreeSpec

@@ -46,7 +46,7 @@ class BatchableColocalizer(
 
         val analyses = inputImages.mapNotNull {
             try {
-                rgcTransduction.process(it, cellDiameterRange, null)
+                rgcTransduction.process(it, cellDiameterRange)
             } catch (e: ChannelDoesNotExistException) {
                 MessageDialog(IJ.getInstance(), "Error", e.message)
                 null

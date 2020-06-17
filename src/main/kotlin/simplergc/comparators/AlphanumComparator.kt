@@ -1,4 +1,4 @@
-package simplecolocalization.comparators
+package simplergc.comparators
 
 import java.io.File
 
@@ -113,7 +113,10 @@ class AlphanumComparator {
 class AlphanumFileComparator {
     companion object : Comparator<File> {
         override fun compare(f1: File, f2: File): Int {
-            return AlphanumComparator.compare(f1.absolutePath, f2.absolutePath)
+            return AlphanumComparator.compare(
+                f1.absolutePath,
+                f2.absolutePath
+            )
         }
     }
 }
