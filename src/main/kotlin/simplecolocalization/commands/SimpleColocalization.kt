@@ -28,6 +28,7 @@ import org.scijava.plugin.Plugin
 import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
+import org.scijava.widget.TextWidget
 import simplecolocalization.services.CellColocalizationService
 import simplecolocalization.services.CellDiameterRange
 import simplecolocalization.services.CellSegmentationService
@@ -71,11 +72,11 @@ class SimpleColocalization : Command, Previewable {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Channel selection",
+        label = "Target (morphology) cell",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var channelSelectionHeader: String
+    private lateinit var TargetCellHeader: String
 
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
@@ -83,7 +84,7 @@ class SimpleColocalization : Command, Previewable {
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Cell morphology channel",
+        label = "Channel",
         min = "1",
         stepSize = "1",
         required = true,
@@ -92,18 +93,25 @@ class SimpleColocalization : Command, Previewable {
     var targetChannel = 1
 
     @Parameter(
-        label = "Exclude axons from cell morphology channel",
+        label = "Exclude axons",
         required = true,
         persist = true
     )
-    private var shouldRemoveAxonsFromTargetChannel: Boolean = false
+    var shouldRemoveAxonsFromTargetChannel: Boolean = false
+
+    @Parameter(
+        label = "Transduced cell",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var TransducedCellHeader: String
 
     /**
      * Specify the channel for the transduced cells.
      * By default this is the 2 (green) channel.
      */
     @Parameter(
-        label = "Transduction channel",
+        label = "Channel",
         min = "1",
         stepSize = "1",
         required = true,
@@ -112,11 +120,11 @@ class SimpleColocalization : Command, Previewable {
     var transducedChannel = 2
 
     @Parameter(
-        label = "Exclude axons from transduction channel",
+        label = "Exclude axons",
         required = true,
         persist = true
     )
-    private var shouldRemoveAxonsFromTransductionChannel: Boolean = false
+    var shouldRemoveAxonsFromTransductionChannel: Boolean = false
 
     @Parameter(
         label = "Preprocessing parameters",
