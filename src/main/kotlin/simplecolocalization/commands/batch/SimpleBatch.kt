@@ -71,32 +71,60 @@ class SimpleBatch : Command {
     )
     private var colocalizationInstruction = ""
 
+    @Parameter(
+        label = "Target (morphology) cell",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var TargetCellHeader: String
+
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
-     * the channels available at the parameter initialisation stage.
+     * the channels available at the parameter initiation stage.
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Cell morphology channel 1",
+        label = "Channel",
         min = "1",
         stepSize = "1",
         required = true,
         persist = true
     )
-    private var targetChannel = 1
+    var targetChannel = 1
+
+    @Parameter(
+        label = "Exclude axons",
+        required = true,
+        persist = true
+    )
+    var shouldRemoveAxonsFromTargetChannel: Boolean = false
+
+    @Parameter(
+        label = "Transduced cell",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var TransducedCellHeader: String
 
     /**
      * Specify the channel for the transduced cells.
      * By default this is the 2 (green) channel.
      */
     @Parameter(
-        label = "Transduction channel (colocalization only)",
+        label = "Channel",
         min = "1",
         stepSize = "1",
         required = true,
         persist = true
     )
-    private var transducedChannel = 2
+    var transducedChannel = 2
+
+    @Parameter(
+        label = "Exclude axons",
+        required = true,
+        persist = true
+    )
+    var shouldRemoveAxonsFromTransductionChannel: Boolean = false
 
     @Parameter(
         label = "Image processing parameters",
@@ -210,12 +238,13 @@ class SimpleBatch : Command {
             PluginChoice.SIMPLE_CELL_COUNTER -> BatchableCellCounter(targetChannel, context)
             PluginChoice.SIMPLE_COLOCALIZATION -> BatchableColocalizer(
                 targetChannel,
+                shouldRemoveAxonsFromTargetChannel,
                 transducedChannel,
+                shouldRemoveAxonsFromTransductionChannel,
                 context
             )
             else -> throw IllegalArgumentException("Invalid plugin choice provided")
         }
-        // TODO(#136): Think more about allCellsDiameter and where to pass it.
         strategy.process(
             openFiles(files),
             cellDiameterRange,

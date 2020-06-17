@@ -25,7 +25,9 @@ import simplecolocalization.services.CellDiameterRange
 
 class BatchableColocalizer(
     private val targetChannel: Int,
+    private val shouldRemoveAxonsFromTargetChannel: Boolean,
     private val transducedChannel: Int,
+    private val shouldRemoveAxonsFromTransductionChannel: Boolean,
     private val context: Context
 ) : Batchable {
     override fun process(
@@ -40,7 +42,10 @@ class BatchableColocalizer(
 
         simpleColocalization.localThresholdRadius = localThresholdRadius
         simpleColocalization.targetChannel = targetChannel
+        simpleColocalization.shouldRemoveAxonsFromTargetChannel = shouldRemoveAxonsFromTargetChannel
         simpleColocalization.transducedChannel = transducedChannel
+        simpleColocalization.shouldRemoveAxonsFromTransductionChannel = shouldRemoveAxonsFromTransductionChannel
+        simpleColocalization.gaussianBlurSigma = gaussianBlurSigma
         context.inject(simpleColocalization)
 
         val analyses = inputImages.mapNotNull {
