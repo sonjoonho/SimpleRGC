@@ -205,16 +205,21 @@ class RGCCounter : Command, Previewable {
 
         statusService.showStatus(100, 100, "Done!")
 
-        writeOutput(result.count, image.title)
+        writeOutput(result.count, image.title, diameterRange)
 
         image.show()
         addToRoiManager(result.cells)
     }
 
-    private fun writeOutput(numCells: Int, file: String) {
+    private fun writeOutput(numCells: Int, file: String, cellDiameterRange: CellDiameterRange) {
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableCounterOutput(uiService)
-            OutputFormat.XLSX -> XLSXCounterOutput(outputFile!!)
+            OutputFormat.XLSX -> XLSXCounterOutput(
+                outputFile!!,
+                targetChannel,
+                cellDiameterRange,
+                localThresholdRadius,
+                gaussianBlurSigma)
             OutputFormat.CSV -> CSVCounterOutput(outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
