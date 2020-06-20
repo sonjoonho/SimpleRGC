@@ -136,12 +136,13 @@ class RGCCounter : Command, Previewable {
      */
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
+        const val XLSX = "Save as XLSX file"
         const val CSV = "Save as CSV file"
     }
 
     @Parameter(
         label = "Results output",
-        choices = [OutputFormat.DISPLAY, OutputFormat.CSV],
+        choices = [OutputFormat.DISPLAY, OutputFormat.XLSX, OutputFormat.CSV],
         required = true,
         persist = true,
         style = "radioButtonVertical"
@@ -213,6 +214,7 @@ class RGCCounter : Command, Previewable {
     private fun writeOutput(numCells: Int, file: String) {
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableCounterOutput(uiService)
+            OutputFormat.XLSX -> XLSXCounterOutput(outputFile!!)
             OutputFormat.CSV -> CSVCounterOutput(outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
