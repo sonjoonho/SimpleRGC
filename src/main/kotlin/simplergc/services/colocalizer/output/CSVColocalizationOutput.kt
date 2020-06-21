@@ -18,17 +18,43 @@ class CSVColocalizationOutput(
 
     override fun output() {
         val csvWriter = CsvWriter()
-        val outputData = ArrayList<Array<String>>()
-        outputData.add(arrayOf("Label", "Count", "Area", "Median", "Mean", "Integrated Density", "Raw Integrated Density"))
+        // TODO: Figure out how to write each csv file in a folder.
 
-        // Summaries
-        outputData.add(arrayOf("--- Summary ---", "", "", ""))
-        outputData.add(arrayOf("Total number of cells in cell morphology channel 1", result.targetCellCount.toString(), "", "", "", "", ""))
-        outputData.add(arrayOf("Transduced cells in channel 1", result.overlappingTwoChannelCells.size.toString(), "", "", "", "", ""))
-        val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
-        outputData.add(arrayOf("Transduction Efficiency (%)", transductionEfficiency.toString(), "", "", "", "", ""))
-        outputData.add(arrayOf("Mean intensity of colocalized cells", (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(), "", "", "", "", ""))
-        outputData.add(arrayOf("--- Transduced Channel Analysis, Colocalized Cells ---", "", "", "", "", ""))
+        // TODO: Split into separate CSV files:
+        // Summary
+        val summaryData = ArrayList<Array<String>>()
+        summaryData.add(
+            arrayOf(
+                "File Name",
+                "Number of Cells",
+                "Number of Transduced Cells",
+                "Transduction Efficiency (%)",
+                "Average Morphology Area (pixel^2)",
+                "Mean Fluorescence Intensity (a.u.)",
+                "Median Fluorescence Intensity (a.u.)",
+                "Min Fluorescence Intensity (a.u.)",
+                "Max Fluorescence Intensity (a.u.)",
+                "IntDen",
+                "RawIntDen"
+            )
+        )
+        // TODO (tiger-cross): find a way to get input file name
+        // TODO (tiger-cross): Calculate other metrics
+        summaryData.add(
+            arrayOf(
+                "1",
+                result.targetCellCount.toString(),
+                result.overlappingTwoChannelCells.size.toString(),
+                ((result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100).toString(),
+                "TODO: Average Morphology Area",
+                (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(),
+                "TODO: Median",
+                "TODO: Min",
+                "TODO: Max",
+                "TODO: IntDen",
+                "TODO: RawIntDen"
+            )
+        )
 
         // Per-cell analysis
         result.overlappingTransducedIntensityAnalysis.forEach {
