@@ -1,6 +1,6 @@
 # Simple Colocalization
 
-[![Build Status](https://travis-ci.com/sonjoonho/simple-colocalization.svg?token=qFf5VdpqfSMd2gygFDZQ&branch=master)](https://travis-ci.com/sonjoonho/simple-colocalization)
+[![Build Status](https://travis-ci.com/sonjoonho/SimpleRGC.svg?token=qFf5VdpqfSMd2gygFDZQ&branch=master)](https://travis-ci.com/sonjoonho/SimpleRGC)
 
 ## Overview
 
