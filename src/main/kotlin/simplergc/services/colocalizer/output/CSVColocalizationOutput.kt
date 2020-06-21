@@ -19,10 +19,14 @@ class CSVColocalizationOutput(
         val csvWriter = CsvWriter()
         // TODO: Figure out how to write each csv file in a folder.
 
-        // TODO: Save parameters in separate CSV
-        val DocumentationData = ArrayList<Array<String>>()
+        val documentationData = ArrayList<Array<String>>()
+        documentationData.add(arrayOf("The Article: ", "TODO: insert full citation of manuscript when complete"))
+        documentationData.add(arrayOf("", ""))
+        documentationData.add(arrayOf("Abbreviation: ", "Description"))
+        documentationData.add(arrayOf("Summary: ", "Key overall measurements per image"))
+        documentationData.add(arrayOf("Transduced Cell Analysis: ", "Cell-by-cell metrics of transduced cells"))
+        documentationData.add(arrayOf("Parameters: ", "Parameters used for SimpleRGC plugin"))
 
-        // TODO: Split into separate CSV files:
         // Summary
         val summaryData = ArrayList<Array<String>>()
         summaryData.add(
@@ -58,8 +62,6 @@ class CSVColocalizationOutput(
             )
         )
 
-        // TODO: Write summary CSV to output folder.
-
         // Per-cell analysis
         val cellByCellData = ArrayList<Array<String>>()
         cellByCellData.add(
@@ -93,6 +95,7 @@ class CSVColocalizationOutput(
 
         // TODO: Save parameters in separate CSV
         // TODO: Add pixel size (micrometers) at a later date
+        // Parameters
         val parametersData = ArrayList<Array<String>>()
         parametersData.add(
             arrayOf(
@@ -108,5 +111,6 @@ class CSVColocalizationOutput(
                 "Gaussian blur sigma"
             )
         )
+        //TODO: add parameter values
     }
 }
