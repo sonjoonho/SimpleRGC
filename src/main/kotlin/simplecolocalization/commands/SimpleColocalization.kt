@@ -95,7 +95,7 @@ class SimpleColocalization : Command, Previewable {
      * Used during the cell identification stage to filter out cells that are too small
      */
     @Parameter(
-        label = "Cell diameter for morphology channel 1 (px)",
+        label = "Cell diameter (px)",
         description = "Used as minimum/maximum diameter when identifying cells",
         required = true,
         style = AlignedTextWidget.RIGHT,
