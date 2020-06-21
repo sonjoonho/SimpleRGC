@@ -91,6 +91,18 @@ class SimpleColocalization : Command, Previewable {
     )
     var targetChannel = 1
 
+    /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Cell diameter for morphology channel 1 (px)",
+        description = "Used as minimum/maximum diameter when identifying cells",
+        required = true,
+        style = AlignedTextWidget.RIGHT,
+        persist = true
+    )
+    var cellDiameterText = "0.0-30.0"
+
     @Parameter(
         label = "Exclude axons",
         required = true,
@@ -131,18 +143,6 @@ class SimpleColocalization : Command, Previewable {
         required = false
     )
     private lateinit var preprocessingParamsHeader: String
-
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter for morphology channel 1 (px)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = true
-    )
-    var cellDiameterText = "0.0-30.0"
 
     /**
      * Used as the size of the window over which the threshold will be locally computed.
