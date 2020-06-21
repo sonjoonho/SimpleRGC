@@ -39,7 +39,6 @@ import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
 import simplergc.services.colocalizer.output.CSVColocalizationOutput
 import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
-import simplergc.services.colocalizer.output.XMLColocalizationOutput
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.widgets.AlignedTextWidget
 
@@ -177,12 +176,11 @@ class RGCTransduction : Command, Previewable {
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
         const val CSV = "Save as CSV file"
-        const val XML = "Save as XML file"
     }
 
     @Parameter(
         label = "Results Output:",
-        choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
+        choices = [OutputFormat.DISPLAY, OutputFormat.CSV],
         required = true,
         persist = true,
         style = "radioButtonVertical"
@@ -265,7 +263,6 @@ class RGCTransduction : Command, Previewable {
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
             OutputFormat.CSV -> CSVColocalizationOutput(result, outputFile!!)
-            OutputFormat.XML -> XMLColocalizationOutput(result, outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
