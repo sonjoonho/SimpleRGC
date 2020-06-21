@@ -19,6 +19,9 @@ class CSVColocalizationOutput(
         val csvWriter = CsvWriter()
         // TODO: Figure out how to write each csv file in a folder.
 
+        // TODO: Save parameters in separate CSV
+        val DocumentationData = ArrayList<Array<String>>()
+
         // TODO: Split into separate CSV files:
         // Summary
         val summaryData = ArrayList<Array<String>>()
@@ -88,6 +91,22 @@ class CSVColocalizationOutput(
             )
         }
 
-        csvWriter.write(file, StandardCharsets.UTF_8, outputData)
+        // TODO: Save parameters in separate CSV
+        // TODO: Add pixel size (micrometers) at a later date
+        val parametersData = ArrayList<Array<String>>()
+        parametersData.add(
+            arrayOf(
+                "File Name",
+                "SimpleRGC Plugin",
+                "Version",
+                "Morphology channel",
+                "Exclude Axons from morphology channel?",
+                "Transduction channel",
+                "Exclude Axons from transduction channel?",
+                "Cell diameter range (px)",
+                "Local threshold radius",
+                "Gaussian blur sigma"
+            )
+        )
     }
 }
