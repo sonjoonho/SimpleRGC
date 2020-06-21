@@ -164,9 +164,7 @@
 
     <!-- More Project Information -->
     <name>SimpleRGC</name>
-    <description>A ImageJ plugin that calculates cell colocalization.</description>
-    <!-- Little shoutout ;) -->
-    <url>https://sonj.me</url>
+    <description>An ImageJ plugin that offers a suite of tools to analyse microscope images containing retinal ganglion cells. The main tools allow for counting and determining transduction of these cells.</description>
     <inceptionYear>2019</inceptionYear>
     <licenses>
         <license>
