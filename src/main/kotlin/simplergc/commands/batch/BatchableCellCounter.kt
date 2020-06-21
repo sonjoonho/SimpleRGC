@@ -9,7 +9,6 @@ import simplergc.commands.RGCCounter
 import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.counter.output.CSVCounterOutput
-import simplergc.services.counter.output.XMLCounterOutput
 
 class BatchableCellCounter(private val targetChannel: Int, private val context: Context) : Batchable {
     override fun process(
@@ -32,7 +31,6 @@ class BatchableCellCounter(private val targetChannel: Int, private val context: 
 
         val output = when (outputFormat) {
             RGCCounter.OutputFormat.CSV -> CSVCounterOutput(outputFile)
-            RGCCounter.OutputFormat.XML -> XMLCounterOutput(outputFile)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
         imageAndCount.forEach { output.addCountForFile(it.second, it.first.title) }

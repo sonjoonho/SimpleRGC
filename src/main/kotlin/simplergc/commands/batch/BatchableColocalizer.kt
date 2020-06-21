@@ -58,7 +58,6 @@ class BatchableColocalizer(
         try {
             when (outputFormat) {
                 OutputFormat.CSV -> outputToCSV(fileNameAndAnalysis, outputFile)
-                OutputFormat.XML -> outputToXML(fileNameAndAnalysis, outputFile)
                 else -> throw IllegalArgumentException("Invalid output type provided")
             }
         } catch (ioe: IOException) {
