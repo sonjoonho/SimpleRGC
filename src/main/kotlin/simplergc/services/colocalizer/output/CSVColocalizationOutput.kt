@@ -2,7 +2,6 @@ package simplergc.services.colocalizer.output
 
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
-import java.nio.charset.StandardCharsets
 import java.util.ArrayList
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.SimpleOutput
@@ -56,17 +55,35 @@ class CSVColocalizationOutput(
             )
         )
 
+        // TODO: Write summary CSV to output folder.
+
         // Per-cell analysis
+        val cellByCellData = ArrayList<Array<String>>()
+        cellByCellData.add(
+            arrayOf(
+                "File Name",
+                "Transduced Cell",
+                "Morphology Area (pixel^2)",
+                "Mean Fluorescence Intensity (a.u.)",
+                "Median Fluorescence Intensity (a.u.)",
+                "Min Fluorescence Intensity (a.u.)",
+                "Max Fluorescence Intensity (a.u.)",
+                "IntDen",
+                "RawIntDen"
+            )
+        )
         result.overlappingTransducedIntensityAnalysis.forEach {
-            outputData.add(
+            cellByCellData.add(
                 arrayOf(
-                    "",
+                    "TODO:",
                     "1",
                     it.area.toString(),
-                    it.median.toString(),
                     it.mean.toString(),
-                    (it.mean * it.area).toString(),
-                    it.sum.toString()
+                    it.median.toString(),
+                    "TODO: Min",
+                    "TODO: Max",
+                    "TODO: IntDen",
+                    "TODO: RawIntDen"
                 )
             )
         }
