@@ -6,7 +6,7 @@
 
     <!-- The Basics -->
     <groupId>uk.ac.ic.doc</groupId>
-    <artifactId>SimpleColocalization</artifactId>
+    <artifactId>SimpleRGC</artifactId>
     <version>0.0.1</version>
     <dependencies>
         <dependency>
@@ -163,7 +163,7 @@
     </build>
 
     <!-- More Project Information -->
-    <name>Simple Colocalization</name>
+    <name>SimpleRGC</name>
     <description>A ImageJ plugin that calculates cell colocalization.</description>
     <!-- Little shoutout ;) -->
     <url>https://sonj.me</url>
@@ -174,7 +174,7 @@
         </license>
     </licenses>
     <organization>
-        <name>Imperial College Software Engineering Group Project Group 11</name>
+        <name>SimpleRGC</name>
     </organization>
     <developers>
         <developer>
@@ -212,11 +212,11 @@
     <!-- Environment Settings -->
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/plug-in-baby/simple-colocalization/issues</url>
+        <url>https://github.com/sonjoonho/simplergc/issues</url>
     </issueManagement>
     <ciManagement>
         <system>Travis CI</system>
-        <url>https://travis-ci.org/plug-in-baby/simple-colocalization</url>
+        <url>https://travis-ci.org/plug-in-baby/simplergc</url>
     </ciManagement>
     <!-- We have no mailing list, but it is required by the parent POM. -->
     <mailingLists>
@@ -225,10 +225,10 @@
         </mailingList>
     </mailingLists>
     <scm>
-        <connection>scm:git:git//github.com/plug-in-baby/simple-colocalization</connection>
-        <developerConnection>scm:git:git//github.com/plug-in-baby/simple-colocalization</developerConnection>
+        <connection>scm:git:git//github.com/plug-in-baby/simplergc</connection>
+        <developerConnection>scm:git:git//github.com/plug-in-baby/simplergc</developerConnection>
         <tag>HEAD</tag>
-        <url>https://github.com/plug-in-baby/simple-colocalization</url>
+        <url>https://github.com/plug-in-baby/simplergc</url>
     </scm>
     <repositories>
         <repository>
