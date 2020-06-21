@@ -5,18 +5,9 @@ import ij.IJ
 import ij.ImagePlus
 import ij.gui.MessageDialog
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.charset.StandardCharsets
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.OutputKeys
-import javax.xml.transform.TransformerException
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
 import org.scijava.Context
-import org.w3c.dom.Document
-import org.w3c.dom.Element
 import simplergc.commands.ChannelDoesNotExistException
 import simplergc.commands.RGCTransduction
 import simplergc.commands.RGCTransduction.TransductionResult
@@ -86,64 +77,4 @@ class BatchableColocalizer(
         csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
     }
 
-    private fun outputToXML(
-        fileNameAndAnalysis: List<Pair<String, TransductionResult>>,
-        outputFile: File
-    ) {
-        // Create XML factory, builder and document.
-        val dbFactory = DocumentBuilderFactory.newInstance()
-        val dBuilder = dbFactory.newDocumentBuilder()
-        val doc = dBuilder.newDocument()
-
-        val rootElement = doc.createElement("colocalizationresult")
-        doc.appendChild(rootElement)
-        fileNameAndAnalysis.forEach { addSummaryForFile(it.second, it.first, doc, rootElement) }
-
-        try {
-            // Create transformer and set output properties.
-            val tr = TransformerFactory.newInstance().newTransformer()
-            tr.setOutputProperty(OutputKeys.INDENT, "yes")
-            tr.setOutputProperty(OutputKeys.METHOD, "xml")
-            tr.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
-            tr.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "roles.dtd")
-            tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4")
-            // Send output file to file output stream.
-            tr.transform(DOMSource(doc), StreamResult(FileOutputStream(outputFile)))
-        } catch (te: TransformerException) {
-            displayOutputFileErrorDialog(filetype = "XML")
-        }
-    }
-
-    /**
-     * Create a <attrName> element with the value as a Text Node for a given parent element.
-     * Used for creating the summary attributes.
-     */
-    private fun addAttribute(attrName: String, attrVal: String, parent: Element, doc: Document) {
-        val elem = doc.createElement(attrName)
-        parent.appendChild(elem)
-        elem.appendChild(doc.createTextNode(attrVal))
-    }
-
-    /**
-     * Adds a summary section to the XML output.
-     */
-    private fun addSummaryForFile(
-        result: TransductionResult,
-        fileName: String,
-        doc: Document,
-        root: Element
-    ) {
-        val summary = doc.createElement("Summary")
-        root.appendChild(summary)
-        val fileAttr = doc.createAttribute("File")
-        fileAttr.setValue(fileName)
-        summary.setAttributeNode(fileAttr)
-        addAttribute("TotalTargetCellCount", result.targetCellCount.toString(), summary, doc)
-        addAttribute(
-            "NumTransducedCellsOverlappingTarget",
-            result.overlappingTwoChannelCells.size.toString(),
-            summary,
-            doc
-        )
-    }
 }
