@@ -54,7 +54,21 @@ class XLSXColocalizationOutput(
 
         val summarySheet = workbook.createSheet("Summary")
         val perCellAnalysisSheet = workbook.createSheet("Transduced cells analysis")
+
         val paramsSheet = workbook.createSheet("Parameters")
+        val paramsHeader = arrayOf(
+            "File name",
+            "Simple RGC plugin",
+            "Version",
+            "Pixel size (micrometers)",
+            "Morphology channel",
+            "Transduction channel",
+            "Cell diameter (px)",
+            "Local threshold radius",
+            "Gaussian blur sigma",
+            "Exclude axons"
+        )
+        // TODO: insert params here
 
         // Write file and close streams
         val fileOut = file.outputStream()
