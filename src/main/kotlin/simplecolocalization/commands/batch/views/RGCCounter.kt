@@ -16,20 +16,20 @@ import javax.swing.JRadioButton
 import javax.swing.JTextArea
 import javax.swing.SpinnerNumberModel
 import org.scijava.Context
-import simplecolocalization.commands.batch.SimpleBatch
-import simplecolocalization.commands.batch.controllers.runSimpleCellCounter
+import simplecolocalization.commands.batch.RGCBatch
+import simplecolocalization.commands.batch.controllers.runRGCCounter
 import simplecolocalization.commands.batch.views.common.addCheckBox
 import simplecolocalization.commands.batch.views.common.addMessage
 import simplecolocalization.commands.batch.views.common.addSpinner
 import simplecolocalization.widgets.AlignedTextWidget
 
 /** Creates the Simple Cell Counter GUI. */
-fun simpleCellCounterPanel(context: Context): JPanel {
-    // TODO: Make this pretty
+fun rgcCounterPanel(context: Context): JPanel {
     // TODO: Make User parameters persist
     val panel = JPanel()
     panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
 
+    // TODO: Refactor file choosing to reduce duplication
     val folderChooserPanel = JPanel()
     folderChooserPanel.layout = GridLayout(0, 2)
     val inputFolderLabel = JLabel("Input folder")
@@ -89,6 +89,7 @@ fun simpleCellCounterPanel(context: Context): JPanel {
     resultsOutputPanel.add(saveAsXMLButton)
     panel.add(resultsOutputPanel)
 
+    // TODO: Refactor file choosing to reduce duplication
     val fileChooserPanel = JPanel()
     fileChooserPanel.layout = GridLayout(0, 2)
     val label = JLabel("Output File (if saving)")
@@ -123,12 +124,12 @@ fun simpleCellCounterPanel(context: Context): JPanel {
         val thresholdRadius = thresholdRadiusSpinner.value as Int
         val gaussianBlurSigma = (gaussianBlurSpinner.value as Int).toDouble()
         val outputFormat = when {
-            saveAsCSVButton.isSelected -> SimpleBatch.OutputFormat.CSV
-            saveAsXMLButton.isSelected -> SimpleBatch.OutputFormat.XML
+            saveAsCSVButton.isSelected -> RGCBatch.OutputFormat.CSV
+            saveAsXMLButton.isSelected -> RGCBatch.OutputFormat.XML
             else -> ""
         }
         try {
-            runSimpleCellCounter(
+            runRGCCounter(
                 inputFolder,
                 shouldProcessFilesInNestedFolders,
                 channel,

@@ -7,7 +7,7 @@ import simplecolocalization.commands.batch.BatchableCellCounter
 import simplecolocalization.services.CellDiameterRange
 
 /** Runs BatchableCellCounter, called in action listener for "Ok" button. */
-fun runSimpleCellCounter(
+fun runRGCCounter(
     inputFolder: File?,
     shouldProcessFilesInNestedFolders: Boolean,
     channel: Int,

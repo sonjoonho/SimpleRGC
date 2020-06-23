@@ -7,11 +7,11 @@ import org.scijava.command.Command
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
-import simplecolocalization.commands.batch.views.simpleCellCounterPanel
-import simplecolocalization.commands.batch.views.simpleColocalizerPanel
+import simplecolocalization.commands.batch.views.rgcCounterPanel
+import simplecolocalization.commands.batch.views.rgcTransductionPanel
 
-@Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Batch")
-class SimpleBatch : Command {
+@Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Batch")
+class RGCBatch : Command {
 
     @Parameter
     private lateinit var logService: LogService
@@ -26,12 +26,12 @@ class SimpleBatch : Command {
 
     private fun gui() {
         val frame = JFrame()
-        val simpleCellCounterPanel = simpleCellCounterPanel(context)
-        val simpleColocalizerPanel = simpleColocalizerPanel(context)
+        val simpleCellCounterPanel = rgcCounterPanel(context)
+        val simpleColocalizerPanel = rgcTransductionPanel(context)
         val tp = JTabbedPane()
         tp.setBounds(5, 5, 500, 575)
-        tp.add("Simple Cell Counter", simpleCellCounterPanel)
-        tp.add("Simple Colocalizer", simpleColocalizerPanel)
+        tp.add("RGCCounter", simpleCellCounterPanel)
+        tp.add("RGCTransduction", simpleColocalizerPanel)
         frame.add(tp)
         frame.setSize(525, 625)
         frame.isResizable = false

@@ -7,7 +7,7 @@ import simplecolocalization.commands.batch.BatchableColocalizer
 import simplecolocalization.services.CellDiameterRange
 
 /** Runs BatchableColocalizer, called in action listener for "Ok" button. */
-fun runSimpleColocalizer(
+fun runRGCTransduction(
     inputFolder: File?,
     shouldProcessFilesInNestedFolders: Boolean,
     thresholdRadius: Int,

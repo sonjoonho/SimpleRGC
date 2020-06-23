@@ -19,7 +19,7 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import simplecolocalization.commands.ChannelDoesNotExistException
 import simplecolocalization.commands.SimpleColocalization
-import simplecolocalization.commands.batch.SimpleBatch.OutputFormat
+import simplecolocalization.commands.batch.RGCBatch.OutputFormat
 import simplecolocalization.commands.displayOutputFileErrorDialog
 import simplecolocalization.services.CellDiameterRange
 
