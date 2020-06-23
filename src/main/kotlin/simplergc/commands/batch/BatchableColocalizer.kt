@@ -76,5 +76,4 @@ class BatchableColocalizer(
         })
         csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
     }
-
 }
