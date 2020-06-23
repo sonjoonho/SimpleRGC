@@ -2,21 +2,24 @@ package simplecolocalization.commands.batch.views
 
 import ij.IJ
 import ij.gui.MessageDialog
+import java.awt.GridBagLayout
 import java.awt.GridLayout
 import java.io.File
 import java.io.FileNotFoundException
+import javax.swing.BoxLayout
 import javax.swing.ButtonGroup
 import javax.swing.JButton
 import javax.swing.JFileChooser
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JRadioButton
+import javax.swing.JTextArea
 import javax.swing.SpinnerNumberModel
 import org.scijava.Context
 import simplecolocalization.commands.batch.SimpleBatch
 import simplecolocalization.commands.batch.controllers.runSimpleCellCounter
 import simplecolocalization.commands.batch.views.common.addCheckBox
-import simplecolocalization.commands.batch.views.common.addFileChooser
+import simplecolocalization.commands.batch.views.common.addMessage
 import simplecolocalization.commands.batch.views.common.addSpinner
 import simplecolocalization.widgets.AlignedTextWidget
 
@@ -25,27 +28,40 @@ fun simpleCellCounterPanel(context: Context): JPanel {
     // TODO: Make this pretty
     // TODO: Make User parameters persist
     val panel = JPanel()
-    panel.layout = GridLayout(0, 1)
+    panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
+
+    val folderChooserPanel = JPanel()
+    folderChooserPanel.layout = GridLayout(0, 2)
+    val inputFolderLabel = JLabel("Input folder")
+    val buttonPanel = JPanel()
+    buttonPanel.layout = GridBagLayout()
+    val button = JButton("Browse")
+    val folderName = JTextArea(1, 25)
+    inputFolderLabel.labelFor = button
+    folderChooserPanel.add(inputFolderLabel)
+    buttonPanel.add(folderName)
+    buttonPanel.add(button)
+    folderChooserPanel.add(buttonPanel)
 
     var inputFolder: File? = null
-    val button =
-        addFileChooser(panel, "Input folder")
     button.addActionListener {
         val fileChooser = JFileChooser()
         fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
         val i = fileChooser.showOpenDialog(panel)
         if (i == JFileChooser.APPROVE_OPTION) {
             inputFolder = fileChooser.selectedFile
+            folderName.append(inputFolder!!.absolutePath.takeLast(25))
         }
     }
+
+    panel.add(folderChooserPanel)
 
     val shouldProcessFilesInNestedFoldersCheckbox = addCheckBox(panel, "Batch process in nested sub-folders?")
 
     val channelModel = SpinnerNumberModel(1, 0, 10, 1)
     val channelSpinner = addSpinner(panel, "Select channel to use", channelModel)
 
-    val imageProcessingParametersLabel = JLabel("Image processing parameters")
-    panel.add(imageProcessingParametersLabel)
+    addMessage(panel, "Image processing parameters")
 
     // TODO: Hook this up so it actually works
     val cellDiameterLabel = JLabel("Cell diameter(px)")
@@ -58,33 +74,46 @@ fun simpleCellCounterPanel(context: Context): JPanel {
     val gaussianBlurModel = SpinnerNumberModel(3, 1, 50, 1)
     val gaussianBlurSpinner = addSpinner(panel, "Gaussian blur sigma", gaussianBlurModel)
 
-    val outputParamsLabel = JLabel("Output parameters")
-    panel.add(outputParamsLabel)
+    addMessage(panel, "Output parameters")
 
     val resultsOutputPanel = JPanel()
+    resultsOutputPanel.layout = GridLayout(0, 2)
     val resultsOutputLabel = JLabel("Results output")
+    resultsOutputPanel.add(resultsOutputLabel)
     val saveAsCSVButton = JRadioButton("Save as a CSV file")
     val saveAsXMLButton = JRadioButton("Save as XML file")
     val bg = ButtonGroup()
     bg.add(saveAsCSVButton); bg.add(saveAsXMLButton)
-    resultsOutputPanel.add(resultsOutputLabel)
     resultsOutputPanel.add(saveAsCSVButton)
+    resultsOutputPanel.add(JPanel())
     resultsOutputPanel.add(saveAsXMLButton)
     panel.add(resultsOutputPanel)
 
+    val fileChooserPanel = JPanel()
+    fileChooserPanel.layout = GridLayout(0, 2)
+    val label = JLabel("Output File (if saving)")
+    val browseButtonPanel = JPanel()
+    browseButtonPanel.layout = GridBagLayout()
+    val browseButton = JButton("Browse")
+    val fileName = JTextArea(1, 25)
+    label.labelFor = button
+    fileChooserPanel.add(label)
+    browseButtonPanel.add(fileName)
+    browseButtonPanel.add(browseButton)
+    fileChooserPanel.add(browseButtonPanel)
+
     var outputFile: File? = null
-    val browseButton = addFileChooser(
-        panel,
-        "Output File (if saving)"
-    )
     browseButton.addActionListener {
         val fileChooser = JFileChooser()
         fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
         val i = fileChooser.showOpenDialog(panel)
         if (i == JFileChooser.APPROVE_OPTION) {
             outputFile = fileChooser.selectedFile
+            fileName.append(outputFile!!.absolutePath.takeLast(25))
         }
     }
+
+    panel.add(fileChooserPanel)
 
     val okButton = JButton("Ok")
     panel.add(okButton)
@@ -118,5 +147,7 @@ fun simpleCellCounterPanel(context: Context): JPanel {
             MessageDialog(IJ.getInstance(), "Error", e.message)
         }
     }
+
+    panel.add(JPanel())
     return panel
 }

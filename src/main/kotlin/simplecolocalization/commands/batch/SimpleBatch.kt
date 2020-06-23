@@ -29,11 +29,12 @@ class SimpleBatch : Command {
         val simpleCellCounterPanel = simpleCellCounterPanel(context)
         val simpleColocalizerPanel = simpleColocalizerPanel(context)
         val tp = JTabbedPane()
-        tp.setBounds(10, 10, 700, 700)
+        tp.setBounds(5, 5, 500, 575)
         tp.add("Simple Cell Counter", simpleCellCounterPanel)
         tp.add("Simple Colocalizer", simpleColocalizerPanel)
         frame.add(tp)
-        frame.setSize(800, 800)
+        frame.setSize(525, 625)
+        frame.isResizable = false
 
         frame.layout = null
         frame.isVisible = true
