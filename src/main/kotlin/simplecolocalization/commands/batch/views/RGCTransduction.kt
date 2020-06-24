@@ -18,10 +18,11 @@ import javax.swing.SpinnerNumberModel
 import org.scijava.Context
 import simplecolocalization.commands.batch.RGCBatch
 import simplecolocalization.commands.batch.controllers.runRGCTransduction
+import simplecolocalization.commands.batch.views.common.addCellDiameterField
 import simplecolocalization.commands.batch.views.common.addCheckBox
 import simplecolocalization.commands.batch.views.common.addMessage
 import simplecolocalization.commands.batch.views.common.addSpinner
-import simplecolocalization.widgets.AlignedTextWidget
+import simplecolocalization.services.CellDiameterRange
 
 /** Creates the Simple Colocalizer GUI. */
 fun rgcTransductionPanel(context: Context): JPanel {
@@ -59,29 +60,18 @@ fun rgcTransductionPanel(context: Context): JPanel {
 
     addMessage(panel, "<html><div align=\\\"left\\\">When performing batch colocalization, ensure that all input images have the same </br> channel ordering as specified below.</div></html>")
 
-    val channel1Model = SpinnerNumberModel(1, 1, 100, 1)
-    val targetChannelSpinner = addSpinner(panel, "Cell morphology channel 1", channel1Model)
+    val morphologyChannelModel = SpinnerNumberModel(1, 1, 100, 1)
+    val targetChannelSpinner = addSpinner(panel, "Cell morphology channel", morphologyChannelModel)
 
-    val channel2Model = SpinnerNumberModel(0, 0, 100, 1)
-    val allCellsChannelSpinner = addSpinner(panel, "Cell morphology channel 2 (0 to disable)", channel2Model)
-
-    val transductionChannel1Model = SpinnerNumberModel(2, 1, 100, 1)
-    val transducedChannelSpinner = addSpinner(panel, "Transduction channel", transductionChannel1Model)
+    val transductionChannelModel = SpinnerNumberModel(2, 1, 100, 1)
+    val transducedChannelSpinner = addSpinner(panel, "Transduction channel", transductionChannelModel)
 
     addMessage(panel, "Image processing parameters")
 
-    // TODO: Hook this up so it actually works
-    val cellDiameterChannel1Label = JLabel("Cell diameter(px)")
-    val cellDiameterChanne1Widget = AlignedTextWidget()
-    panel.add(cellDiameterChannel1Label)
+    val cellDiameterChannelField = addCellDiameterField(panel)
 
     val thresholdRadiusModel = SpinnerNumberModel(20, 1, 1000, 1)
     val thresholdRadiusSpinner = addSpinner(panel, "Local threshold radius", thresholdRadiusModel)
-
-    // TODO: Hook this up so it actually works
-    val cellDiameterChannel2Label = JLabel("Cell diameter(px)")
-    val cellDiameterChannel2Widget = AlignedTextWidget()
-    panel.add(cellDiameterChannel2Label)
 
     val gaussianBlurModel = SpinnerNumberModel(3, 1, 50, 1)
     val gaussianBlurSpinner = addSpinner(panel, "Gaussian blur sigma", gaussianBlurModel)
@@ -141,7 +131,8 @@ fun rgcTransductionPanel(context: Context): JPanel {
         }
         val targetChannel = targetChannelSpinner.value as Int
         val transducedChannel = transducedChannelSpinner.value as Int
-        val allCellsChannel = allCellsChannelSpinner.value as Int
+
+        val cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterChannelField.text)
 
         try {
             runRGCTransduction(
@@ -152,7 +143,7 @@ fun rgcTransductionPanel(context: Context): JPanel {
                 outputFormat,
                 targetChannel,
                 transducedChannel,
-                allCellsChannel,
+                cellDiameterRange,
                 outputFile,
                 context
             )

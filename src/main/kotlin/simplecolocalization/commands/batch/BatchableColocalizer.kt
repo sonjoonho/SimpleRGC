@@ -26,7 +26,6 @@ import simplecolocalization.services.CellDiameterRange
 class BatchableColocalizer(
     private val targetChannel: Int,
     private val transducedChannel: Int,
-    private val allChannel: Int,
     private val context: Context
 ) : Batchable {
     override fun process(
@@ -42,7 +41,6 @@ class BatchableColocalizer(
         simpleColocalization.localThresholdRadius = localThresholdRadius
         simpleColocalization.targetChannel = targetChannel
         simpleColocalization.transducedChannel = transducedChannel
-        simpleColocalization.allCellsChannel = allChannel
         context.inject(simpleColocalization)
 
         val analyses = inputImages.mapNotNull {

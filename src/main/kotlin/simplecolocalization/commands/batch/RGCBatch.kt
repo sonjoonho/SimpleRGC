@@ -2,6 +2,7 @@ package simplecolocalization.commands.batch
 
 import javax.swing.JFrame
 import javax.swing.JTabbedPane
+import net.imagej.ImageJ
 import org.scijava.Context
 import org.scijava.command.Command
 import org.scijava.log.LogService
@@ -9,6 +10,8 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import simplecolocalization.commands.batch.views.rgcCounterPanel
 import simplecolocalization.commands.batch.views.rgcTransductionPanel
+import simplecolocalization.services.CellColocalizationService
+import simplecolocalization.services.CellSegmentationService
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Batch")
 class RGCBatch : Command {
@@ -42,5 +45,25 @@ class RGCBatch : Command {
 
     override fun run() {
         gui()
+    }
+
+    companion object {
+        /**
+         * Entry point to directly open the plugin, used for debugging purposes.
+         *
+         * @throws Exception
+         */
+        @Throws(Exception::class)
+        @JvmStatic
+        fun main(args: Array<String>) {
+            val ij = ImageJ()
+
+            ij.context().inject(CellSegmentationService())
+            ij.context().inject(CellColocalizationService())
+
+            ij.launch()
+
+            ij.command().run(RGCBatch::class.java, true)
+        }
     }
 }

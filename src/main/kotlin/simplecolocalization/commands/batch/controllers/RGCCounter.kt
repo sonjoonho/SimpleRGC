@@ -13,6 +13,7 @@ fun runRGCCounter(
     channel: Int,
     thresholdRadius: Int,
     gaussianBlurSigma: Double,
+    cellDiameterRange: CellDiameterRange,
     outputFormat: String,
     outputFile: File?,
     context: Context
@@ -31,7 +32,7 @@ fun runRGCCounter(
     // TODO: Use the user input cell diameter range
     cellCounter.process(
         openFiles(files),
-        CellDiameterRange(0.0, 100.0),
+        cellDiameterRange,
         thresholdRadius,
         gaussianBlurSigma,
         outputFormat,

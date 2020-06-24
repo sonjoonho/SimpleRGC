@@ -15,7 +15,7 @@ fun runRGCTransduction(
     outputFormat: String,
     targetChannel: Int,
     transducedChannel: Int,
-    allCellsChannel: Int,
+    cellDiameterRange: CellDiameterRange,
     outputFile: File?,
     context: Context
 ) {
@@ -28,10 +28,10 @@ fun runRGCTransduction(
     }
 
     val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
-    val colocalizer = BatchableColocalizer(targetChannel, transducedChannel, allCellsChannel, context)
+    val colocalizer = BatchableColocalizer(targetChannel, transducedChannel, context)
     colocalizer.process(
         openFiles(files),
-        CellDiameterRange(0.0, 100.0),
+        cellDiameterRange,
         thresholdRadius,
         gaussianBlurSigma,
         outputFormat,

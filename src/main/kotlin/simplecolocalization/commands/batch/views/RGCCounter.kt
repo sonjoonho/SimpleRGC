@@ -18,10 +18,11 @@ import javax.swing.SpinnerNumberModel
 import org.scijava.Context
 import simplecolocalization.commands.batch.RGCBatch
 import simplecolocalization.commands.batch.controllers.runRGCCounter
+import simplecolocalization.commands.batch.views.common.addCellDiameterField
 import simplecolocalization.commands.batch.views.common.addCheckBox
 import simplecolocalization.commands.batch.views.common.addMessage
 import simplecolocalization.commands.batch.views.common.addSpinner
-import simplecolocalization.widgets.AlignedTextWidget
+import simplecolocalization.services.CellDiameterRange
 
 /** Creates the Simple Cell Counter GUI. */
 fun rgcCounterPanel(context: Context): JPanel {
@@ -63,10 +64,7 @@ fun rgcCounterPanel(context: Context): JPanel {
 
     addMessage(panel, "Image processing parameters")
 
-    // TODO: Hook this up so it actually works
-    val cellDiameterLabel = JLabel("Cell diameter(px)")
-    val cellDiameterWidget = AlignedTextWidget()
-    panel.add(cellDiameterLabel)
+    val cellDiameterChannelField = addCellDiameterField(panel)
 
     val thresholdRadiusModel = SpinnerNumberModel(20, 1, 1000, 1)
     val thresholdRadiusSpinner = addSpinner(panel, "Local threshold radius", thresholdRadiusModel)
@@ -128,6 +126,9 @@ fun rgcCounterPanel(context: Context): JPanel {
             saveAsXMLButton.isSelected -> RGCBatch.OutputFormat.XML
             else -> ""
         }
+
+        val cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterChannelField.text)
+
         try {
             runRGCCounter(
                 inputFolder,
@@ -135,6 +136,7 @@ fun rgcCounterPanel(context: Context): JPanel {
                 channel,
                 thresholdRadius,
                 gaussianBlurSigma,
+                cellDiameterRange,
                 outputFormat,
                 outputFile,
                 context
