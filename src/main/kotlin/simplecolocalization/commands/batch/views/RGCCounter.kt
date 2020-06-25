@@ -6,6 +6,7 @@ import java.awt.GridBagLayout
 import java.awt.GridLayout
 import java.io.File
 import java.io.FileNotFoundException
+import java.util.prefs.Preferences
 import javax.swing.BoxLayout
 import javax.swing.ButtonGroup
 import javax.swing.JButton
@@ -18,14 +19,16 @@ import javax.swing.SpinnerNumberModel
 import org.scijava.Context
 import simplecolocalization.commands.batch.RGCBatch
 import simplecolocalization.commands.batch.controllers.runRGCCounter
+import simplecolocalization.commands.batch.getRGCCounterPref
+import simplecolocalization.commands.batch.putRGCCounterPref
 import simplecolocalization.commands.batch.views.common.addCellDiameterField
 import simplecolocalization.commands.batch.views.common.addCheckBox
 import simplecolocalization.commands.batch.views.common.addMessage
 import simplecolocalization.commands.batch.views.common.addSpinner
 import simplecolocalization.services.CellDiameterRange
 
-/** Creates the Simple Cell Counter GUI. */
-fun rgcCounterPanel(context: Context): JPanel {
+/** Creates the RGC Counter GUI. */
+fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
     // TODO: Make User parameters persist
     val panel = JPanel()
     panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
@@ -38,13 +41,18 @@ fun rgcCounterPanel(context: Context): JPanel {
     buttonPanel.layout = GridBagLayout()
     val button = JButton("Browse")
     val folderName = JTextArea(1, 25)
+    folderName.append(prefs.getRGCCounterPref(prefs, "folderName", "").takeLast(25))
     inputFolderLabel.labelFor = button
     folderChooserPanel.add(inputFolderLabel)
     buttonPanel.add(folderName)
     buttonPanel.add(button)
     folderChooserPanel.add(buttonPanel)
 
-    var inputFolder: File? = null
+    var inputFolder = if (prefs.getRGCCounterPref(prefs, "folderName", "").isEmpty()) {
+        null
+    } else {
+        File(prefs.getRGCCounterPref(prefs, "folderName", ""))
+    }
     button.addActionListener {
         val fileChooser = JFileChooser()
         fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
@@ -52,24 +60,27 @@ fun rgcCounterPanel(context: Context): JPanel {
         if (i == JFileChooser.APPROVE_OPTION) {
             inputFolder = fileChooser.selectedFile
             folderName.append(inputFolder!!.absolutePath.takeLast(25))
+            prefs.putRGCCounterPref(prefs, "folderName", inputFolder!!.absolutePath)
         }
     }
 
     panel.add(folderChooserPanel)
 
-    val shouldProcessFilesInNestedFoldersCheckbox = addCheckBox(panel, "Batch process in nested sub-folders?")
+    val shouldProcessFilesInNestedFoldersCheckbox =
+        addCheckBox(panel, "Batch process in nested sub-folders?", prefs, "shouldProcessFilesInNestedFolders", true)
 
-    val channelModel = SpinnerNumberModel(1, 0, 10, 1)
+    val channelModel = SpinnerNumberModel(prefs.getRGCCounterPref(prefs, "channelToUse", 1), 0, 10, 1)
     val channelSpinner = addSpinner(panel, "Select channel to use", channelModel)
 
     addMessage(panel, "Image processing parameters")
 
+    // TODO: Make this persist
     val cellDiameterChannelField = addCellDiameterField(panel)
 
-    val thresholdRadiusModel = SpinnerNumberModel(20, 1, 1000, 1)
+    val thresholdRadiusModel = SpinnerNumberModel(prefs.getRGCCounterPref(prefs, "thresholdRadius", 20), 1, 1000, 1)
     val thresholdRadiusSpinner = addSpinner(panel, "Local threshold radius", thresholdRadiusModel)
 
-    val gaussianBlurModel = SpinnerNumberModel(3, 1, 50, 1)
+    val gaussianBlurModel = SpinnerNumberModel(prefs.getRGCCounterPref(prefs, "gaussianBlur", 3.0).toInt(), 1, 50, 1)
     val gaussianBlurSpinner = addSpinner(panel, "Gaussian blur sigma", gaussianBlurModel)
 
     addMessage(panel, "Output parameters")
@@ -80,6 +91,8 @@ fun rgcCounterPanel(context: Context): JPanel {
     resultsOutputPanel.add(resultsOutputLabel)
     val saveAsCSVButton = JRadioButton("Save as a CSV file")
     val saveAsXMLButton = JRadioButton("Save as XML file")
+    saveAsCSVButton.isSelected = prefs.getRGCCounterPref(prefs, "SaveAsCSV", true)
+    saveAsXMLButton.isSelected = !prefs.getRGCCounterPref(prefs, "SaveAsCSV", true)
     val bg = ButtonGroup()
     bg.add(saveAsCSVButton); bg.add(saveAsXMLButton)
     resultsOutputPanel.add(saveAsCSVButton)
@@ -95,13 +108,18 @@ fun rgcCounterPanel(context: Context): JPanel {
     browseButtonPanel.layout = GridBagLayout()
     val browseButton = JButton("Browse")
     val fileName = JTextArea(1, 25)
+    fileName.append(prefs.getRGCCounterPref(prefs, "outputFile", "").takeLast(25))
     label.labelFor = button
     fileChooserPanel.add(label)
     browseButtonPanel.add(fileName)
     browseButtonPanel.add(browseButton)
     fileChooserPanel.add(browseButtonPanel)
 
-    var outputFile: File? = null
+    var outputFile = if (prefs.getRGCCounterPref(prefs, "outputFile", "").isEmpty()) {
+        null
+    } else {
+        File(prefs.getRGCCounterPref(prefs, "outputFile", ""))
+    }
     browseButton.addActionListener {
         val fileChooser = JFileChooser()
         fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
@@ -109,6 +127,7 @@ fun rgcCounterPanel(context: Context): JPanel {
         if (i == JFileChooser.APPROVE_OPTION) {
             outputFile = fileChooser.selectedFile
             fileName.append(outputFile!!.absolutePath.takeLast(25))
+            prefs.putRGCCounterPref(prefs, "outputFile", outputFile!!.absolutePath)
         }
     }
 
@@ -118,14 +137,19 @@ fun rgcCounterPanel(context: Context): JPanel {
     panel.add(okButton)
     okButton.addActionListener {
         val shouldProcessFilesInNestedFolders = shouldProcessFilesInNestedFoldersCheckbox.isSelected
+        prefs.putRGCCounterPref(prefs, "shouldProcessFilesInNestedFolders", shouldProcessFilesInNestedFolders)
         val channel = channelSpinner.value as Int
+        prefs.putRGCCounterPref(prefs, "channelToUse", channel)
         val thresholdRadius = thresholdRadiusSpinner.value as Int
+        prefs.putRGCCounterPref(prefs, "thresholdRadius", thresholdRadius)
         val gaussianBlurSigma = (gaussianBlurSpinner.value as Int).toDouble()
+        prefs.putRGCCounterPref(prefs, "gaussianBlur", gaussianBlurSigma)
         val outputFormat = when {
             saveAsCSVButton.isSelected -> RGCBatch.OutputFormat.CSV
             saveAsXMLButton.isSelected -> RGCBatch.OutputFormat.XML
             else -> ""
         }
+        prefs.putRGCCounterPref(prefs, "saveAsCSV", saveAsCSVButton.isSelected)
 
         val cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterChannelField.text)
 

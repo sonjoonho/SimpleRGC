@@ -16,7 +16,7 @@ fun addCellDiameterField(container: Container, initial: String = "00.0-30.0"): J
     val label = JLabel("Cell diameter (px)")
     val t = JTextField(initial)
     t.horizontalAlignment = JTextField.RIGHT
-    t.columns = 20
+    t.columns = 22
     panel.add(label)
     textPanel.add(t, gbc)
     panel.add(textPanel)

@@ -1,5 +1,6 @@
 package simplecolocalization.commands.batch
 
+import java.util.prefs.Preferences
 import javax.swing.JFrame
 import javax.swing.JTabbedPane
 import net.imagej.ImageJ
@@ -27,16 +28,18 @@ class RGCBatch : Command {
         const val XML = "Save as XML file"
     }
 
+    private val prefs = Preferences.userRoot().node(this.javaClass.name)
+
     private fun gui() {
         val frame = JFrame()
-        val simpleCellCounterPanel = rgcCounterPanel(context)
-        val simpleColocalizerPanel = rgcTransductionPanel(context)
+        val simpleCellCounterPanel = rgcCounterPanel(context, prefs)
+        val simpleColocalizerPanel = rgcTransductionPanel(context, prefs)
         val tp = JTabbedPane()
-        tp.setBounds(5, 5, 500, 575)
+        tp.setBounds(10, 10, 500, 550)
         tp.add("RGCCounter", simpleCellCounterPanel)
         tp.add("RGCTransduction", simpleColocalizerPanel)
         frame.add(tp)
-        frame.setSize(525, 625)
+        frame.setSize(525, 600)
         frame.isResizable = false
 
         frame.layout = null

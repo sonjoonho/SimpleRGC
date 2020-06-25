@@ -6,6 +6,7 @@ import java.awt.GridBagLayout
 import java.awt.GridLayout
 import java.io.File
 import java.io.FileNotFoundException
+import java.util.prefs.Preferences
 import javax.swing.BoxLayout
 import javax.swing.ButtonGroup
 import javax.swing.JButton
@@ -25,7 +26,7 @@ import simplecolocalization.commands.batch.views.common.addSpinner
 import simplecolocalization.services.CellDiameterRange
 
 /** Creates the Simple Colocalizer GUI. */
-fun rgcTransductionPanel(context: Context): JPanel {
+fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
     val panel = JPanel()
     panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
 
@@ -56,7 +57,8 @@ fun rgcTransductionPanel(context: Context): JPanel {
 
     panel.add(folderChooserPanel)
 
-    val shouldProcessFilesInNestedFoldersCheckbox = addCheckBox(panel, "Batch process in nested sub-folders?")
+    val shouldProcessFilesInNestedFoldersCheckbox =
+        addCheckBox(panel, "Batch process in nested sub-folders?", prefs, "shouldProcessFilesInNestedFolders", false)
 
     addMessage(panel, "<html><div align=\\\"left\\\">When performing batch colocalization, ensure that all input images have the same </br> channel ordering as specified below.</div></html>")
 
