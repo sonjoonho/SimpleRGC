@@ -41,7 +41,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
     buttonPanel.layout = GridBagLayout()
     val button = JButton("Browse")
     val folderName = JTextArea(1, 25)
-    folderName.append(prefs.getRGCCounterPref(prefs, "folderName", "").takeLast(25))
+    folderName.text = prefs.getRGCCounterPref(prefs, "folderName", "").takeLast(25)
     inputFolderLabel.labelFor = button
     folderChooserPanel.add(inputFolderLabel)
     buttonPanel.add(folderName)
@@ -59,7 +59,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
         val i = fileChooser.showOpenDialog(panel)
         if (i == JFileChooser.APPROVE_OPTION) {
             inputFolder = fileChooser.selectedFile
-            folderName.append(inputFolder!!.absolutePath.takeLast(25))
+            folderName.text = inputFolder!!.absolutePath.takeLast(25)
             prefs.putRGCCounterPref(prefs, "folderName", inputFolder!!.absolutePath)
         }
     }
@@ -74,8 +74,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
 
     addMessage(panel, "Image processing parameters")
 
-    // TODO: Make this persist
-    val cellDiameterChannelField = addCellDiameterField(panel)
+    val cellDiameterChannelField = addCellDiameterField(panel, prefs, "cellDiameter", true)
 
     val thresholdRadiusModel = SpinnerNumberModel(prefs.getRGCCounterPref(prefs, "thresholdRadius", 20), 1, 1000, 1)
     val thresholdRadiusSpinner = addSpinner(panel, "Local threshold radius", thresholdRadiusModel)
@@ -108,7 +107,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
     browseButtonPanel.layout = GridBagLayout()
     val browseButton = JButton("Browse")
     val fileName = JTextArea(1, 25)
-    fileName.append(prefs.getRGCCounterPref(prefs, "outputFile", "").takeLast(25))
+    fileName.text = prefs.getRGCCounterPref(prefs, "outputFile", "").takeLast(25)
     label.labelFor = button
     fileChooserPanel.add(label)
     browseButtonPanel.add(fileName)
@@ -126,7 +125,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
         val i = fileChooser.showOpenDialog(panel)
         if (i == JFileChooser.APPROVE_OPTION) {
             outputFile = fileChooser.selectedFile
-            fileName.append(outputFile!!.absolutePath.takeLast(25))
+            fileName.text = outputFile!!.absolutePath.takeLast(25)
             prefs.putRGCCounterPref(prefs, "outputFile", outputFile!!.absolutePath)
         }
     }
@@ -152,6 +151,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
         prefs.putRGCCounterPref(prefs, "saveAsCSV", saveAsCSVButton.isSelected)
 
         val cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterChannelField.text)
+        prefs.putRGCCounterPref(prefs, "cellDiameter", cellDiameterChannelField.text)
 
         try {
             runRGCCounter(
