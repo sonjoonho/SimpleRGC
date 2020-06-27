@@ -16,9 +16,9 @@ fun addCheckBox(container: Container, labelName: String, prefs: Preferences, pre
     val label = JLabel(labelName)
     val checkBox = JCheckBox()
     if (isCounter) {
-        checkBox.isSelected = prefs.getRGCCounterPref(prefs, prefKey, false)
+        checkBox.isSelected = prefs.getRGCCounterPref(prefKey, false)
     } else {
-        checkBox.isSelected = prefs.getRGCTransductionPref(prefs, prefKey, false)
+        checkBox.isSelected = prefs.getRGCTransductionPref(prefKey, false)
     }
     label.labelFor = checkBox
     panel.add(label)

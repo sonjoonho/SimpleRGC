@@ -18,9 +18,9 @@ fun addCellDiameterField(container: Container, prefs: Preferences, prefKey: Stri
     val gbc = GridBagConstraints()
     val label = JLabel("Cell diameter (px)")
     val initial: String = if (isCounter) {
-        prefs.getRGCCounterPref(prefs, prefKey, "00.0-30.0")
+        prefs.getRGCCounterPref(prefKey, "00.0-30.0")
     } else {
-        prefs.getRGCTransductionPref(prefs, prefKey, "00.0-30.0")
+        prefs.getRGCTransductionPref(prefKey, "00.0-30.0")
     }
     val t = JTextField(initial)
     t.horizontalAlignment = JTextField.RIGHT

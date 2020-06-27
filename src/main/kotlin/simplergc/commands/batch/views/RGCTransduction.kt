@@ -40,17 +40,17 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
     buttonPanel.layout = GridBagLayout()
     val button = JButton("Browse")
     val folderName = JTextArea(1, 25)
-    folderName.text = prefs.getRGCTransductionPref(prefs, "folderName", "").takeLast(25)
+    folderName.text = prefs.getRGCTransductionPref("folderName", "").takeLast(25)
     inputFolderLabel.labelFor = button
     folderChooserPanel.add(inputFolderLabel)
     buttonPanel.add(folderName)
     buttonPanel.add(button)
     folderChooserPanel.add(buttonPanel)
 
-    var inputFolder = if (prefs.getRGCTransductionPref(prefs, "folderName", "").isEmpty()) {
+    var inputFolder = if (prefs.getRGCTransductionPref("folderName", "").isEmpty()) {
         null
     } else {
-        File(prefs.getRGCTransductionPref(prefs, "folderName", ""))
+        File(prefs.getRGCTransductionPref("folderName", ""))
     }
     button.addActionListener {
         val fileChooser = JFileChooser()
@@ -59,7 +59,7 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
         if (i == JFileChooser.APPROVE_OPTION) {
             inputFolder = fileChooser.selectedFile
             folderName.text = inputFolder!!.absolutePath.takeLast(25)
-            prefs.putRGCTransductionPref(prefs, "folderName", inputFolder!!.absolutePath)
+            prefs.putRGCTransductionPref("folderName", inputFolder!!.absolutePath)
         }
     }
 
@@ -70,22 +70,22 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
 
     addMessage(panel, "<html><div align=\\\"left\\\">When performing batch colocalization, ensure that all input images have the same </br> channel ordering as specified below.</div></html>")
 
-    val morphologyChannelModel = SpinnerNumberModel(prefs.getRGCTransductionPref(prefs, "morphologyChannel", 1), 1, 100, 1)
+    val morphologyChannelModel = SpinnerNumberModel(prefs.getRGCTransductionPref("morphologyChannel", 1), 1, 100, 1)
     val targetChannelSpinner = addSpinner(panel, "Cell morphology channel", morphologyChannelModel)
     targetChannelSpinner.toolTipText = "Used as minimum/maximum diameter when identifying cells"
 
-    val transductionChannelModel = SpinnerNumberModel(prefs.getRGCTransductionPref(prefs, "transductionChannel", 2), 1, 100, 1)
+    val transductionChannelModel = SpinnerNumberModel(prefs.getRGCTransductionPref("transductionChannel", 2), 1, 100, 1)
     val transducedChannelSpinner = addSpinner(panel, "Transduction channel", transductionChannelModel)
 
     addMessage(panel, "Image processing parameters")
 
     val cellDiameterChannelField = addCellDiameterField(panel, prefs, "cellDiameter", false)
 
-    val thresholdRadiusModel = SpinnerNumberModel(prefs.getRGCTransductionPref(prefs, "thresholdRadius", 20), 1, 1000, 1)
+    val thresholdRadiusModel = SpinnerNumberModel(prefs.getRGCTransductionPref("thresholdRadius", 20), 1, 1000, 1)
     val thresholdRadiusSpinner = addSpinner(panel, "Local threshold radius", thresholdRadiusModel)
     thresholdRadiusSpinner.toolTipText = "The radius of the local domain over which the threshold will be computed."
 
-    val gaussianBlurModel = SpinnerNumberModel(prefs.getRGCTransductionPref(prefs, "gaussianBlur", 3.0).toInt(), 1, 50, 1)
+    val gaussianBlurModel = SpinnerNumberModel(prefs.getRGCTransductionPref("gaussianBlur", 3.0).toInt(), 1, 50, 1)
     val gaussianBlurSpinner = addSpinner(panel, "Gaussian blur sigma", gaussianBlurModel)
     gaussianBlurSpinner.toolTipText = "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
 
@@ -97,8 +97,8 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
     resultsOutputPanel.add(resultsOutputLabel)
     val saveAsCSVButton = JRadioButton("Save as a CSV file")
     val saveAsXMLButton = JRadioButton("Save as XML file")
-    saveAsCSVButton.isSelected = prefs.getRGCTransductionPref(prefs, "SaveAsCSV", true)
-    saveAsXMLButton.isSelected = !prefs.getRGCTransductionPref(prefs, "SaveAsCSV", true)
+    saveAsCSVButton.isSelected = prefs.getRGCTransductionPref("SaveAsCSV", true)
+    saveAsXMLButton.isSelected = !prefs.getRGCTransductionPref("SaveAsCSV", true)
     val bg = ButtonGroup()
     bg.add(saveAsCSVButton); bg.add(saveAsXMLButton)
     resultsOutputPanel.add(saveAsCSVButton)
@@ -114,17 +114,17 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
     browseButtonPanel.layout = GridBagLayout()
     val browseButton = JButton("Browse")
     val fileName = JTextArea(1, 25)
-    fileName.text = prefs.getRGCTransductionPref(prefs, "outputFile", "").takeLast(25)
+    fileName.text = prefs.getRGCTransductionPref("outputFile", "").takeLast(25)
     label.labelFor = button
     fileChooserPanel.add(label)
     browseButtonPanel.add(fileName)
     browseButtonPanel.add(browseButton)
     fileChooserPanel.add(browseButtonPanel)
 
-    var outputFile = if (prefs.getRGCTransductionPref(prefs, "outputFile", "").isEmpty()) {
+    var outputFile = if (prefs.getRGCTransductionPref("outputFile", "").isEmpty()) {
         null
     } else {
-        File(prefs.getRGCTransductionPref(prefs, "outputFile", ""))
+        File(prefs.getRGCTransductionPref("outputFile", ""))
     }
     browseButton.addActionListener {
         val fileChooser = JFileChooser()
@@ -133,7 +133,7 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
         if (i == JFileChooser.APPROVE_OPTION) {
             outputFile = fileChooser.selectedFile
             fileName.text = outputFile!!.absolutePath.takeLast(25)
-            prefs.putRGCTransductionPref(prefs, "outputFile", outputFile!!.absolutePath)
+            prefs.putRGCTransductionPref("outputFile", outputFile!!.absolutePath)
         }
     }
 
@@ -143,23 +143,23 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
     panel.add(okButton)
     okButton.addActionListener {
         val shouldProcessFilesInNestedFolders = shouldProcessFilesInNestedFoldersCheckbox.isSelected
-        prefs.putRGCTransductionPref(prefs, "shouldProcessFilesInNestedFolders", shouldProcessFilesInNestedFolders)
+        prefs.putRGCTransductionPref("shouldProcessFilesInNestedFolders", shouldProcessFilesInNestedFolders)
         val thresholdRadius = thresholdRadiusSpinner.value as Int
-        prefs.putRGCTransductionPref(prefs, "thresholdRadius", thresholdRadius)
+        prefs.putRGCTransductionPref("thresholdRadius", thresholdRadius)
         val gaussianBlurSigma = (gaussianBlurSpinner.value as Int).toDouble()
-        prefs.putRGCTransductionPref(prefs, "gaussianBlur", gaussianBlurSigma)
+        prefs.putRGCTransductionPref("gaussianBlur", gaussianBlurSigma)
         val outputFormat = when {
             saveAsCSVButton.isSelected -> RGCBatch.OutputFormat.CSV
             saveAsXMLButton.isSelected -> RGCBatch.OutputFormat.XML
             else -> ""
         }
         val targetChannel = targetChannelSpinner.value as Int
-        prefs.putRGCTransductionPref(prefs, "morphologyChannel", targetChannel)
+        prefs.putRGCTransductionPref("morphologyChannel", targetChannel)
         val transducedChannel = transducedChannelSpinner.value as Int
-        prefs.putRGCTransductionPref(prefs, "transductionChannel", transducedChannel)
+        prefs.putRGCTransductionPref("transductionChannel", transducedChannel)
 
         val cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterChannelField.text)
-        prefs.putRGCTransductionPref(prefs, "cellDiameter", cellDiameterChannelField.text)
+        prefs.putRGCTransductionPref("cellDiameter", cellDiameterChannelField.text)
 
         try {
             runRGCTransduction(
