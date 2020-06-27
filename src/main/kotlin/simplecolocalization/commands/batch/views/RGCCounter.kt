@@ -78,9 +78,11 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
 
     val thresholdRadiusModel = SpinnerNumberModel(prefs.getRGCCounterPref(prefs, "thresholdRadius", 20), 1, 1000, 1)
     val thresholdRadiusSpinner = addSpinner(panel, "Local threshold radius", thresholdRadiusModel)
+    thresholdRadiusSpinner.toolTipText = "The radius of the local domain over which the threshold will be computed."
 
     val gaussianBlurModel = SpinnerNumberModel(prefs.getRGCCounterPref(prefs, "gaussianBlur", 3.0).toInt(), 1, 50, 1)
     val gaussianBlurSpinner = addSpinner(panel, "Gaussian blur sigma", gaussianBlurModel)
+    gaussianBlurSpinner.toolTipText = "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
 
     addMessage(panel, "Output parameters")
 

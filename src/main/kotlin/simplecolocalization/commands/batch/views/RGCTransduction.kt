@@ -72,6 +72,7 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
 
     val morphologyChannelModel = SpinnerNumberModel(prefs.getRGCTransductionPref(prefs, "morphologyChannel", 1), 1, 100, 1)
     val targetChannelSpinner = addSpinner(panel, "Cell morphology channel", morphologyChannelModel)
+    targetChannelSpinner.toolTipText = "Used as minimum/maximum diameter when identifying cells"
 
     val transductionChannelModel = SpinnerNumberModel(prefs.getRGCTransductionPref(prefs, "transductionChannel", 2), 1, 100, 1)
     val transducedChannelSpinner = addSpinner(panel, "Transduction channel", transductionChannelModel)
@@ -82,9 +83,11 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
 
     val thresholdRadiusModel = SpinnerNumberModel(prefs.getRGCTransductionPref(prefs, "thresholdRadius", 20), 1, 1000, 1)
     val thresholdRadiusSpinner = addSpinner(panel, "Local threshold radius", thresholdRadiusModel)
+    thresholdRadiusSpinner.toolTipText = "The radius of the local domain over which the threshold will be computed."
 
     val gaussianBlurModel = SpinnerNumberModel(prefs.getRGCTransductionPref(prefs, "gaussianBlur", 3.0).toInt(), 1, 50, 1)
     val gaussianBlurSpinner = addSpinner(panel, "Gaussian blur sigma", gaussianBlurModel)
+    gaussianBlurSpinner.toolTipText = "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
 
     addMessage(panel, "Output parameters")
 

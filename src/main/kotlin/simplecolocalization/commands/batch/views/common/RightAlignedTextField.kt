@@ -25,6 +25,7 @@ fun addCellDiameterField(container: Container, prefs: Preferences, prefKey: Stri
     val t = JTextField(initial)
     t.horizontalAlignment = JTextField.RIGHT
     t.columns = 22
+    t.toolTipText = "Used as minimum/maximum diameter when identifying cells"
     panel.add(label)
     textPanel.add(t, gbc)
     panel.add(textPanel)
