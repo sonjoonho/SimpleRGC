@@ -84,6 +84,8 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
     val gaussianBlurSpinner = addSpinner(panel, "Gaussian blur sigma", gaussianBlurModel)
     gaussianBlurSpinner.toolTipText = "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
 
+    val shouldRemoveAxonsCheckbox = addCheckBox(panel, "Remove Axons", prefs, "shouldRemoveAxons", true)
+
     addMessage(panel, "Output parameters")
 
     val resultsOutputPanel = JPanel()
@@ -145,6 +147,8 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
         prefs.putRGCCounterPref(prefs, "thresholdRadius", thresholdRadius)
         val gaussianBlurSigma = (gaussianBlurSpinner.value as Int).toDouble()
         prefs.putRGCCounterPref(prefs, "gaussianBlur", gaussianBlurSigma)
+        val shouldRemoveAxons = shouldRemoveAxonsCheckbox.isSelected
+        prefs.putRGCCounterPref(prefs, "shouldRemoveAxons", shouldRemoveAxons)
         val outputFormat = when {
             saveAsCSVButton.isSelected -> RGCBatch.OutputFormat.CSV
             saveAsXMLButton.isSelected -> RGCBatch.OutputFormat.XML
@@ -162,6 +166,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
                 channel,
                 thresholdRadius,
                 gaussianBlurSigma,
+                shouldRemoveAxons,
                 cellDiameterRange,
                 outputFormat,
                 outputFile,

@@ -123,7 +123,7 @@ class SimpleCellCounter : Command, Previewable {
         required = true,
         persist = true
     )
-    private var shouldRemoveAxons: Boolean = false
+    var shouldRemoveAxons: Boolean = false
 
     @Parameter(
         label = "Output parameters",

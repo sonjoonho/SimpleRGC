@@ -10,6 +10,7 @@ interface Batchable {
         cellDiameterRange: CellDiameterRange,
         localThresholdRadius: Int,
         gaussianBlurSigma: Double,
+        shouldRemoveAxons: Boolean,
         outputFormat: String,
         outputFile: File
     )

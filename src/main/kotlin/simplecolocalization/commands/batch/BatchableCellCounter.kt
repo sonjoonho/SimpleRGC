@@ -17,6 +17,7 @@ class BatchableCellCounter(private val targetChannel: Int, private val context: 
         cellDiameterRange: CellDiameterRange,
         localThresholdRadius: Int,
         gaussianBlurSigma: Double,
+        shouldRemoveAxons: Boolean,
         outputFormat: String,
         outputFile: File
     ) {
@@ -25,6 +26,7 @@ class BatchableCellCounter(private val targetChannel: Int, private val context: 
         simpleCellCounter.targetChannel = targetChannel
         simpleCellCounter.localThresholdRadius = localThresholdRadius
         simpleCellCounter.gaussianBlurSigma = gaussianBlurSigma
+        simpleCellCounter.shouldRemoveAxons = shouldRemoveAxons
         context.inject(simpleCellCounter)
 
         val numCellsList = inputImages.map { simpleCellCounter.process(it, cellDiameterRange).count }

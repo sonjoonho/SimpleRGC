@@ -13,6 +13,7 @@ fun runRGCCounter(
     channel: Int,
     thresholdRadius: Int,
     gaussianBlurSigma: Double,
+    shouldRemoveAxons: Boolean,
     cellDiameterRange: CellDiameterRange,
     outputFormat: String,
     outputFile: File?,
@@ -29,12 +30,12 @@ fun runRGCCounter(
     val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
     val cellCounter = BatchableCellCounter(channel, context)
 
-    // TODO: Use the user input cell diameter range
     cellCounter.process(
         openFiles(files),
         cellDiameterRange,
         thresholdRadius,
         gaussianBlurSigma,
+        shouldRemoveAxons,
         outputFormat,
         outputFile
     )

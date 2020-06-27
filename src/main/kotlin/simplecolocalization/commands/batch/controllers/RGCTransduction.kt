@@ -29,11 +29,13 @@ fun runRGCTransduction(
 
     val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
     val colocalizer = BatchableColocalizer(targetChannel, transducedChannel, context)
+    // TODO: Implement remove axons for RGCTransduction
     colocalizer.process(
         openFiles(files),
         cellDiameterRange,
         thresholdRadius,
         gaussianBlurSigma,
+        false,
         outputFormat,
         outputFile
     )
