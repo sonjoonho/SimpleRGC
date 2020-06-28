@@ -2,9 +2,11 @@ package simplergc.services.colocalizer.output
 
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.util.ArrayList
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.SimpleOutput
+import java.io.IOException
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -12,12 +14,15 @@ import simplergc.services.SimpleOutput
  */
 class CSVColocalizationOutput(
     private val result: TransductionResult,
-    private val file: File
+    private val outputFile: File
 ) : SimpleOutput() {
 
     override fun output() {
         val csvWriter = CsvWriter()
-        // TODO: Figure out how to write each csv file in a folder.
+        val outputFileSuccess = File(outputFile.path).mkdir()
+        if (!outputFileSuccess and !outputFile.exists()) {
+            throw IOException()
+        }
 
         val documentationData = ArrayList<Array<String>>()
         documentationData.add(arrayOf("The Article: ", "TODO: insert full citation of manuscript when complete"))
@@ -26,6 +31,12 @@ class CSVColocalizationOutput(
         documentationData.add(arrayOf("Summary: ", "Key overall measurements per image"))
         documentationData.add(arrayOf("Transduced Cell Analysis: ", "Cell-by-cell metrics of transduced cells"))
         documentationData.add(arrayOf("Parameters: ", "Parameters used for SimpleRGC plugin"))
+
+        csvWriter.write(
+            File("${outputFile.path}${File.separator}Documentation.csv"),
+            StandardCharsets.UTF_8,
+            documentationData
+        )
 
         // Summary
         val summaryData = ArrayList<Array<String>>()
@@ -61,6 +72,7 @@ class CSVColocalizationOutput(
                 "TODO: RawIntDen"
             )
         )
+        csvWriter.write(File("${outputFile.path}${File.separator}Summary.csv"), StandardCharsets.UTF_8, summaryData)
 
         // Per-cell analysis
         val cellByCellData = ArrayList<Array<String>>()
@@ -92,6 +104,11 @@ class CSVColocalizationOutput(
                 )
             )
         }
+        csvWriter.write(
+            File("${outputFile.path}${File.separator}Transduced Cell Analysis.csv"),
+            StandardCharsets.UTF_8,
+            cellByCellData
+        )
 
         // TODO: Save parameters in separate CSV
         // TODO: Add pixel size (micrometers) at a later date
@@ -111,6 +128,11 @@ class CSVColocalizationOutput(
                 "Gaussian blur sigma"
             )
         )
-        //TODO: add parameter values
+        // TODO: add parameter values
+        csvWriter.write(
+            File("${outputFile.path}${File.separator}Parameters.csv"),
+            StandardCharsets.UTF_8,
+            parametersData
+        )
     }
 }
