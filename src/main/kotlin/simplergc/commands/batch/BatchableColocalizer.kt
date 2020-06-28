@@ -36,7 +36,9 @@ class BatchableColocalizer(
         // TODO: Update branch to use exclude axons feature in colocaliser.
         rgcTransduction.localThresholdRadius = localThresholdRadius
         rgcTransduction.targetChannel = targetChannel
+        rgcTransduction.shouldRemoveAxonsFromTargetChannel = shouldRemoveAxonsFromTargetChannel
         rgcTransduction.transducedChannel = transducedChannel
+        rgcTransduction.shouldRemoveAxonsFromTransductionChannel = shouldRemoveAxonsFromTransductionChannel
         context.inject(rgcTransduction)
 
         val analyses = inputImages.mapNotNull {

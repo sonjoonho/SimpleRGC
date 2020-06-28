@@ -41,11 +41,13 @@ fun rgcTransductionPanel(context: Context, model: RGCTransductionModel): JPanel 
     targetChannelSpinner.toolTipText = "Used as minimum/maximum diameter when identifying cells"
     val shouldRemoveAxonsFromTargetChannelCheckbox =
         RGCCheckbox("Exclude Axons from target channel", model.shouldRemoveAxonsFromTargetChannel)
+    container.add(shouldRemoveAxonsFromTargetChannelCheckbox)
 
     val transductionChannelModel = SpinnerNumberModel(model.transductionChannel, 1, 100, 1)
     val transducedChannelSpinner = RGCSpinner("Transduction channel", transductionChannelModel)
     container.add(transducedChannelSpinner)
     val shouldRemoveAxonsFromTransductionChannelCheckbox = RGCCheckbox("Exclude Axons from Transduction channel", model.shouldRemoveAxonsFromTransductionChannel)
+    container.add(shouldRemoveAxonsFromTransductionChannelCheckbox)
 
     addMessage(container, "Image processing parameters")
 
