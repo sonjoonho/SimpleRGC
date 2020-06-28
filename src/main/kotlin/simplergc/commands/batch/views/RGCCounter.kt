@@ -21,6 +21,7 @@ import simplergc.commands.batch.RGCBatch
 import simplergc.commands.batch.controllers.runRGCCounter
 import simplergc.commands.batch.getRGCCounterPref
 import simplergc.commands.batch.putRGCCounterPref
+import simplergc.commands.batch.views.common.InputDirectoryChooserPanel
 import simplergc.commands.batch.views.common.addCellDiameterField
 import simplergc.commands.batch.views.common.addCheckBox
 import simplergc.commands.batch.views.common.addMessage
@@ -29,64 +30,33 @@ import simplergc.services.CellDiameterRange
 
 /** Creates the RGC Counter GUI. */
 fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
-    // TODO: Make User parameters persist
-    val panel = JPanel()
-    panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
+    val container = JPanel()
+    container.layout = BoxLayout(container, BoxLayout.Y_AXIS)
 
-    // TODO: Refactor file choosing to reduce duplication
-    val folderChooserPanel = JPanel()
-    folderChooserPanel.layout = GridLayout(0, 2)
-    val inputFolderLabel = JLabel("Input folder")
-    val buttonPanel = JPanel()
-    buttonPanel.layout = GridBagLayout()
-    val button = JButton("Browse")
-    val folderName = JTextArea(1, 25)
-    folderName.text = prefs.getRGCCounterPref("folderName", "").takeLast(25)
-    inputFolderLabel.labelFor = button
-    folderChooserPanel.add(inputFolderLabel)
-    buttonPanel.add(folderName)
-    buttonPanel.add(button)
-    folderChooserPanel.add(buttonPanel)
-
-    var inputFolder = if (prefs.getRGCCounterPref("folderName", "").isEmpty()) {
-        null
-    } else {
-        File(prefs.getRGCCounterPref("folderName", ""))
-    }
-    button.addActionListener {
-        val fileChooser = JFileChooser()
-        fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-        val i = fileChooser.showOpenDialog(panel)
-        if (i == JFileChooser.APPROVE_OPTION) {
-            inputFolder = fileChooser.selectedFile
-            folderName.text = inputFolder!!.absolutePath.takeLast(25)
-            prefs.putRGCCounterPref("folderName", inputFolder!!.absolutePath)
-        }
-    }
-
-    panel.add(folderChooserPanel)
+    val inputDirectoryChooser = InputDirectoryChooserPanel(container, prefs)
+    container.add(inputDirectoryChooser)
 
     val shouldProcessFilesInNestedFoldersCheckbox =
-        addCheckBox(panel, "Batch process in nested sub-folders?", prefs, "shouldProcessFilesInNestedFolders", true)
+        addCheckBox(container, "Batch process in nested sub-folders?", prefs, "shouldProcessFilesInNestedFolders", true)
 
     val channelModel = SpinnerNumberModel(prefs.getRGCCounterPref("channelToUse", 1), 0, 10, 1)
-    val channelSpinner = addSpinner(panel, "Select channel to use", channelModel)
+    val channelSpinner = addSpinner(container, "Select channel to use", channelModel)
 
-    addMessage(panel, "Image processing parameters")
+    addMessage(container, "Image processing parameters")
 
-    val cellDiameterChannelField = addCellDiameterField(panel, prefs, "cellDiameter", true)
+    val cellDiameterChannelField = addCellDiameterField(container, prefs, "cellDiameter", true)
 
     val thresholdRadiusModel = SpinnerNumberModel(prefs.getRGCCounterPref("thresholdRadius", 20), 1, 1000, 1)
-    val thresholdRadiusSpinner = addSpinner(panel, "Local threshold radius", thresholdRadiusModel)
+    val thresholdRadiusSpinner = addSpinner(container, "Local threshold radius", thresholdRadiusModel)
     thresholdRadiusSpinner.toolTipText = "The radius of the local domain over which the threshold will be computed."
 
     val gaussianBlurModel = SpinnerNumberModel(prefs.getRGCCounterPref("gaussianBlur", 3.0).toInt(), 1, 50, 1)
-    val gaussianBlurSpinner = addSpinner(panel, "Gaussian blur sigma", gaussianBlurModel)
+    val gaussianBlurSpinner = addSpinner(container, "Gaussian blur sigma", gaussianBlurModel)
     gaussianBlurSpinner.toolTipText = "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
 
-    val shouldRemoveAxonsCheckbox = addCheckBox(panel, "Remove Axons", prefs, "shouldRemoveAxons", true)
+    val shouldRemoveAxonsCheckbox = addCheckBox(container, "Remove Axons", prefs, "shouldRemoveAxons", true)
 
-    addMessage(panel, "Output parameters")
+    addMessage(container, "Output parameters")
 
     val resultsOutputPanel = JPanel()
     resultsOutputPanel.layout = GridLayout(0, 2)
@@ -101,7 +71,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
     resultsOutputPanel.add(saveAsCSVButton)
     resultsOutputPanel.add(JPanel())
     resultsOutputPanel.add(saveAsXMLButton)
-    panel.add(resultsOutputPanel)
+    container.add(resultsOutputPanel)
 
     // TODO: Refactor file choosing to reduce duplication
     val fileChooserPanel = JPanel()
@@ -112,7 +82,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
     val browseButton = JButton("Browse")
     val fileName = JTextArea(1, 25)
     fileName.text = prefs.getRGCCounterPref("outputFile", "").takeLast(25)
-    label.labelFor = button
+    label.labelFor = browseButton
     fileChooserPanel.add(label)
     browseButtonPanel.add(fileName)
     browseButtonPanel.add(browseButton)
@@ -126,7 +96,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
     browseButton.addActionListener {
         val fileChooser = JFileChooser()
         fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-        val i = fileChooser.showOpenDialog(panel)
+        val i = fileChooser.showOpenDialog(container)
         if (i == JFileChooser.APPROVE_OPTION) {
             outputFile = fileChooser.selectedFile
             fileName.text = outputFile!!.absolutePath.takeLast(25)
@@ -134,10 +104,10 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
         }
     }
 
-    panel.add(fileChooserPanel)
+    container.add(fileChooserPanel)
 
     val okButton = JButton("Ok")
-    panel.add(okButton)
+    container.add(okButton)
     okButton.addActionListener {
         val shouldProcessFilesInNestedFolders = shouldProcessFilesInNestedFoldersCheckbox.isSelected
         prefs.putRGCCounterPref("shouldProcessFilesInNestedFolders", shouldProcessFilesInNestedFolders)
@@ -161,7 +131,7 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
 
         try {
             runRGCCounter(
-                inputFolder,
+                inputDirectoryChooser.inputFolder,
                 shouldProcessFilesInNestedFolders,
                 channel,
                 thresholdRadius,
@@ -182,6 +152,6 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
         }
     }
 
-    panel.add(JPanel())
-    return panel
+    container.add(JPanel())
+    return container
 }
