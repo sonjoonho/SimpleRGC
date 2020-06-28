@@ -11,15 +11,15 @@ import simplergc.services.SimpleOutput
  */
 class XLSXColocalizationOutput(
     private val result: TransductionResult,
-    private val file: File
+    private val outputFile: File
 ) : SimpleOutput() {
 
     override fun output() {
 
         // Create Excel File.
         val workbook = XSSFWorkbook()
-        val createHelper = workbook.creationHelper
 
+        // val createHelper = workbook.creationHelper
         // Set header font to blue and bold.
         // val headerFont = workbook.createFont()
         // headerFont.bold = true
@@ -148,9 +148,11 @@ class XLSXColocalizationOutput(
         // TODO: insert params here
 
         // Write file and close streams
-        val fileOut = file.outputStream()
-        workbook.write(fileOut)
-        fileOut.close()
+        val outputXlsxFile =
+            if (outputFile.extension == "xlsx") outputFile else File("${outputFile.parent}${File.separator}${outputFile.nameWithoutExtension}.xlsx")
+        val xlsxFileOut = outputXlsxFile.outputStream()
+        workbook.write(xlsxFileOut)
+        xlsxFileOut.close()
         workbook.close()
     }
 }
