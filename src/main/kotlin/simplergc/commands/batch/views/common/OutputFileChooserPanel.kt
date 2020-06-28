@@ -10,7 +10,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JRadioButton
 import javax.swing.JTextArea
-import simplergc.services.OutputFormat
+import simplergc.commands.batch.RGCBatch.OutputFormat
 
 const val COLUMN_WIDTH = 25
 

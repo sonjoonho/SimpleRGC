@@ -25,14 +25,12 @@ import org.scijava.widget.NumberWidget
 import simplergc.services.CellDiameterRange
 import simplergc.services.CellSegmentationService
 import simplergc.services.DiameterParseException
-import simplergc.services.OutputFormat
 import simplergc.services.colocalizer.PositionedCell
 import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.services.counter.output.CSVCounterOutput
 import simplergc.services.counter.output.ImageJTableCounterOutput
-import simplergc.services.counter.output.XMLCounterOutput
 import simplergc.widgets.AlignedTextWidget
 
 /**
@@ -45,7 +43,7 @@ import simplergc.widgets.AlignedTextWidget
  * [run] contains the main pipeline, which runs only after the script parameters
  * are populated.
  */
-@Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Cell Counter")
+@Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Counter")
 class RGCCounter : Command, Previewable {
 
     @Parameter
@@ -133,9 +131,17 @@ class RGCCounter : Command, Previewable {
     )
     private lateinit var outputParametersHeader: String
 
+    /**
+     * The user can optionally output the results to a file.
+     */
+    object OutputFormat {
+        const val DISPLAY = "Display in ImageJ"
+        const val CSV = "Save as CSV file"
+    }
+
     @Parameter(
         label = "Results output",
-        choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
+        choices = [OutputFormat.DISPLAY, OutputFormat.CSV],
         required = true,
         persist = true,
         style = "radioButtonVertical"
@@ -208,7 +214,6 @@ class RGCCounter : Command, Previewable {
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableCounterOutput(uiService)
             OutputFormat.CSV -> CSVCounterOutput(outputFile!!)
-            OutputFormat.XML -> XMLCounterOutput(outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 

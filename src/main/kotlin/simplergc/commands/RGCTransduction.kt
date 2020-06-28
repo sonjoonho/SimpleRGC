@@ -32,21 +32,17 @@ import simplergc.services.CellColocalizationService
 import simplergc.services.CellDiameterRange
 import simplergc.services.CellSegmentationService
 import simplergc.services.DiameterParseException
-import simplergc.services.OutputFormat
-import simplergc.services.cellcomparator.PixelCellComparator
 import simplergc.services.cellcomparator.SubsetPixelCellComparator
 import simplergc.services.colocalizer.BucketedNaiveColocalizer
-import simplergc.services.colocalizer.ColocalizationAnalysis
 import simplergc.services.colocalizer.PositionedCell
 import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
 import simplergc.services.colocalizer.output.CSVColocalizationOutput
 import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
-import simplergc.services.colocalizer.output.XMLColocalizationOutput
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.widgets.AlignedTextWidget
 
-@Plugin(type = Command::class, menuPath = "Plugins > Simple Cells > Simple Colocalization")
+@Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Transduction")
 class RGCTransduction : Command, Previewable {
 
     private val intensityPercentageThreshold: Float = 90f
@@ -86,7 +82,7 @@ class RGCTransduction : Command, Previewable {
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Cell morphology channel 1",
+        label = "Cell morphology channel",
         min = "1",
         stepSize = "1",
         required = true,
@@ -94,22 +90,12 @@ class RGCTransduction : Command, Previewable {
     )
     var targetChannel = 1
 
-    /**
-     * Specify the channel for the all cells channel.
-     * By default this is the 0 (disabled).
-     */
     @Parameter(
-        label = "Cell morphology channel 2 (0 to disable)",
-        min = "0",
-        stepSize = "1",
+        label = "Exclude axons from cell morphology channel",
         required = true,
         persist = true
     )
-    var allCellsChannel = 0
-
-    private fun isAllCellsEnabled(): Boolean {
-        return allCellsChannel > 0
-    }
+    private var shouldRemoveAxonsFromTargetChannel: Boolean = false
 
     /**
      * Specify the channel for the transduced cells.
@@ -123,6 +109,13 @@ class RGCTransduction : Command, Previewable {
         persist = true
     )
     var transducedChannel = 2
+
+    @Parameter(
+        label = "Exclude axons from transduction channel",
+        required = true,
+        persist = true
+    )
+    private var shouldRemoveAxonsFromTransductionChannel: Boolean = false
 
     @Parameter(
         label = "Preprocessing parameters",
@@ -158,18 +151,6 @@ class RGCTransduction : Command, Previewable {
     )
     var localThresholdRadius = 30
 
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter (px) for morphology channel 2 (px) (only if enabled)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = true
-    )
-    var allCellDiameterText = "0.0-30.0"
-
     @Parameter(
         label = "Gaussian blur sigma",
         description = "Sigma value used for blurring the image during the processing," +
@@ -189,9 +170,17 @@ class RGCTransduction : Command, Previewable {
     )
     private lateinit var outputParametersHeader: String
 
+    /**
+     * The user can optionally output the results to a file.
+     */
+    object OutputFormat {
+        const val DISPLAY = "Display in ImageJ"
+        const val CSV = "Save as CSV file"
+    }
+
     @Parameter(
         label = "Results Output:",
-        choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
+        choices = [OutputFormat.DISPLAY, OutputFormat.CSV],
         required = true,
         persist = true,
         style = "radioButtonVertical"
@@ -217,15 +206,12 @@ class RGCTransduction : Command, Previewable {
      * @property targetCellCount Number of red channel cells.
      * @property overlappingTransducedIntensityAnalysis Quantification of each transduced cell overlapping target cells.
      * @property overlappingTwoChannelCells List of cells which overlap two channels.
-     * @property overlappingThreeChannelCells List of cells which overlap three channels. null if not applicable.
      *
-     * TODO(#134): Discuss whether we want to use targetCellCount in the single colocalisation plugin
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
         val overlappingTransducedIntensityAnalysis: Array<CellColocalizationService.CellAnalysis>,
-        val overlappingTwoChannelCells: List<PositionedCell>,
-        val overlappingThreeChannelCells: List<PositionedCell>?
+        val overlappingTwoChannelCells: List<PositionedCell>
     )
 
     override fun run() {
@@ -236,11 +222,8 @@ class RGCTransduction : Command, Previewable {
         }
 
         val cellDiameterRange: CellDiameterRange
-        val allCellDiameterRange: CellDiameterRange?
         try {
             cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
-            allCellDiameterRange =
-                if (isAllCellsEnabled()) CellDiameterRange.parseFromText(allCellDiameterText) else null
         } catch (e: DiameterParseException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -262,7 +245,7 @@ class RGCTransduction : Command, Previewable {
         resetRoiManager()
 
         val result = try {
-            process(image, cellDiameterRange, allCellDiameterRange)
+            process(image, cellDiameterRange)
         } catch (e: ChannelDoesNotExistException) {
             MessageDialog(IJ.getInstance(), "Error", e.message)
             return
@@ -280,7 +263,6 @@ class RGCTransduction : Command, Previewable {
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
             OutputFormat.CSV -> CSVColocalizationOutput(result, outputFile!!)
-            OutputFormat.XML -> XMLColocalizationOutput(result, outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
@@ -308,8 +290,7 @@ class RGCTransduction : Command, Previewable {
     @Throws(ChannelDoesNotExistException::class)
     fun process(
         image: ImagePlus,
-        cellDiameterRange: CellDiameterRange,
-        allCellDiameterRange: CellDiameterRange? = null
+        cellDiameterRange: CellDiameterRange
     ): TransductionResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
@@ -320,32 +301,25 @@ class RGCTransduction : Command, Previewable {
             throw ChannelDoesNotExistException("Transduced channel selected ($transducedChannel) does not exist. There are ${imageChannels.size} channels available")
         }
 
-        if (isAllCellsEnabled() && allCellsChannel > imageChannels.size) {
-            throw ChannelDoesNotExistException("All cells channel selected ($allCellsChannel) does not exist. There are ${imageChannels.size} channels available")
-        }
-
         return analyseTransduction(
             imageChannels[targetChannel - 1],
             imageChannels[transducedChannel - 1],
-            cellDiameterRange,
-            if (isAllCellsEnabled()) imageChannels[allCellsChannel - 1] else null,
-            allCellDiameterRange
+            cellDiameterRange
         )
     }
 
     fun analyseTransduction(
         targetChannel: ImagePlus,
         transducedChannel: ImagePlus,
-        cellDiameterRange: CellDiameterRange,
-        allCellsChannel: ImagePlus? = null,
-        allCellDiameterRange: CellDiameterRange?
+        cellDiameterRange: CellDiameterRange
     ): TransductionResult {
         logService.info("Starting extraction")
         val targetCells = cellSegmentationService.extractCells(
             targetChannel,
             cellDiameterRange,
             localThresholdRadius,
-            gaussianBlurSigma
+            gaussianBlurSigma,
+            shouldRemoveAxonsFromTargetChannel
         )
 
         // Allow cells in the transduced channel to have unbounded area
@@ -354,18 +328,11 @@ class RGCTransduction : Command, Previewable {
                 transducedChannel,
                 CellDiameterRange(cellDiameterRange.smallest, Double.MAX_VALUE),
                 localThresholdRadius,
-                gaussianBlurSigma
+                gaussianBlurSigma,
+                shouldRemoveAxonsFromTransductionChannel
             ),
             transducedChannel
         )
-        // TODO(#105) ^^
-        val allCells =
-            if (allCellsChannel != null && allCellDiameterRange != null) cellSegmentationService.extractCells(
-                allCellsChannel,
-                allCellDiameterRange,
-                localThresholdRadius,
-                gaussianBlurSigma
-            ) else null
 
         statusService.showStatus(80, 100, "Analysing transduction...")
         logService.info("Starting analysis")
@@ -383,23 +350,12 @@ class RGCTransduction : Command, Previewable {
             targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }.toTypedArray()
         )
 
-        var allCellsAnalysis: ColocalizationAnalysis? = null
-        if (allCells != null) {
-            allCellsAnalysis = BucketedNaiveColocalizer(
-                cellDiameterRange.largest.toInt(),
-                allCellsChannel!!.width,
-                allCellsChannel.height,
-                PixelCellComparator(threshold = 0.01f)
-            ).analyseColocalization(targetTransducedAnalysis.overlappingOverlaid, allCells)
-        }
-
         // We return the overlapping target channel instead of transduced channel as we want to mark the target layer,
         // not the transduced layer.
         return TransductionResult(
             targetCellCount = targetCells.size,
             overlappingTransducedIntensityAnalysis = transductionIntensityAnalysis,
-            overlappingTwoChannelCells = targetTransducedAnalysis.overlappingBase,
-            overlappingThreeChannelCells = allCellsAnalysis?.overlappingBase
+            overlappingTwoChannelCells = targetTransducedAnalysis.overlappingBase
         )
     }
 
@@ -474,18 +430,15 @@ class RGCTransduction : Command, Previewable {
             }
 
             val cellDiameterRange: CellDiameterRange
-            val allCellDiameterRange: CellDiameterRange?
             try {
                 cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
-                allCellDiameterRange =
-                    if (isAllCellsEnabled()) CellDiameterRange.parseFromText(allCellDiameterText) else null
             } catch (e: DiameterParseException) {
                 cancel()
                 return
             }
 
             val result = try {
-                process(image, cellDiameterRange, allCellDiameterRange)
+                process(image, cellDiameterRange)
             } catch (e: ChannelDoesNotExistException) {
                 cancel()
                 return

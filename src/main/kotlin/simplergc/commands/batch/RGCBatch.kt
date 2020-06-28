@@ -14,7 +14,6 @@ import simplergc.commands.batch.models.RGCCounterModel
 import simplergc.commands.batch.models.RGCTransductionModel
 import simplergc.commands.batch.views.RGCCounterView
 import simplergc.commands.batch.views.rgcTransductionPanel
-import simplergc.services.CellColocalizationService
 import simplergc.services.CellSegmentationService
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Batch")
@@ -27,6 +26,10 @@ class RGCBatch : Command {
     private lateinit var context: Context
 
     private val prefs = Preferences.userRoot().node(this.javaClass.name)
+
+    object OutputFormat {
+        const val CSV = "Save as CSV file"
+    }
 
     private fun gui() {
         val frame = JFrame()
@@ -65,8 +68,6 @@ class RGCBatch : Command {
             val ij = ImageJ()
 
             ij.context().inject(CellSegmentationService())
-            ij.context().inject(CellColocalizationService())
-
             ij.launch()
 
             ij.command().run(RGCBatch::class.java, true)

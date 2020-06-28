@@ -2,10 +2,10 @@ package simplergc.commands.batch.controllers
 
 import java.awt.event.ActionListener
 import java.io.FileNotFoundException
+import simplergc.commands.batch.RGCBatch.OutputFormat
 import simplergc.commands.batch.models.RGCCounterModel
 import simplergc.commands.batch.views.RGCCounterView
 import simplergc.services.CellDiameterRange
-import simplergc.services.OutputFormat
 
 class RGCCounterController(val view: RGCCounterView, private val model: RGCCounterModel) {
     init {
@@ -27,7 +27,6 @@ class RGCCounterController(val view: RGCCounterView, private val model: RGCCount
             model.cellDiameter = view.cellDiameterChannelField.field.text
 
             model.saveAsCSV = view.outputFileChooserPanel.format == OutputFormat.CSV
-            model.saveAsXML = view.outputFileChooserPanel.format == OutputFormat.XML
 
             model.outputFile = view.outputFileChooserPanel.file.absolutePath
 
