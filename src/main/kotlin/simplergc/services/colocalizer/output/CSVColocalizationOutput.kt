@@ -2,11 +2,11 @@ package simplergc.services.colocalizer.output
 
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.ArrayList
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.SimpleOutput
-import java.io.IOException
 
 /**
  * Displays a table for a transduction analysis with the result of
