@@ -69,9 +69,28 @@ class XLSXColocalizationOutput(
         )
         // Create header for summary
         val summaryHeaderRow = summarySheet.createRow(0)
-        for (summaryCol in summaryHeader.indices) {
-            val cell = summaryHeaderRow.createCell(summaryCol)
-            cell.setCellValue(summaryHeader[summaryCol])
+        for (columnHeader in summaryHeader.indices) {
+            val cell = summaryHeaderRow.createCell(columnHeader)
+            cell.setCellValue(summaryHeader[columnHeader])
+        }
+        // Add summary data
+        val summaryData = arrayOf(
+            "1",
+            result.targetCellCount.toString(),
+            result.overlappingTwoChannelCells.size.toString(),
+            ((result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100).toString(),
+            "TODO: Average Morphology Area",
+            (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(),
+            "TODO: Median",
+            "TODO: Min",
+            "TODO: Max",
+            "TODO: IntDen",
+            "TODO: RawIntDen"
+        )
+        val summaryDataRow = summarySheet.createRow(1)
+        for (columnData in summaryData.indices) {
+            val cell = summaryDataRow.createCell(columnData)
+            cell.setCellValue(summaryData[columnData])
         }
 
         val perCellAnalysisSheet = workbook.createSheet("Transduced cells analysis")
