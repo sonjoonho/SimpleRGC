@@ -158,12 +158,11 @@ class RGCBatch : Command {
      */
     object OutputFormat {
         const val CSV = "Save as CSV file"
-        const val XML = "Save as XML file"
     }
 
     @Parameter(
         label = "Results output",
-        choices = [OutputFormat.CSV, OutputFormat.XML],
+        choices = [OutputFormat.CSV],
         required = true,
         persist = true,
         style = "radioButtonVertical"
