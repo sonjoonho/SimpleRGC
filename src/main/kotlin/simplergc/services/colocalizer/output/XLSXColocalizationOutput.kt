@@ -1,7 +1,7 @@
 package simplergc.services.colocalizer.output
 
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.SimpleOutput
 
@@ -24,7 +24,7 @@ class XLSXColocalizationOutput(
         // val headerFont = workbook.createFont()
         // headerFont.bold = true
         // headerFont.color = IndexedColors.BLUE.getIndex()
-        //
+        // TODO: Left this code here in case anyone wants to pretty up the sheet
         // val headerCellStyle = workbook.createCellStyle()
         // headerCellStyle.setFont(headerFont)
 
@@ -52,6 +52,7 @@ class XLSXColocalizationOutput(
             }
         }
 
+        // TODO: Modify following 2 sheets to work on a per file basis
         val summarySheet = workbook.createSheet("Summary")
         val perCellAnalysisSheet = workbook.createSheet("Transduced cells analysis")
 
