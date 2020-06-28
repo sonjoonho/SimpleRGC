@@ -9,10 +9,9 @@ import javax.swing.JFileChooser
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JRadioButton
-import javax.swing.JTextArea
 import simplergc.commands.batch.RGCBatch.OutputFormat
 
-const val COLUMN_WIDTH = 25
+const val COLUMN_WIDTH = 30
 
 class OutputFileChooserPanel(initial: String) : JPanel() {
 
@@ -43,8 +42,7 @@ class OutputFileChooserPanel(initial: String) : JPanel() {
         val browseButtonPanel = JPanel()
         browseButtonPanel.layout = GridBagLayout()
         val browseButton = JButton("Browse")
-        val fileName = JTextArea(1, COLUMN_WIDTH)
-        fileName.text = file.absolutePath
+        val fileName = FileChooserTextArea(file.absolutePath, 1, COLUMN_WIDTH)
         label.labelFor = browseButton
         fileChooserPanel.add(label)
         browseButtonPanel.add(fileName)
@@ -58,7 +56,7 @@ class OutputFileChooserPanel(initial: String) : JPanel() {
             val i = fileChooser.showOpenDialog(this)
             if (i == JFileChooser.APPROVE_OPTION) {
                 file = fileChooser.selectedFile
-                fileName.text = file.absolutePath.takeLast(COLUMN_WIDTH)
+                fileName.text = file.absolutePath
             }
         }
     }

@@ -7,7 +7,6 @@ import javax.swing.JButton
 import javax.swing.JFileChooser
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JTextArea
 
 class InputDirectoryChooserPanel(container: JPanel, initial: String) : JPanel() {
 
@@ -19,8 +18,7 @@ class InputDirectoryChooserPanel(container: JPanel, initial: String) : JPanel() 
         val buttonPanel = JPanel()
         buttonPanel.layout = GridBagLayout()
         val browseButton = JButton("Browse")
-        val folderName = JTextArea(1, 25)
-        folderName.text = directory.absolutePath
+        val folderName = FileChooserTextArea(directory.absolutePath, 1, COLUMN_WIDTH)
         inputFolderLabel.labelFor = browseButton
         this.add(inputFolderLabel)
         buttonPanel.add(folderName)
@@ -33,7 +31,7 @@ class InputDirectoryChooserPanel(container: JPanel, initial: String) : JPanel() 
             val i = fileChooser.showOpenDialog(container)
             if (i == JFileChooser.APPROVE_OPTION) {
                 directory = fileChooser.selectedFile
-                folderName.text = directory.absolutePath.takeLast(25)
+                folderName.text = directory.absolutePath
                 // TODO(sonjoonho): This.
                 // prefs.putRGCTransductionPref("folderName", directory.absolutePath)
             }
