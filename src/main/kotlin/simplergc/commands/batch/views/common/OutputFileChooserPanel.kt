@@ -1,9 +1,5 @@
 package simplergc.commands.batch.views.common
 
-import simplergc.commands.batch.RGCBatch
-import simplergc.commands.batch.getRGCTransductionPref
-import simplergc.commands.batch.putRGCCounterPref
-import simplergc.commands.batch.putRGCTransductionPref
 import java.awt.GridBagLayout
 import java.awt.GridLayout
 import java.io.File
@@ -15,9 +11,13 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JRadioButton
 import javax.swing.JTextArea
+import simplergc.commands.batch.RGCBatch
+import simplergc.commands.batch.getRGCTransductionPref
+import simplergc.commands.batch.putRGCCounterPref
+import simplergc.commands.batch.putRGCTransductionPref
 
 class OutputFileChooserPanel(container: JPanel, prefs: Preferences) : JPanel() {
-    
+
     var file = File(prefs.getRGCTransductionPref("outputFile", ""))
     var format = RGCBatch.OutputFormat.CSV
 
@@ -54,7 +54,6 @@ class OutputFileChooserPanel(container: JPanel, prefs: Preferences) : JPanel() {
         // TODO(sonjoonho): Very temporary I promise.
         prefs.putRGCCounterPref("saveAsCSV", saveAsCSVButton.isSelected)
         prefs.putRGCTransductionPref("saveAsCSV", saveAsCSVButton.isSelected)
-
 
         browseButton.addActionListener {
             val fileChooser = JFileChooser()

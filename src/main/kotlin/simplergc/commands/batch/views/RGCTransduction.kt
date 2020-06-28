@@ -68,7 +68,6 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
         prefs.putRGCTransductionPref("morphologyChannel", targetChannel)
         val transducedChannel = transducedChannelSpinner.value as Int
         prefs.putRGCTransductionPref("transductionChannel", transducedChannel)
-
         val cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterChannelField.text)
         prefs.putRGCTransductionPref("cellDiameter", cellDiameterChannelField.text)
 

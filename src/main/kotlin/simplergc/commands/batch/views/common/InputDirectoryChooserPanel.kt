@@ -1,7 +1,5 @@
 package simplergc.commands.batch.views.common
 
-import simplergc.commands.batch.getRGCTransductionPref
-import simplergc.commands.batch.putRGCTransductionPref
 import java.awt.GridBagLayout
 import java.awt.GridLayout
 import java.io.File
@@ -11,6 +9,8 @@ import javax.swing.JFileChooser
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextArea
+import simplergc.commands.batch.getRGCTransductionPref
+import simplergc.commands.batch.putRGCTransductionPref
 
 class InputDirectoryChooserPanel(container: JPanel, prefs: Preferences) : JPanel() {
 
@@ -29,7 +29,6 @@ class InputDirectoryChooserPanel(container: JPanel, prefs: Preferences) : JPanel
         buttonPanel.add(folderName)
         buttonPanel.add(browseButton)
         this.add(buttonPanel)
-
 
         browseButton.addActionListener {
             val fileChooser = JFileChooser()

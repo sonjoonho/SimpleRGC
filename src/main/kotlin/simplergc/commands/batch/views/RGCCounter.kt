@@ -2,18 +2,13 @@ package simplergc.commands.batch.views
 
 import ij.IJ
 import ij.gui.MessageDialog
-import java.awt.GridLayout
 import java.io.FileNotFoundException
 import java.util.prefs.Preferences
 import javax.swing.BoxLayout
-import javax.swing.ButtonGroup
 import javax.swing.JButton
-import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JRadioButton
 import javax.swing.SpinnerNumberModel
 import org.scijava.Context
-import simplergc.commands.batch.RGCBatch
 import simplergc.commands.batch.controllers.runRGCCounter
 import simplergc.commands.batch.getRGCCounterPref
 import simplergc.commands.batch.putRGCCounterPref
