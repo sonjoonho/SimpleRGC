@@ -54,6 +54,26 @@ class XLSXColocalizationOutput(
 
         // TODO: Modify following 2 sheets to work on a per file basis
         val summarySheet = workbook.createSheet("Summary")
+        val summaryHeader = arrayOf(
+            "File Name",
+            "Number of Cells",
+            "Number of Transduced Cells",
+            "Transduction Efficiency (%)",
+            "Average Morphology Area (pixel^2)",
+            "Mean Fluorescence Intensity (a.u.)",
+            "Median Fluorescence Intensity (a.u.)",
+            "Min Fluorescence Intensity (a.u.)",
+            "Max Fluorescence Intensity (a.u.)",
+            "IntDen",
+            "RawIntDen"
+        )
+        // Create header for summary
+        val summaryHeaderRow = summarySheet.createRow(0)
+        for (summaryCol in summaryHeader.indices) {
+            val cell = summaryHeaderRow.createCell(summaryCol)
+            cell.setCellValue(summaryHeader[summaryCol])
+        }
+
         val perCellAnalysisSheet = workbook.createSheet("Transduced cells analysis")
 
         val paramsSheet = workbook.createSheet("Parameters")
