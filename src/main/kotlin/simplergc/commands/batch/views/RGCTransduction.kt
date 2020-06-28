@@ -36,9 +36,18 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
     val morphologyChannelModel = SpinnerNumberModel(prefs.getRGCTransductionPref("morphologyChannel", 1), 1, 100, 1)
     val targetChannelSpinner = addSpinner(container, "Cell morphology channel", morphologyChannelModel)
     targetChannelSpinner.toolTipText = "Used as minimum/maximum diameter when identifying cells"
+    val shouldRemoveAxonsFromTargetChannelCheckbox =
+        addCheckBox(container, "Exclude Axons from target channel", prefs, "shouldRemoveAxonsFromTargetChannel", true)
 
     val transductionChannelModel = SpinnerNumberModel(prefs.getRGCTransductionPref("transductionChannel", 2), 1, 100, 1)
     val transducedChannelSpinner = addSpinner(container, "Transduction channel", transductionChannelModel)
+    val shouldRemoveAxonsFromTransductionChannelCheckbox = addCheckBox(
+        container,
+        "Exclude Axons from Transduction channel",
+        prefs,
+        "shouldRemoveAxonsFromTransductionChannel",
+        true
+    )
 
     addMessage(container, "Image processing parameters")
 
@@ -66,8 +75,15 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
         prefs.putRGCTransductionPref("gaussianBlur", gaussianBlurSigma)
         val targetChannel = targetChannelSpinner.value as Int
         prefs.putRGCTransductionPref("morphologyChannel", targetChannel)
+        val shouldRemoveAxonsFromTargetChannel = shouldRemoveAxonsFromTargetChannelCheckbox.isSelected
+        prefs.putRGCTransductionPref("shouldRemoveAxonsFromTargetChannel", shouldRemoveAxonsFromTargetChannel)
         val transducedChannel = transducedChannelSpinner.value as Int
         prefs.putRGCTransductionPref("transductionChannel", transducedChannel)
+        val shouldRemoveAxonsFromTransductionChannel = shouldRemoveAxonsFromTransductionChannelCheckbox.isSelected
+        prefs.putRGCTransductionPref(
+            "shouldRemoveAxonsFromTransductionChannel",
+            shouldRemoveAxonsFromTransductionChannel
+        )
         val cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterChannelField.text)
         prefs.putRGCTransductionPref("cellDiameter", cellDiameterChannelField.text)
 
@@ -78,7 +94,9 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
                 thresholdRadius,
                 gaussianBlurSigma,
                 targetChannel,
+                shouldRemoveAxonsFromTargetChannel,
                 transducedChannel,
+                shouldRemoveAxonsFromTransductionChannel,
                 cellDiameterRange,
                 outputFileChooserPanel.file,
                 outputFileChooserPanel.format,
