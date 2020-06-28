@@ -25,7 +25,9 @@ import simplergc.services.CellDiameterRange
 
 class BatchableColocalizer(
     private val targetChannel: Int,
+    private val shouldRemoveAxonsFromTargetChannel: Boolean,
     private val transducedChannel: Int,
+    private val shouldRemoveAxonsFromTransductionChannel: Boolean,
     private val context: Context
 ) : Batchable {
     override fun process(
@@ -33,12 +35,12 @@ class BatchableColocalizer(
         cellDiameterRange: CellDiameterRange,
         localThresholdRadius: Int,
         gaussianBlurSigma: Double,
-        shouldRemoveAxons: Boolean,
         outputFormat: String,
         outputFile: File
     ) {
         val simpleColocalization = RGCTransduction()
 
+        //TODO: Update branch to use exclude axons feature in colocaliser.
         simpleColocalization.localThresholdRadius = localThresholdRadius
         simpleColocalization.targetChannel = targetChannel
         simpleColocalization.transducedChannel = transducedChannel
