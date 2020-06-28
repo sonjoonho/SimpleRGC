@@ -34,6 +34,17 @@
             <artifactId>fastcsv</artifactId>
             <version>1.0.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.17</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.xmlbeans</groupId>
+                    <artifactId>xmlbeans</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <!-- Test scope dependencies -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
