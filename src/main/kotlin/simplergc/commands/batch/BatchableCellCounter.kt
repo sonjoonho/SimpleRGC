@@ -8,6 +8,7 @@ import org.scijava.Context
 import simplergc.commands.RGCCounter
 import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
+import simplergc.services.OutputFormat
 import simplergc.services.counter.output.CSVCounterOutput
 import simplergc.services.counter.output.XMLCounterOutput
 
@@ -33,9 +34,9 @@ class BatchableCellCounter(private val targetChannel: Int, private val context: 
         val imageAndCount = inputImages.zip(numCellsList)
 
         val output = when (outputFormat) {
-            RGCCounter.OutputFormat.CSV -> CSVCounterOutput(outputFile)
-            RGCCounter.OutputFormat.XML -> XMLCounterOutput(outputFile)
-            else -> throw IllegalArgumentException("Invalid output type provided")
+            OutputFormat.CSV -> CSVCounterOutput(outputFile)
+            OutputFormat.XML -> XMLCounterOutput(outputFile)
+            else -> throw IllegalArgumentException("Invalid output type provided: $outputFormat")
         }
         imageAndCount.forEach { output.addCountForFile(it.second, it.first.title) }
         try {

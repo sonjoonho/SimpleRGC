@@ -25,6 +25,7 @@ import org.scijava.widget.NumberWidget
 import simplergc.services.CellDiameterRange
 import simplergc.services.CellSegmentationService
 import simplergc.services.DiameterParseException
+import simplergc.services.OutputFormat
 import simplergc.services.colocalizer.PositionedCell
 import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
@@ -131,15 +132,6 @@ class RGCCounter : Command, Previewable {
         required = false
     )
     private lateinit var outputParametersHeader: String
-
-    /**
-     * The user can optionally output the results to a file.
-     */
-    object OutputFormat {
-        const val DISPLAY = "Display in ImageJ"
-        const val CSV = "Save as CSV file"
-        const val XML = "Save as XML file"
-    }
 
     @Parameter(
         label = "Results output",

@@ -19,9 +19,9 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import simplergc.commands.ChannelDoesNotExistException
 import simplergc.commands.RGCTransduction
-import simplergc.commands.batch.RGCBatch.OutputFormat
 import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
+import simplergc.services.OutputFormat
 
 class BatchableColocalizer(
     private val targetChannel: Int,

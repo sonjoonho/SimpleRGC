@@ -32,6 +32,7 @@ import simplergc.services.CellColocalizationService
 import simplergc.services.CellDiameterRange
 import simplergc.services.CellSegmentationService
 import simplergc.services.DiameterParseException
+import simplergc.services.OutputFormat
 import simplergc.services.cellcomparator.PixelCellComparator
 import simplergc.services.cellcomparator.SubsetPixelCellComparator
 import simplergc.services.colocalizer.BucketedNaiveColocalizer
@@ -187,15 +188,6 @@ class RGCTransduction : Command, Previewable {
         required = false
     )
     private lateinit var outputParametersHeader: String
-
-    /**
-     * The user can optionally output the results to a file.
-     */
-    object OutputFormat {
-        const val DISPLAY = "Display in ImageJ"
-        const val CSV = "Save as CSV file"
-        const val XML = "Save as XML file"
-    }
 
     @Parameter(
         label = "Results Output:",

@@ -12,12 +12,12 @@ import org.scijava.Context
 import simplergc.commands.batch.controllers.runRGCTransduction
 import simplergc.commands.batch.getRGCTransductionPref
 import simplergc.commands.batch.putRGCTransductionPref
+import simplergc.commands.batch.views.common.CellDiameterField
 import simplergc.commands.batch.views.common.InputDirectoryChooserPanel
 import simplergc.commands.batch.views.common.OutputFileChooserPanel
-import simplergc.commands.batch.views.common.addCellDiameterField
-import simplergc.commands.batch.views.common.addCheckBox
+import simplergc.commands.batch.views.common.RGCSpinner
 import simplergc.commands.batch.views.common.addMessage
-import simplergc.commands.batch.views.common.addSpinner
+import simplergc.commands.batch.views.common.RGCCheckbox
 import simplergc.services.CellDiameterRange
 
 /** Creates the Simple Colocalizer GUI. */
@@ -29,30 +29,45 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
     container.add(inputDirectoryChooser)
 
     val shouldProcessFilesInNestedFoldersCheckbox =
-        addCheckBox(container, "Batch process in nested sub-folders?", prefs, "shouldProcessFilesInNestedFolders", false)
+        RGCCheckbox(
+            "Batch process in nested sub-folders?",
+            prefs,
+            "shouldProcessFilesInNestedFolders",
+            false
+        )
+    container.add(shouldProcessFilesInNestedFoldersCheckbox)
 
-    addMessage(container, "<html><div align=\\\"left\\\">When performing batch colocalization, ensure that all input images have the same </br> channel ordering as specified below.</div></html>")
+    addMessage(
+        container,
+        "<html><div align=\\\"left\\\">When performing batch colocalization, ensure that all input images have the same </br> channel ordering as specified below.</div></html>"
+    )
 
     val morphologyChannelModel = SpinnerNumberModel(prefs.getRGCTransductionPref("morphologyChannel", 1), 1, 100, 1)
-    val targetChannelSpinner = addSpinner(container, "Cell morphology channel", morphologyChannelModel)
+    val targetChannelSpinner = RGCSpinner("Cell morphology channel", morphologyChannelModel)
+    container.add(targetChannelSpinner)
     targetChannelSpinner.toolTipText = "Used as minimum/maximum diameter when identifying cells"
 
     val transductionChannelModel = SpinnerNumberModel(prefs.getRGCTransductionPref("transductionChannel", 2), 1, 100, 1)
-    val transducedChannelSpinner = addSpinner(container, "Transduction channel", transductionChannelModel)
+    val transducedChannelSpinner = RGCSpinner("Transduction channel", transductionChannelModel)
+    container.add(transducedChannelSpinner)
 
     addMessage(container, "Image processing parameters")
 
-    val cellDiameterChannelField = addCellDiameterField(container, prefs, "cellDiameter", false)
+    val cellDiameterChannelField = CellDiameterField(prefs, "cellDiameter", false)
+    container.add(cellDiameterChannelField)
 
     val thresholdRadiusModel = SpinnerNumberModel(prefs.getRGCTransductionPref("thresholdRadius", 20), 1, 1000, 1)
-    val thresholdRadiusSpinner = addSpinner(container, "Local threshold radius", thresholdRadiusModel)
+    val thresholdRadiusSpinner = RGCSpinner("Local threshold radius", thresholdRadiusModel)
+    container.add(thresholdRadiusSpinner)
     thresholdRadiusSpinner.toolTipText = "The radius of the local domain over which the threshold will be computed."
 
     val gaussianBlurModel = SpinnerNumberModel(prefs.getRGCTransductionPref("gaussianBlur", 3.0).toInt(), 1, 50, 1)
-    val gaussianBlurSpinner = addSpinner(container, "Gaussian blur sigma", gaussianBlurModel)
-    gaussianBlurSpinner.toolTipText = "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
+    val gaussianBlurSpinner = RGCSpinner("Gaussian blur sigma", gaussianBlurModel)
+    container.add(gaussianBlurSpinner)
+    gaussianBlurSpinner.toolTipText =
+        "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
 
-    val outputFileChooserPanel = OutputFileChooserPanel(container, prefs)
+    val outputFileChooserPanel = OutputFileChooserPanel(prefs)
     container.add(outputFileChooserPanel)
 
     val okButton = JButton("Ok")
@@ -68,8 +83,8 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
         prefs.putRGCTransductionPref("morphologyChannel", targetChannel)
         val transducedChannel = transducedChannelSpinner.value as Int
         prefs.putRGCTransductionPref("transductionChannel", transducedChannel)
-        val cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterChannelField.text)
-        prefs.putRGCTransductionPref("cellDiameter", cellDiameterChannelField.text)
+        val cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterChannelField.field.text)
+        prefs.putRGCTransductionPref("cellDiameter", cellDiameterChannelField.field.text as String)
 
         try {
             runRGCTransduction(

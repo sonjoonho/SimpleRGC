@@ -12,7 +12,6 @@ import org.scijava.plugin.Plugin
 import simplergc.commands.batch.controllers.RGCCounterController
 import simplergc.commands.batch.models.RGCCounterModel
 import simplergc.commands.batch.views.RGCCounterView
-import simplergc.commands.batch.views.rgcCounterPanel
 import simplergc.commands.batch.views.rgcTransductionPanel
 import simplergc.services.CellColocalizationService
 import simplergc.services.CellSegmentationService
@@ -26,11 +25,6 @@ class RGCBatch : Command {
     @Parameter
     private lateinit var context: Context
 
-    object OutputFormat {
-        const val CSV = "CSV"
-        const val XML = "XML"
-    }
-
     private val prefs = Preferences.userRoot().node(this.javaClass.name)
 
     private fun gui() {
@@ -40,11 +34,10 @@ class RGCBatch : Command {
         val counterView = RGCCounterView(counterModel)
         val counterController = RGCCounterController(counterView, counterModel)
 
-        val simpleCellCounterPanel = rgcCounterPanel(context, prefs)
         val simpleColocalizerPanel = rgcTransductionPanel(context, prefs)
         val tp = JTabbedPane()
         tp.setBounds(10, 10, 500, 550)
-        tp.add("RGCCounter", simpleCellCounterPanel)
+        tp.add("RGCCounter", counterView)
         tp.add("RGCTransduction", simpleColocalizerPanel)
         frame.add(tp)
         frame.setSize(525, 600)
