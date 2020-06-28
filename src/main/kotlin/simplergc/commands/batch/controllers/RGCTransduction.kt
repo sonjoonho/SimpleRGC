@@ -12,11 +12,11 @@ fun runRGCTransduction(
     shouldProcessFilesInNestedFolders: Boolean,
     thresholdRadius: Int,
     gaussianBlurSigma: Double,
-    outputFormat: String,
     targetChannel: Int,
     transducedChannel: Int,
     cellDiameterRange: CellDiameterRange,
     outputFile: File?,
+    outputFormat: String,
     context: Context
 ) {
     if (inputFolder == null) {

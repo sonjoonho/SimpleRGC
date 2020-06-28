@@ -14,11 +14,7 @@ import javax.swing.JTextArea
 
 class InputDirectoryChooserPanel(container: JPanel, prefs: Preferences) : JPanel() {
 
-    var inputFolder = if (prefs.getRGCTransductionPref("folderName", "").isEmpty()) {
-        null
-    } else {
-        File(prefs.getRGCTransductionPref("folderName", ""))
-    }
+    var directory = File(prefs.getRGCTransductionPref("folderName", ""))
 
     init {
         this.layout = GridLayout(0, 2)
@@ -27,7 +23,7 @@ class InputDirectoryChooserPanel(container: JPanel, prefs: Preferences) : JPanel
         buttonPanel.layout = GridBagLayout()
         val browseButton = JButton("Browse")
         val folderName = JTextArea(1, 25)
-        folderName.text = prefs.getRGCTransductionPref("folderName", "").takeLast(25)
+        folderName.text = directory.absolutePath
         inputFolderLabel.labelFor = browseButton
         this.add(inputFolderLabel)
         buttonPanel.add(folderName)
@@ -40,9 +36,9 @@ class InputDirectoryChooserPanel(container: JPanel, prefs: Preferences) : JPanel
             fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
             val i = fileChooser.showOpenDialog(container)
             if (i == JFileChooser.APPROVE_OPTION) {
-                inputFolder = fileChooser.selectedFile
-                folderName.text = inputFolder!!.absolutePath.takeLast(25)
-                prefs.putRGCTransductionPref("folderName", inputFolder!!.absolutePath)
+                directory = fileChooser.selectedFile
+                folderName.text = directory!!.absolutePath.takeLast(25)
+                prefs.putRGCTransductionPref("folderName", directory!!.absolutePath)
             }
         }
     }

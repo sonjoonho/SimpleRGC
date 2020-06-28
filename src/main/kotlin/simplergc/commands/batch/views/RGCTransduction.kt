@@ -2,26 +2,18 @@ package simplergc.commands.batch.views
 
 import ij.IJ
 import ij.gui.MessageDialog
-import java.awt.GridBagLayout
-import java.awt.GridLayout
-import java.io.File
 import java.io.FileNotFoundException
 import java.util.prefs.Preferences
 import javax.swing.BoxLayout
-import javax.swing.ButtonGroup
 import javax.swing.JButton
-import javax.swing.JFileChooser
-import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JRadioButton
-import javax.swing.JTextArea
 import javax.swing.SpinnerNumberModel
 import org.scijava.Context
-import simplergc.commands.batch.RGCBatch
 import simplergc.commands.batch.controllers.runRGCTransduction
 import simplergc.commands.batch.getRGCTransductionPref
 import simplergc.commands.batch.putRGCTransductionPref
 import simplergc.commands.batch.views.common.InputDirectoryChooserPanel
+import simplergc.commands.batch.views.common.OutputFileChooserPanel
 import simplergc.commands.batch.views.common.addCellDiameterField
 import simplergc.commands.batch.views.common.addCheckBox
 import simplergc.commands.batch.views.common.addMessage
@@ -60,55 +52,8 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
     val gaussianBlurSpinner = addSpinner(container, "Gaussian blur sigma", gaussianBlurModel)
     gaussianBlurSpinner.toolTipText = "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
 
-    addMessage(container, "Output parameters")
-
-    val resultsOutputPanel = JPanel()
-    resultsOutputPanel.layout = GridLayout(0, 2)
-    val resultsOutputLabel = JLabel("Results output")
-    resultsOutputPanel.add(resultsOutputLabel)
-    val saveAsCSVButton = JRadioButton("Save as a CSV file")
-    val saveAsXMLButton = JRadioButton("Save as XML file")
-    saveAsCSVButton.isSelected = prefs.getRGCTransductionPref("SaveAsCSV", true)
-    saveAsXMLButton.isSelected = !prefs.getRGCTransductionPref("SaveAsCSV", true)
-    val bg = ButtonGroup()
-    bg.add(saveAsCSVButton); bg.add(saveAsXMLButton)
-    resultsOutputPanel.add(saveAsCSVButton)
-    resultsOutputPanel.add(JPanel())
-    resultsOutputPanel.add(saveAsXMLButton)
-    container.add(resultsOutputPanel)
-
-    // TODO: Refactor file choosing to reduce duplication
-    val fileChooserPanel = JPanel()
-    fileChooserPanel.layout = GridLayout(0, 2)
-    val label = JLabel("Output File (if saving)")
-    val browseButtonPanel = JPanel()
-    browseButtonPanel.layout = GridBagLayout()
-    val browseButton = JButton("Browse")
-    val fileName = JTextArea(1, 25)
-    fileName.text = prefs.getRGCTransductionPref("outputFile", "").takeLast(25)
-    label.labelFor = browseButton
-    fileChooserPanel.add(label)
-    browseButtonPanel.add(fileName)
-    browseButtonPanel.add(browseButton)
-    fileChooserPanel.add(browseButtonPanel)
-
-    var outputFile = if (prefs.getRGCTransductionPref("outputFile", "").isEmpty()) {
-        null
-    } else {
-        File(prefs.getRGCTransductionPref("outputFile", ""))
-    }
-    browseButton.addActionListener {
-        val fileChooser = JFileChooser()
-        fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-        val i = fileChooser.showOpenDialog(container)
-        if (i == JFileChooser.APPROVE_OPTION) {
-            outputFile = fileChooser.selectedFile
-            fileName.text = outputFile!!.absolutePath.takeLast(25)
-            prefs.putRGCTransductionPref("outputFile", outputFile!!.absolutePath)
-        }
-    }
-
-    container.add(fileChooserPanel)
+    val outputFileChooserPanel = OutputFileChooserPanel(container, prefs)
+    container.add(outputFileChooserPanel)
 
     val okButton = JButton("Ok")
     container.add(okButton)
@@ -119,11 +64,6 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
         prefs.putRGCTransductionPref("thresholdRadius", thresholdRadius)
         val gaussianBlurSigma = (gaussianBlurSpinner.value as Int).toDouble()
         prefs.putRGCTransductionPref("gaussianBlur", gaussianBlurSigma)
-        val outputFormat = when {
-            saveAsCSVButton.isSelected -> RGCBatch.OutputFormat.CSV
-            saveAsXMLButton.isSelected -> RGCBatch.OutputFormat.XML
-            else -> ""
-        }
         val targetChannel = targetChannelSpinner.value as Int
         prefs.putRGCTransductionPref("morphologyChannel", targetChannel)
         val transducedChannel = transducedChannelSpinner.value as Int
@@ -134,15 +74,15 @@ fun rgcTransductionPanel(context: Context, prefs: Preferences): JPanel {
 
         try {
             runRGCTransduction(
-                inputDirectoryChooser.inputFolder,
+                inputDirectoryChooser.directory,
                 shouldProcessFilesInNestedFolders,
                 thresholdRadius,
                 gaussianBlurSigma,
-                outputFormat,
                 targetChannel,
                 transducedChannel,
                 cellDiameterRange,
-                outputFile,
+                outputFileChooserPanel.file,
+                outputFileChooserPanel.format,
                 context
             )
             MessageDialog(
