@@ -7,41 +7,38 @@ import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.SpinnerNumberModel
 import simplergc.commands.batch.controllers.RGCCounterController
-import simplergc.commands.batch.getRGCCounterPref
 import simplergc.commands.batch.models.RGCCounterModel
 import simplergc.commands.batch.views.common.CellDiameterField
 import simplergc.commands.batch.views.common.InputDirectoryChooserPanel
 import simplergc.commands.batch.views.common.OutputFileChooserPanel
+import simplergc.commands.batch.views.common.RGCCheckbox
 import simplergc.commands.batch.views.common.RGCSpinner
 import simplergc.commands.batch.views.common.addMessage
-import simplergc.commands.batch.views.common.RGCCheckbox
 
 class RGCCounterView(model: RGCCounterModel) : JPanel() {
 
-    val inputDirectoryChooser = InputDirectoryChooserPanel(this, model.prefs)
+    val inputDirectoryChooser = InputDirectoryChooserPanel(this, model.inputDirectory)
 
     val shouldProcessFilesInNestedFoldersCheckbox =
         RGCCheckbox(
             "Batch process in nested sub-folders?",
-            model.prefs,
-            "shouldProcessFilesInNestedFolders",
-            true
+            model.shouldProcessFilesInNestedFolders
         )
 
-    private val channelModel = SpinnerNumberModel(model.prefs.getRGCCounterPref("channelToUse", 1), 0, 10, 1)
+    private val channelModel = SpinnerNumberModel(model.channelToUse, 0, 10, 1)
     val channelSpinner = RGCSpinner("Select channel to use", channelModel)
 
-    val cellDiameterChannelField = CellDiameterField(model.prefs, "cellDiameter", true)
+    val cellDiameterChannelField = CellDiameterField(model.cellDiameter)
 
-    private val thresholdRadiusModel = SpinnerNumberModel(model.prefs.getRGCCounterPref("thresholdRadius", 20), 1, 1000, 1)
+    private val thresholdRadiusModel = SpinnerNumberModel(model.thresholdRadius, 1, 1000, 1)
     val thresholdRadiusSpinner = RGCSpinner("Local threshold radius", thresholdRadiusModel)
 
-    private val gaussianBlurModel = SpinnerNumberModel(model.prefs.getRGCCounterPref("gaussianBlur", 3.0).toInt(), 1, 50, 1)
+    private val gaussianBlurModel = SpinnerNumberModel(model.gaussianBlur.toInt(), 1, 50, 1)
     val gaussianBlurSpinner = RGCSpinner("Gaussian blur sigma", gaussianBlurModel)
 
-    val shouldRemoveAxonsCheckbox = RGCCheckbox("Remove Axons", model.prefs, "shouldRemoveAxons", true)
+    val shouldRemoveAxonsCheckbox = RGCCheckbox("Remove Axons", model.shouldRemoveAxons)
 
-    val outputFileChooserPanel = OutputFileChooserPanel(model.prefs)
+    val outputFileChooserPanel = OutputFileChooserPanel(model.outputFile)
 
     private val okButton = JButton("Ok")
 
@@ -66,7 +63,7 @@ class RGCCounterView(model: RGCCounterModel) : JPanel() {
 
         this.add(shouldRemoveAxonsCheckbox)
 
-        addMessage(this,"Output parameters")
+        addMessage(this, "Output parameters")
         this.add(outputFileChooserPanel)
 
         this.add(okButton)

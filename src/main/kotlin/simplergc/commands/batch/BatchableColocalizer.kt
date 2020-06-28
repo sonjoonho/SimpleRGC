@@ -40,7 +40,7 @@ class BatchableColocalizer(
     ) {
         val simpleColocalization = RGCTransduction()
 
-        //TODO: Update branch to use exclude axons feature in colocaliser.
+        // TODO: Update branch to use exclude axons feature in colocaliser.
         simpleColocalization.localThresholdRadius = localThresholdRadius
         simpleColocalization.targetChannel = targetChannel
         simpleColocalization.transducedChannel = transducedChannel

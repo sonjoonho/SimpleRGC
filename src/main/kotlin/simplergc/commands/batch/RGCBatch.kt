@@ -11,6 +11,7 @@ import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import simplergc.commands.batch.controllers.RGCCounterController
 import simplergc.commands.batch.models.RGCCounterModel
+import simplergc.commands.batch.models.RGCTransductionModel
 import simplergc.commands.batch.views.RGCCounterView
 import simplergc.commands.batch.views.rgcTransductionPanel
 import simplergc.services.CellColocalizationService
@@ -34,7 +35,8 @@ class RGCBatch : Command {
         val counterView = RGCCounterView(counterModel)
         val counterController = RGCCounterController(counterView, counterModel)
 
-        val simpleColocalizerPanel = rgcTransductionPanel(context, prefs)
+        val transductionModel = RGCTransductionModel(context, prefs)
+        val simpleColocalizerPanel = rgcTransductionPanel(context, transductionModel)
         val tp = JTabbedPane()
         tp.setBounds(10, 10, 500, 550)
         tp.add("RGCCounter", counterView)

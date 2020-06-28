@@ -3,18 +3,15 @@ package simplergc.commands.batch.views.common
 import java.awt.GridBagLayout
 import java.awt.GridLayout
 import java.io.File
-import java.util.prefs.Preferences
 import javax.swing.JButton
 import javax.swing.JFileChooser
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextArea
-import simplergc.commands.batch.getRGCTransductionPref
-import simplergc.commands.batch.putRGCTransductionPref
 
-class InputDirectoryChooserPanel(container: JPanel, prefs: Preferences) : JPanel() {
+class InputDirectoryChooserPanel(container: JPanel, initial: String) : JPanel() {
 
-    var directory = File(prefs.getRGCTransductionPref("folderName", ""))
+    var directory = File(initial)
 
     init {
         this.layout = GridLayout(0, 2)
@@ -36,8 +33,9 @@ class InputDirectoryChooserPanel(container: JPanel, prefs: Preferences) : JPanel
             val i = fileChooser.showOpenDialog(container)
             if (i == JFileChooser.APPROVE_OPTION) {
                 directory = fileChooser.selectedFile
-                folderName.text = directory!!.absolutePath.takeLast(25)
-                prefs.putRGCTransductionPref("folderName", directory!!.absolutePath)
+                folderName.text = directory.absolutePath.takeLast(25)
+                // TODO(sonjoonho): This.
+                // prefs.putRGCTransductionPref("folderName", directory.absolutePath)
             }
         }
     }

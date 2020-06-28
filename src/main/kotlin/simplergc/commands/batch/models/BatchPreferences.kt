@@ -1,4 +1,4 @@
-package simplergc.commands.batch
+package simplergc.commands.batch.models
 
 import java.util.prefs.Preferences
 

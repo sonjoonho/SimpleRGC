@@ -3,7 +3,6 @@ package simplergc.commands.batch.views.common
 import java.awt.GridBagLayout
 import java.awt.GridLayout
 import java.io.File
-import java.util.prefs.Preferences
 import javax.swing.ButtonGroup
 import javax.swing.JButton
 import javax.swing.JFileChooser
@@ -11,16 +10,13 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JRadioButton
 import javax.swing.JTextArea
-import simplergc.commands.batch.getRGCTransductionPref
-import simplergc.commands.batch.putRGCCounterPref
-import simplergc.commands.batch.putRGCTransductionPref
 import simplergc.services.OutputFormat
 
 const val COLUMN_WIDTH = 25
 
-class OutputFileChooserPanel(prefs: Preferences) : JPanel() {
+class OutputFileChooserPanel(initial: String) : JPanel() {
 
-    var file = File(prefs.getRGCTransductionPref("outputFile", ""))
+    var file = File(initial)
     var format = OutputFormat.CSV
 
     init {
@@ -55,9 +51,6 @@ class OutputFileChooserPanel(prefs: Preferences) : JPanel() {
         browseButtonPanel.add(browseButton)
         fileChooserPanel.add(browseButtonPanel)
         this.add(fileChooserPanel)
-        // TODO(sonjoonho): Very temporary I promise.
-        prefs.putRGCCounterPref("saveAsCSV", saveAsCSVButton.isSelected)
-        prefs.putRGCTransductionPref("saveAsCSV", saveAsCSVButton.isSelected)
 
         browseButton.addActionListener {
             val fileChooser = JFileChooser()
@@ -66,8 +59,6 @@ class OutputFileChooserPanel(prefs: Preferences) : JPanel() {
             if (i == JFileChooser.APPROVE_OPTION) {
                 file = fileChooser.selectedFile
                 fileName.text = file.absolutePath.takeLast(COLUMN_WIDTH)
-                prefs.putRGCCounterPref("outputFile", file.absolutePath)
-                prefs.putRGCTransductionPref("outputFile", file.absolutePath)
             }
         }
     }
