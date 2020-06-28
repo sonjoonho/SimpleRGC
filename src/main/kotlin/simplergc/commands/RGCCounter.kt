@@ -31,7 +31,6 @@ import simplergc.services.colocalizer.drawCells
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.services.counter.output.CSVCounterOutput
 import simplergc.services.counter.output.ImageJTableCounterOutput
-import simplergc.services.counter.output.XMLCounterOutput
 import simplergc.widgets.AlignedTextWidget
 
 /**
@@ -138,12 +137,11 @@ class RGCCounter : Command, Previewable {
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
         const val CSV = "Save as CSV file"
-        const val XML = "Save as XML file"
     }
 
     @Parameter(
         label = "Results output",
-        choices = [OutputFormat.DISPLAY, OutputFormat.CSV, OutputFormat.XML],
+        choices = [OutputFormat.DISPLAY, OutputFormat.CSV],
         required = true,
         persist = true,
         style = "radioButtonVertical"
@@ -216,7 +214,6 @@ class RGCCounter : Command, Previewable {
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableCounterOutput(uiService)
             OutputFormat.CSV -> CSVCounterOutput(outputFile!!)
-            OutputFormat.XML -> XMLCounterOutput(outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
