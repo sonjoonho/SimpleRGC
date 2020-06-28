@@ -69,9 +69,9 @@ class XLSXColocalizationOutput(
         )
         // Create header for summary
         val summaryHeaderRow = summarySheet.createRow(0)
-        for (columnIdx in summaryHeader.indices) {
+        summaryHeader.forEachIndexed { columnIdx, headerTitle ->
             val cell = summaryHeaderRow.createCell(columnIdx)
-            cell.setCellValue(summaryHeader[columnIdx])
+            cell.setCellValue(headerTitle)
         }
         // Add summary data
         val summaryData = arrayOf(
@@ -88,9 +88,9 @@ class XLSXColocalizationOutput(
             "TODO: RawIntDen"
         )
         val summaryDataRow = summarySheet.createRow(1)
-        for (columnIdx in summaryData.indices) {
+        summaryData.forEachIndexed { columnIdx, dataEntry ->
             val cell = summaryDataRow.createCell(columnIdx)
-            cell.setCellValue(summaryData[columnIdx])
+            cell.setCellValue(dataEntry)
         }
 
         val perCellAnalysisSheet = workbook.createSheet("Transduced cells analysis")
@@ -107,9 +107,9 @@ class XLSXColocalizationOutput(
         )
         // Create header for transduced cell analysis
         val perCellAnalysisHeaderRow = perCellAnalysisSheet.createRow(0)
-        for (columnIdx in perCellAnalysisHeader.indices) {
+        perCellAnalysisHeader.forEachIndexed { columnIdx, headerTitle ->
             val cell = perCellAnalysisHeaderRow.createCell(columnIdx)
-            cell.setCellValue(perCellAnalysisHeader[columnIdx])
+            cell.setCellValue(headerTitle)
         }
         // Add transduced cell analysis data
         result.overlappingTransducedIntensityAnalysis.forEachIndexed { rowIdx, cellAnalysis ->
