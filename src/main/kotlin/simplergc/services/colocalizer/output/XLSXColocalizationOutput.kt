@@ -111,6 +111,26 @@ class XLSXColocalizationOutput(
             val cell = perCellAnalysisHeaderRow.createCell(columnIdx)
             cell.setCellValue(perCellAnalysisHeader[columnIdx])
         }
+        // Add transduced cell analysis data
+        result.overlappingTransducedIntensityAnalysis.forEachIndexed { rowIdx, cellAnalysis ->
+            val analysisRow = perCellAnalysisSheet.createRow(rowIdx)
+            val analysisData = arrayOf(
+                "",
+                "TODO:",
+                "1",
+                cellAnalysis.area.toString(),
+                cellAnalysis.mean.toString(),
+                cellAnalysis.median.toString(),
+                "TODO: Min",
+                "TODO: Max",
+                "TODO: IntDen",
+                "TODO: RawIntDen"
+            )
+            analysisData.forEachIndexed { colIdx, dataEntry ->
+                val cell = analysisRow.createCell(colIdx)
+                cell.setCellValue(dataEntry)
+            }
+        }
 
         val paramsSheet = workbook.createSheet("Parameters")
         val paramsHeader = arrayOf(
