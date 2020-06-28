@@ -11,13 +11,16 @@ import simplergc.services.CellDiameterRange
 import simplergc.services.counter.output.CSVCounterOutput
 import simplergc.services.counter.output.XMLCounterOutput
 
-class BatchableCellCounter(private val targetChannel: Int, private val context: Context) : Batchable {
+class BatchableCellCounter(
+    private val targetChannel: Int,
+    private val shouldRemoveAxons: Boolean,
+    private val context: Context
+) : Batchable {
     override fun process(
         inputImages: List<ImagePlus>,
         cellDiameterRange: CellDiameterRange,
         localThresholdRadius: Int,
         gaussianBlurSigma: Double,
-        shouldRemoveAxons: Boolean,
         outputFormat: String,
         outputFile: File
     ) {
