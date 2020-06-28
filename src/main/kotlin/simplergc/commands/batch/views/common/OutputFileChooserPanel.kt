@@ -2,6 +2,7 @@ package simplergc.commands.batch.views.common
 
 import simplergc.commands.batch.RGCBatch
 import simplergc.commands.batch.getRGCTransductionPref
+import simplergc.commands.batch.putRGCCounterPref
 import simplergc.commands.batch.putRGCTransductionPref
 import java.awt.GridBagLayout
 import java.awt.GridLayout
@@ -50,7 +51,11 @@ class OutputFileChooserPanel(container: JPanel, prefs: Preferences) : JPanel() {
         browseButtonPanel.add(fileName)
         browseButtonPanel.add(browseButton)
         this.add(browseButtonPanel)
-        
+        // TODO(sonjoonho): Very temporary I promise.
+        prefs.putRGCCounterPref("saveAsCSV", saveAsCSVButton.isSelected)
+        prefs.putRGCTransductionPref("saveAsCSV", saveAsCSVButton.isSelected)
+
+
         browseButton.addActionListener {
             val fileChooser = JFileChooser()
             fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
@@ -58,6 +63,7 @@ class OutputFileChooserPanel(container: JPanel, prefs: Preferences) : JPanel() {
             if (i == JFileChooser.APPROVE_OPTION) {
                 file = fileChooser.selectedFile
                 fileName.text = file.absolutePath.takeLast(25)
+                prefs.putRGCCounterPref("outputFile", file.absolutePath)
                 prefs.putRGCTransductionPref("outputFile", file.absolutePath)
             }
         }

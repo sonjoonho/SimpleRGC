@@ -54,23 +54,6 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
 
     val shouldRemoveAxonsCheckbox = addCheckBox(container, "Remove Axons", prefs, "shouldRemoveAxons", true)
 
-    addMessage(container, "Output parameters")
-
-    val resultsOutputPanel = JPanel()
-    resultsOutputPanel.layout = GridLayout(0, 2)
-    val resultsOutputLabel = JLabel("Results output")
-    resultsOutputPanel.add(resultsOutputLabel)
-    val saveAsCSVButton = JRadioButton("Save as a CSV file")
-    val saveAsXMLButton = JRadioButton("Save as XML file")
-    saveAsCSVButton.isSelected = prefs.getRGCCounterPref("SaveAsCSV", true)
-    saveAsXMLButton.isSelected = !prefs.getRGCCounterPref("SaveAsCSV", true)
-    val bg = ButtonGroup()
-    bg.add(saveAsCSVButton); bg.add(saveAsXMLButton)
-    resultsOutputPanel.add(saveAsCSVButton)
-    resultsOutputPanel.add(JPanel())
-    resultsOutputPanel.add(saveAsXMLButton)
-    container.add(resultsOutputPanel)
-
     val outputFileChooserPanel = OutputFileChooserPanel(container, prefs)
     container.add(outputFileChooserPanel)
 
@@ -87,13 +70,6 @@ fun rgcCounterPanel(context: Context, prefs: Preferences): JPanel {
         prefs.putRGCCounterPref("gaussianBlur", gaussianBlurSigma)
         val shouldRemoveAxons = shouldRemoveAxonsCheckbox.isSelected
         prefs.putRGCCounterPref("shouldRemoveAxons", shouldRemoveAxons)
-        val outputFormat = when {
-            saveAsCSVButton.isSelected -> RGCBatch.OutputFormat.CSV
-            saveAsXMLButton.isSelected -> RGCBatch.OutputFormat.XML
-            else -> ""
-        }
-        prefs.putRGCCounterPref("saveAsCSV", saveAsCSVButton.isSelected)
-
         val cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterChannelField.text)
         prefs.putRGCCounterPref("cellDiameter", cellDiameterChannelField.text)
 
