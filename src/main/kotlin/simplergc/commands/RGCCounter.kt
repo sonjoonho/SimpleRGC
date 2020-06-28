@@ -31,6 +31,7 @@ import simplergc.services.colocalizer.drawCells
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.services.counter.output.CSVCounterOutput
 import simplergc.services.counter.output.ImageJTableCounterOutput
+import simplergc.services.counter.output.XLSXCounterOutput
 import simplergc.widgets.AlignedTextWidget
 
 /**

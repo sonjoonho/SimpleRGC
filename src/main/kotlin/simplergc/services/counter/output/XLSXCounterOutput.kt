@@ -1,9 +1,9 @@
-package simplecolocalization.services.counter.output
+package simplergc.services.counter.output
 
-import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import simplecolocalization.services.CellDiameterRange
 import java.io.File
 import java.io.FileOutputStream
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import simplergc.services.CellDiameterRange
 
 class XLSXCounterOutput(
     private val outputFile: File,
@@ -76,7 +76,6 @@ class XLSXCounterOutput(
 
             val gaussianBlurSigmaCell = row.createCell(6)
             gaussianBlurSigmaCell.setCellValue(gaussianBlurSigma)
-
         }
 
         for (i in 0..6) {
