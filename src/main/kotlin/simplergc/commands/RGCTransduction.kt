@@ -95,7 +95,7 @@ class RGCTransduction : Command, Previewable {
         required = true,
         persist = true
     )
-    private var shouldRemoveAxonsFromTargetChannel: Boolean = false
+    var shouldRemoveAxonsFromTargetChannel: Boolean = false
 
     /**
      * Specify the channel for the transduced cells.
@@ -115,7 +115,7 @@ class RGCTransduction : Command, Previewable {
         required = true,
         persist = true
     )
-    private var shouldRemoveAxonsFromTransductionChannel: Boolean = false
+    var shouldRemoveAxonsFromTransductionChannel: Boolean = false
 
     @Parameter(
         label = "Preprocessing parameters",
