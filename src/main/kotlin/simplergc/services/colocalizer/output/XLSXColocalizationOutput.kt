@@ -69,9 +69,9 @@ class XLSXColocalizationOutput(
         )
         // Create header for summary
         val summaryHeaderRow = summarySheet.createRow(0)
-        for (columnHeader in summaryHeader.indices) {
-            val cell = summaryHeaderRow.createCell(columnHeader)
-            cell.setCellValue(summaryHeader[columnHeader])
+        for (columnIdx in summaryHeader.indices) {
+            val cell = summaryHeaderRow.createCell(columnIdx)
+            cell.setCellValue(summaryHeader[columnIdx])
         }
         // Add summary data
         val summaryData = arrayOf(
@@ -88,12 +88,29 @@ class XLSXColocalizationOutput(
             "TODO: RawIntDen"
         )
         val summaryDataRow = summarySheet.createRow(1)
-        for (columnData in summaryData.indices) {
-            val cell = summaryDataRow.createCell(columnData)
-            cell.setCellValue(summaryData[columnData])
+        for (columnIdx in summaryData.indices) {
+            val cell = summaryDataRow.createCell(columnIdx)
+            cell.setCellValue(summaryData[columnIdx])
         }
 
         val perCellAnalysisSheet = workbook.createSheet("Transduced cells analysis")
+        val perCellAnalysisHeader = arrayOf(
+            "File Name",
+            "Transduced Cell",
+            "Morphology Area (pixel^2)",
+            "Mean Fluorescence Intensity (a.u.)",
+            "Median Fluorescence Intensity (a.u.)",
+            "Min Fluorescence Intensity (a.u.)",
+            "Max Fluorescence Intensity (a.u.)",
+            "IntDen",
+            "RawIntDen"
+        )
+        // Create header for transduced cell analysis
+        val perCellAnalysisHeaderRow = perCellAnalysisSheet.createRow(0)
+        for (columnIdx in perCellAnalysisHeader.indices) {
+            val cell = perCellAnalysisHeaderRow.createCell(columnIdx)
+            cell.setCellValue(perCellAnalysisHeader[columnIdx])
+        }
 
         val paramsSheet = workbook.createSheet("Parameters")
         val paramsHeader = arrayOf(
