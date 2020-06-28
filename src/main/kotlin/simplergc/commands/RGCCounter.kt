@@ -221,7 +221,12 @@ class RGCCounter : Command, Previewable {
                 cellDiameterRange,
                 localThresholdRadius,
                 gaussianBlurSigma)
-            OutputFormat.CSV -> CSVCounterOutput(outputFile!!)
+            OutputFormat.CSV -> CSVCounterOutput(
+                outputFile!!,
+                targetChannel,
+                cellDiameterRange,
+                localThresholdRadius,
+                gaussianBlurSigma)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
