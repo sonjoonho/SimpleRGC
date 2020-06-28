@@ -28,14 +28,13 @@ fun runRGCCounter(
     }
 
     val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
-    val cellCounter = BatchableCellCounter(channel, context)
+    val cellCounter = BatchableCellCounter(channel, shouldRemoveAxons, context)
 
     cellCounter.process(
         openFiles(files),
         cellDiameterRange,
         thresholdRadius,
         gaussianBlurSigma,
-        shouldRemoveAxons,
         outputFormat,
         outputFile
     )
