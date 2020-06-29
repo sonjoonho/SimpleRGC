@@ -19,9 +19,13 @@ class XLSXCounterOutput(
         fileNameAndCountList.add(Pair(file, count))
     }
 
-    private val columns = arrayOf(
+    private val resultColumns = arrayOf(
         "File Name",
-        "Cell Count",
+        "Cell Count"
+    )
+
+    private val parameterColumns = arrayOf(
+        "File Name",
         "Simple RGC Plugin",
         "Version",
         "Morphology Channel",
@@ -31,50 +35,67 @@ class XLSXCounterOutput(
         "Gaussian Blur Sigma"
     )
 
-    /**
-     * Saves count results into excel file at specified output path.
-     */
-    override fun output() {
-        val workbook = XSSFWorkbook()
-
-        val sheet = workbook.createSheet("RGC Counter")
+    private fun generateResultsSheet(workbook: XSSFWorkbook) {
+        val results = workbook.createSheet("Results")
 
         val createHelper = workbook.creationHelper
 
-        val articleRow = sheet.createRow(0)
+        val articleRow = results.createRow(0)
         articleRow.createCell(0).setCellValue("The article:")
         articleRow.createCell(1).setCellValue("[insert full citation]")
 
-
-        val headerRow = sheet.createRow(3)
+        val headerRow = results.createRow(2)
 
         // Header
-        for (col in columns.indices) {
+        for (col in resultColumns.indices) {
             val cell = headerRow.createCell(col)
-            cell.setCellValue(columns[col])
+            cell.setCellValue(resultColumns[col])
         }
 
         val numberCellStyle = workbook.createCellStyle()
         numberCellStyle.dataFormat = createHelper.createDataFormat().getFormat("#")
 
-        var rowIdx = 4
+        var rowIdx = 3
         for (pair in fileNameAndCountList) {
-            var colIdx = 0
-            val row = sheet.createRow(rowIdx++)
+            val row = results.createRow(rowIdx++)
 
             // File Name
-            row.createCell(colIdx++).setCellValue(pair.first.replace(",", ""))
+            row.createCell(0).setCellValue(pair.first.replace(",", ""))
 
             // Cell Count
-            val countCell = row.createCell(colIdx++)
+            val countCell = row.createCell(1)
             countCell.setCellValue(pair.second.toDouble())
+        }
+
+        for (i in 0..3) {
+            results.autoSizeColumn(i)
+        }
+    }
+
+    private fun generateParametersSheet(workbook: XSSFWorkbook) {
+        val parameters = workbook.createSheet("Parameters")
+
+        val headerRow = parameters.createRow(0)
+
+        // Header
+        for (col in parameterColumns.indices) {
+            val cell = headerRow.createCell(col)
+            cell.setCellValue(parameterColumns[col])
+        }
+
+        var rowIdx = 1
+        for (pair in fileNameAndCountList) {
+            val row = parameters.createRow(rowIdx++)
+            var colIdx = 0
+            // File Name
+            row.createCell(colIdx++).setCellValue(pair.first.replace(",", ""))
 
             // Plugin Information
             val pluginNameCell = row.createCell(colIdx++)
             pluginNameCell.setCellValue("RGC Counter")
 
             val pluginVersionCell = row.createCell(colIdx++)
-            pluginVersionCell.setCellValue("1.0")
+            pluginVersionCell.setCellValue(1.0)
 
             // Parameters
             val morphologyChannelCell = row.createCell(colIdx++)
@@ -93,9 +114,20 @@ class XLSXCounterOutput(
             gaussianBlurSigmaCell.setCellValue(gaussianBlurSigma)
         }
 
-        for (i in 0..8) {
-            sheet.autoSizeColumn(i)
+
+        for (i in 0..7) {
+            parameters.autoSizeColumn(i)
         }
+    }
+
+    /**
+     * Saves count results into excel file at specified output path.
+     */
+    override fun output() {
+        val workbook = XSSFWorkbook()
+
+        generateResultsSheet(workbook)
+        generateParametersSheet(workbook)
 
         val fileOut = FileOutputStream(outputFile)
         workbook.write(fileOut)
