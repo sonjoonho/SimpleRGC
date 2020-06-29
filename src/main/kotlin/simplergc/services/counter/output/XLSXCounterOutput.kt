@@ -1,8 +1,8 @@
 package simplergc.services.counter.output
 
-import org.apache.poi.xssf.usermodel.XSSFSheet
 import java.io.File
 import java.io.FileOutputStream
+import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.CellDiameterRange
 
@@ -36,13 +36,13 @@ class XLSXCounterOutput(
         fileNameAndCountList.add(Pair(file, count))
     }
 
-    private fun insertCitation(sheet: XSSFSheet, rowNumber: Int){
+    private fun insertCitation(sheet: XSSFSheet, rowNumber: Int) {
         val articleRow = sheet.createRow(rowNumber)
         articleRow.createCell(0).setCellValue("The article:")
         articleRow.createCell(1).setCellValue("[insert full citation]")
     }
 
-    private fun insertTableHeader(sheet: XSSFSheet, headers: Array<String>, rowNumber: Int){
+    private fun insertTableHeader(sheet: XSSFSheet, headers: Array<String>, rowNumber: Int) {
         val headerRow = sheet.createRow(rowNumber)
         for (col in headers.indices) {
             val cell = headerRow.createCell(col)
