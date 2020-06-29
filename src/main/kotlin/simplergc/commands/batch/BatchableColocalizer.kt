@@ -17,7 +17,10 @@ import simplergc.services.CellDiameterRange
 
 class BatchableColocalizer(
     private val targetChannel: Int,
+    private val shouldRemoveAxonsFromTargetChannel: Boolean,
     private val transducedChannel: Int,
+    private val shouldRemoveAxonsFromTransductionChannel: Boolean,
+
     private val context: Context
 ) : Batchable {
     override fun process(
@@ -30,9 +33,12 @@ class BatchableColocalizer(
     ) {
         val rgcTransduction = RGCTransduction()
 
+        // TODO: Update branch to use exclude axons feature in colocaliser.
         rgcTransduction.localThresholdRadius = localThresholdRadius
         rgcTransduction.targetChannel = targetChannel
+        rgcTransduction.shouldRemoveAxonsFromTargetChannel = shouldRemoveAxonsFromTargetChannel
         rgcTransduction.transducedChannel = transducedChannel
+        rgcTransduction.shouldRemoveAxonsFromTransductionChannel = shouldRemoveAxonsFromTransductionChannel
         context.inject(rgcTransduction)
 
         val analyses = inputImages.mapNotNull {
