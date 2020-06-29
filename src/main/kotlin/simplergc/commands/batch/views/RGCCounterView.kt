@@ -1,12 +1,8 @@
 package simplergc.commands.batch.views
 
-import ij.IJ
-import ij.gui.MessageDialog
 import javax.swing.BoxLayout
-import javax.swing.JButton
-import javax.swing.JPanel
 import javax.swing.SpinnerNumberModel
-import simplergc.commands.batch.controllers.RGCCounterController
+import simplergc.commands.batch.controllers.RGCController
 import simplergc.commands.batch.models.RGCCounterModel
 import simplergc.commands.batch.views.common.CellDiameterField
 import simplergc.commands.batch.views.common.InputDirectoryChooserPanel
@@ -15,7 +11,7 @@ import simplergc.commands.batch.views.common.RGCCheckbox
 import simplergc.commands.batch.views.common.RGCSpinner
 import simplergc.commands.batch.views.common.addMessage
 
-class RGCCounterView(model: RGCCounterModel) : JPanel() {
+class RGCCounterView(model: RGCCounterModel) : RGCView() {
 
     val inputDirectoryChooser = InputDirectoryChooserPanel(this, model.inputDirectory)
 
@@ -39,8 +35,6 @@ class RGCCounterView(model: RGCCounterModel) : JPanel() {
     val shouldRemoveAxonsCheckbox = RGCCheckbox("Remove Axons", model.shouldRemoveAxons)
 
     val outputFileChooserPanel = OutputFileChooserPanel(model.outputFile)
-
-    private val okButton = JButton("Ok")
 
     init {
         this.layout = BoxLayout(this, BoxLayout.Y_AXIS)
@@ -69,11 +63,7 @@ class RGCCounterView(model: RGCCounterModel) : JPanel() {
         this.add(okButton)
     }
 
-    fun addListeners(controller: RGCCounterController) {
+    override fun addListeners(controller: RGCController) {
         okButton.addActionListener(controller.okButton())
-    }
-
-    fun error(title: String, body: String) {
-        MessageDialog(IJ.getInstance(), title, body)
     }
 }

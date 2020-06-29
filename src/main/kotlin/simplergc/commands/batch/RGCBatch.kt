@@ -10,10 +10,11 @@ import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
 import simplergc.commands.batch.controllers.RGCCounterController
+import simplergc.commands.batch.controllers.RGCTransductionController
 import simplergc.commands.batch.models.RGCCounterModel
 import simplergc.commands.batch.models.RGCTransductionModel
 import simplergc.commands.batch.views.RGCCounterView
-import simplergc.commands.batch.views.rgcTransductionPanel
+import simplergc.commands.batch.views.RGCTransductionView
 import simplergc.services.CellSegmentationService
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Batch")
@@ -36,14 +37,16 @@ class RGCBatch : Command {
 
         val counterModel = RGCCounterModel(context, prefs)
         val counterView = RGCCounterView(counterModel)
-        val counterController = RGCCounterController(counterView, counterModel)
+        RGCCounterController(counterView, counterModel)
 
         val transductionModel = RGCTransductionModel(context, prefs)
-        val simpleColocalizerPanel = rgcTransductionPanel(context, transductionModel)
+        val transductionView = RGCTransductionView(transductionModel)
+        RGCTransductionController(transductionView, transductionModel)
+
         val tp = JTabbedPane()
         tp.setBounds(10, 10, 500, 550)
         tp.add("RGCCounter", counterView)
-        tp.add("RGCTransduction", simpleColocalizerPanel)
+        tp.add("RGCTransduction", transductionView)
         frame.add(tp)
         frame.setSize(525, 600)
         frame.isResizable = false

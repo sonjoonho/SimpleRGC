@@ -17,12 +17,12 @@ fun runRGCTransduction(
     transducedChannel: Int,
     shouldRemoveAxonsFromTransductionChannel: Boolean,
     cellDiameterRange: CellDiameterRange,
-    outputFile: File?,
     outputFormat: String,
+    outputFile: File?,
     context: Context
 ) {
     if (inputFolder == null) {
-        throw FileNotFoundException("No output directory is selected")
+        throw FileNotFoundException("No input directory is selected")
     } else if (outputFile == null) {
         throw FileNotFoundException("No output file selected")
     } else if (!inputFolder.exists()) {

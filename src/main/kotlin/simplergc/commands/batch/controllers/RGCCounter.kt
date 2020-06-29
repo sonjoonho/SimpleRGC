@@ -20,7 +20,7 @@ fun runRGCCounter(
     context: Context
 ) {
     if (inputFolder == null) {
-        throw FileNotFoundException("No output directory is selected")
+        throw FileNotFoundException("No input directory is selected")
     } else if (outputFile == null) {
         throw FileNotFoundException("No output file selected")
     } else if (!inputFolder.exists()) {

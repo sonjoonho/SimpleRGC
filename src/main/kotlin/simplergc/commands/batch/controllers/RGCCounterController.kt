@@ -7,12 +7,12 @@ import simplergc.commands.batch.models.RGCCounterModel
 import simplergc.commands.batch.views.RGCCounterView
 import simplergc.services.CellDiameterRange
 
-class RGCCounterController(val view: RGCCounterView, private val model: RGCCounterModel) {
+class RGCCounterController(val view: RGCCounterView, private val model: RGCCounterModel) : RGCController() {
     init {
         view.addListeners(this)
     }
 
-    fun okButton(): ActionListener {
+    override fun okButton(): ActionListener {
         return ActionListener {
             val shouldProcessFilesInNestedFolders = view.shouldProcessFilesInNestedFoldersCheckbox.isSelected
             model.shouldProcessFilesInNestedFolders = shouldProcessFilesInNestedFolders
@@ -58,9 +58,9 @@ class RGCCounterController(val view: RGCCounterView, private val model: RGCCount
                     view.outputFileChooserPanel.file,
                     model.context
                 )
-                view.error("Saved", "The batch processing results have successfully been saved to the specified file")
+                view.dialog("Saved", "The batch processing results have successfully been saved to the specified file")
             } catch (e: FileNotFoundException) {
-                view.error("Error", e.message ?: "An error occurred")
+                view.dialog("Error", e.message ?: "An error occurred")
             }
         }
     }
