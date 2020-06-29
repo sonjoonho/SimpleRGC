@@ -29,6 +29,8 @@ class CSVCounterOutput(
         outputData.add(arrayOf(
             "File Name",
             "Cell Count",
+            "Simple RGC Plugin",
+            "Version",
             "Morphology Channel",
             "Smallest Cell Diameter (px)",
             "Largest Cell Diameter (px)",
@@ -38,6 +40,8 @@ class CSVCounterOutput(
             fileNameAndCountList.map { arrayOf(
                 it.first.replace(",", ""),
                 it.second.toString(),
+                PLUGIN_NAME,
+                PLUGIN_VERSION,
                 morphologyChannel.toString(),
                 cellDiameterRange.smallest.toString(),
                 cellDiameterRange.largest.toString(),
