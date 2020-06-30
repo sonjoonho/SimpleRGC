@@ -16,12 +16,12 @@ class XLSXCounterOutput(
 
     private val fileNameAndCountList: ArrayList<Pair<String, Int>> = ArrayList()
 
-    private val resultFields = arrayOf(
+    private val resultsFields = arrayOf(
         "File Name",
         "Cell Count"
     )
 
-    private val parameterFields = arrayOf(
+    private val parametersFields = arrayOf(
         "File Name",
         "Simple RGC Plugin",
         "Version",
@@ -32,17 +32,24 @@ class XLSXCounterOutput(
         "Gaussian Blur Sigma"
     )
 
+    /** Add cell count for a filename. */
     override fun addCountForFile(count: Int, file: String) {
         fileNameAndCountList.add(Pair(file, count))
     }
 
-    private fun insertCitation(sheet: XSSFSheet, rowNumber: Int) {
+    /**
+     * Generate a citation and add to the [sheet] at the [rowNumber].
+     */
+    private fun generateCitation(sheet: XSSFSheet, rowNumber: Int) {
         val articleRow = sheet.createRow(rowNumber)
         articleRow.createCell(0).setCellValue("The article:")
-        articleRow.createCell(1).setCellValue("[insert full citation]")
+        articleRow.createCell(1).setCellValue(ARTICLE_CITATION)
     }
 
-    private fun insertTableHeader(sheet: XSSFSheet, headers: Array<String>, rowNumber: Int) {
+    /**
+     * Generate a table header and add to the [sheet] at the [rowNumber].
+     */
+    private fun generateTableHeader(sheet: XSSFSheet, headers: Array<String>, rowNumber: Int) {
         val headerRow = sheet.createRow(rowNumber)
         for (col in headers.indices) {
             val cell = headerRow.createCell(col)
@@ -50,13 +57,16 @@ class XLSXCounterOutput(
         }
     }
 
-    private fun insertResultsSheet(workbook: XSSFWorkbook) {
+    /**
+     * Generate the 'Results' sheet, containing the cell counts for each filename.
+     */
+    private fun generateResultsSheet(workbook: XSSFWorkbook) {
         val resultsSheet = workbook.createSheet("Results")
 
         val createHelper = workbook.creationHelper
 
-        insertCitation(resultsSheet, 0)
-        insertTableHeader(resultsSheet, resultFields, 2)
+        generateCitation(resultsSheet, 0)
+        generateTableHeader(resultsSheet, resultsFields, 2)
 
         val numberCellStyle = workbook.createCellStyle()
         numberCellStyle.dataFormat = createHelper.createDataFormat().getFormat("#")
@@ -73,15 +83,18 @@ class XLSXCounterOutput(
             countCell.setCellValue(pair.second.toDouble())
         }
 
-        for (i in 0..resultFields.size) {
+        for (i in 0..resultsFields.size) {
             resultsSheet.autoSizeColumn(i)
         }
     }
 
-    private fun insertParametersSheet(workbook: XSSFWorkbook) {
+    /**
+     * Generate the 'Parameters' sheet, containing the parameters used for each filename.
+     */
+    private fun generateParametersSheet(workbook: XSSFWorkbook) {
         val parametersSheet = workbook.createSheet("Parameters")
 
-        insertTableHeader(parametersSheet, parameterFields, 0)
+        generateTableHeader(parametersSheet, parametersFields, 0)
 
         var rowIdx = 1
         for (pair in fileNameAndCountList) {
@@ -114,7 +127,7 @@ class XLSXCounterOutput(
             gaussianBlurSigmaCell.setCellValue(gaussianBlurSigma)
         }
 
-        for (i in 0..parameterFields.size) {
+        for (i in 0..parametersFields.size) {
             parametersSheet.autoSizeColumn(i)
         }
     }
@@ -125,8 +138,8 @@ class XLSXCounterOutput(
     override fun output() {
         val workbook = XSSFWorkbook()
 
-        insertResultsSheet(workbook)
-        insertParametersSheet(workbook)
+        generateResultsSheet(workbook)
+        generateParametersSheet(workbook)
 
         val fileOut = FileOutputStream(outputFile)
         workbook.write(fileOut)
