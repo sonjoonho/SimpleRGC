@@ -185,12 +185,12 @@ class RGCCounter : Command, Previewable {
 
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
-            val extension = when(outputFormat) {
+            val extension = when (outputFormat) {
                 OutputFormat.CSV -> "csv"
                 OutputFormat.XLSX -> "xlsx"
                 else -> throw IllegalArgumentException("Invalid output type provided")
             }
-            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".${extension}"
+            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".$extension"
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
