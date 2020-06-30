@@ -28,6 +28,7 @@ class RGCBatch : Command {
     private val prefs = Preferences.userRoot().node(this.javaClass.name)
 
     object OutputFormat {
+        const val XLSX = "Save as XLSX file"
         const val CSV = "Save as CSV file"
     }
 
