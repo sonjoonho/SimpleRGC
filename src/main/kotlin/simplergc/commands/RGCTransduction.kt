@@ -259,10 +259,34 @@ class RGCTransduction : Command, Previewable {
         // showHistogram(result.overlappingTransducedIntensityAnalysis)
     }
 
+    class TransductionParameters(
+        val pluginName: String,
+        val pluginVersion: String,
+        val excludeAxonsFromMorphologyChannel: String,
+        val transductionChannel: String,
+        val excludeAxonsFromTransductionChannel: String,
+        val cellDiameterRange: String,
+        val localThresholdRadius: String,
+        val gaussianBlurSigma: String,
+        val morphologyChannel: String
+    )
+
     private fun writeOutput(result: TransductionResult) {
+        val transductionParameters = TransductionParameters(
+            "RGC Transduction",
+            "", // TODO
+            this.shouldRemoveAxonsFromTargetChannel.toString(),
+            this.transducedChannel.toString(),
+            this.shouldRemoveAxonsFromTransductionChannel.toString(),
+            this.cellDiameterText,
+            this.localThresholdRadius.toString(),
+            this.gaussianBlurSigma.toString(),
+            this.targetChannel.toString()
+        )
+
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputFormat.CSV -> CSVColocalizationOutput(result, outputFile!!)
+            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters, result, outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 

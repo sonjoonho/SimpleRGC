@@ -1,6 +1,7 @@
 package simplergc.services.colocalizer.output
 
 import de.siegmar.fastcsv.writer.CsvWriter
+import simplergc.commands.RGCTransduction
 import java.io.File
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -13,6 +14,7 @@ import simplergc.services.SimpleOutput
  * overlapping, transduced cells.
  */
 class CSVColocalizationOutput(
+    private val transductionParameters: RGCTransduction.TransductionParameters,
     private val result: TransductionResult,
     private val outputFile: File
 ) : SimpleOutput() {
@@ -118,7 +120,7 @@ class CSVColocalizationOutput(
             arrayOf(
                 "File Name",
                 "SimpleRGC Plugin",
-                "Version",
+                "Plugin Version",
                 "Morphology channel",
                 "Exclude Axons from morphology channel?",
                 "Transduction channel",
@@ -129,6 +131,21 @@ class CSVColocalizationOutput(
             )
         )
         // TODO: add parameter values
+        parametersData.add(
+            arrayOf(
+                outputFile.path,
+                transductionParameters.pluginName,
+                transductionParameters.pluginVersion,
+                transductionParameters.morphologyChannel,
+                transductionParameters.excludeAxonsFromMorphologyChannel,
+                transductionParameters.transductionChannel,
+                transductionParameters.excludeAxonsFromTransductionChannel,
+                transductionParameters.cellDiameterRange,
+                transductionParameters.localThresholdRadius,
+                transductionParameters.gaussianBlurSigma
+            )
+        )
+
         csvWriter.write(
             File("${outputFile.path}${File.separator}Parameters.csv"),
             StandardCharsets.UTF_8,
