@@ -1,6 +1,9 @@
 package simplergc.commands.batch
 
+import java.awt.BorderLayout
+import java.awt.Dimension
 import java.util.prefs.Preferences
+import javax.swing.BorderFactory
 import javax.swing.JFrame
 import javax.swing.JTabbedPane
 import net.imagej.ImageJ
@@ -44,14 +47,13 @@ class RGCBatch : Command {
         RGCTransductionController(transductionView, transductionModel)
 
         val tp = JTabbedPane()
-        tp.setBounds(10, 10, 500, 550)
         tp.add("RGCCounter", counterView)
         tp.add("RGCTransduction", transductionView)
-        frame.add(tp)
-        frame.setSize(525, 600)
-        frame.isResizable = false
+        tp.border = BorderFactory.createEmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE)
+        frame.add(tp, BorderLayout.CENTER)
+        frame.preferredSize = Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT)
 
-        frame.layout = null
+        frame.pack()
         frame.isVisible = true
     }
 
@@ -60,6 +62,12 @@ class RGCBatch : Command {
     }
 
     companion object {
+
+        // Size constants for RGC Batch JFrame
+        private const val BORDER_SIZE = 5
+        private const val PREFERRED_WIDTH = 600
+        private const val PREFERRED_HEIGHT = 600
+
         /**
          * Entry point to directly open the plugin, used for debugging purposes.
          *
