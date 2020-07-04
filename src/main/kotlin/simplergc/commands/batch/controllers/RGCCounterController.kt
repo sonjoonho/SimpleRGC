@@ -1,67 +1,46 @@
 package simplergc.commands.batch.controllers
 
-import java.awt.event.ActionListener
-import java.io.FileNotFoundException
-import simplergc.commands.batch.RGCBatch.OutputFormat
+import simplergc.commands.batch.Batchable
+import simplergc.commands.batch.BatchableCellCounter
 import simplergc.commands.batch.models.RGCCounterModel
+import simplergc.commands.batch.models.RGCCounterParameters
+import simplergc.commands.batch.models.RGCParameters
 import simplergc.commands.batch.views.RGCCounterView
 import simplergc.services.CellDiameterRange
 
-class RGCCounterController(val view: RGCCounterView, private val model: RGCCounterModel) {
+class RGCCounterController(override val view: RGCCounterView, private val model: RGCCounterModel) : RGCController() {
     init {
         view.addListeners(this)
     }
 
-    fun okButton(): ActionListener {
-        return ActionListener {
-            val shouldProcessFilesInNestedFolders = view.shouldProcessFilesInNestedFoldersCheckbox.isSelected
-            model.shouldProcessFilesInNestedFolders = shouldProcessFilesInNestedFolders
-            val channel = view.channelSpinner.value
-            model.channelToUse = channel
-            val thresholdRadius = view.thresholdRadiusSpinner.value
-            model.thresholdRadius = thresholdRadius
-            val gaussianBlurSigma = (view.gaussianBlurSpinner.value).toDouble()
-            model.gaussianBlur = gaussianBlurSigma
-            val shouldRemoveAxons = view.shouldRemoveAxonsCheckbox.isSelected
-            val cellDiameterRange = CellDiameterRange.parseFromText(view.cellDiameterChannelField.field.text)
-            model.cellDiameter = view.cellDiameterChannelField.field.text
+    override fun harvestParameters(): RGCCounterParameters {
+        return RGCCounterParameters(
+            view.inputDirectoryChooser.directory,
+            view.shouldProcessFilesInNestedFoldersCheckbox.isSelected,
+            view.channelSpinner.value,
+            view.thresholdRadiusSpinner.value,
+            view.gaussianBlurSpinner.value.toDouble(),
+            view.shouldRemoveAxonsCheckbox.isSelected,
+            CellDiameterRange.parseFromText(view.cellDiameterChannelField.field.text),
+            view.outputFileChooserPanel.format,
+            view.outputFileChooserPanel.file,
+            model.context
+        )
+    }
 
-            model.saveAsCSV = view.outputFileChooserPanel.format == OutputFormat.CSV
+    override fun saveParameters(p: RGCParameters) {
+        p as RGCCounterParameters
+        model.shouldProcessFilesInNestedFolders = p.shouldProcessFilesInNestedFolders
+        model.channelToUse = p.channel
+        model.thresholdRadius = p.thresholdRadius
+        model.gaussianBlur = p.gaussianBlurSigma
+        model.cellDiameter = view.cellDiameterChannelField.field.text
+        model.outputFormat = view.outputFileChooserPanel.format
+        model.outputFile = view.outputFileChooserPanel.file.absolutePath
+    }
 
-            model.outputFile = view.outputFileChooserPanel.file.absolutePath
-
-            println(
-                listOf(
-                    "Running with ", view.inputDirectoryChooser.directory,
-                    shouldProcessFilesInNestedFolders,
-                    channel,
-                    thresholdRadius,
-                    gaussianBlurSigma,
-                    shouldRemoveAxons,
-                    cellDiameterRange,
-                    view.outputFileChooserPanel.format,
-                    view.outputFileChooserPanel.file,
-                    model.context
-                )
-            )
-
-            try {
-                runRGCCounter(
-                    view.inputDirectoryChooser.directory,
-                    shouldProcessFilesInNestedFolders,
-                    channel,
-                    thresholdRadius,
-                    gaussianBlurSigma,
-                    shouldRemoveAxons,
-                    cellDiameterRange,
-                    view.outputFileChooserPanel.format,
-                    view.outputFileChooserPanel.file,
-                    model.context
-                )
-                view.error("Saved", "The batch processing results have successfully been saved to the specified file")
-            } catch (e: FileNotFoundException) {
-                view.error("Error", e.message ?: "An error occurred")
-            }
-        }
+    override fun makeProcessor(p: RGCParameters): Batchable {
+        p as RGCCounterParameters
+        return BatchableCellCounter(p.channel, p.shouldRemoveAxons, p.context)
     }
 }

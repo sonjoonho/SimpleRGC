@@ -39,6 +39,7 @@ class BatchableCellCounter(
             OutputFormat.CSV -> CSVCounterOutput(outputFile)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
+
         imageAndCount.forEach { output.addCountForFile(it.second, it.first.title) }
         try {
             output.output()
