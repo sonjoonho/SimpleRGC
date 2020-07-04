@@ -34,7 +34,7 @@ class RGCCounterView(model: RGCCounterModel) : RGCView() {
 
     val shouldRemoveAxonsCheckbox = RGCCheckbox("Remove Axons", model.shouldRemoveAxons)
 
-    val outputFileChooserPanel = OutputFileChooserPanel(model.outputFile)
+    val outputFileChooserPanel = OutputFileChooserPanel(model.outputFile, model.outputFormat)
 
     init {
         this.layout = BoxLayout(this, BoxLayout.Y_AXIS)

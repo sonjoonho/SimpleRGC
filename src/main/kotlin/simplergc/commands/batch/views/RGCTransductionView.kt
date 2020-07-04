@@ -38,7 +38,7 @@ class RGCTransductionView(model: RGCTransductionModel) : RGCView() {
     val gaussianBlurModel = SpinnerNumberModel(model.gaussianBlur.toInt(), 1, 50, 1)
     val gaussianBlurSpinner = RGCSpinner("Gaussian blur sigma", gaussianBlurModel)
 
-    val outputFileChooserPanel = OutputFileChooserPanel(model.outputFile)
+    val outputFileChooserPanel = OutputFileChooserPanel(model.outputFile, model.outputFormat)
 
     init {
         this.layout = BoxLayout(this, BoxLayout.Y_AXIS)

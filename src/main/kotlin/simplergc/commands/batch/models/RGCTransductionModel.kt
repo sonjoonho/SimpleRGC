@@ -2,6 +2,7 @@ package simplergc.commands.batch.models
 
 import java.util.prefs.Preferences
 import org.scijava.Context
+import simplergc.commands.batch.RGCBatch.OutputFormat
 
 /** RGCTransductionModel is used to load initial values, and handles the updating and saving of parameters. **/
 class RGCTransductionModel(val context: Context, private val prefs: Preferences) {
@@ -75,6 +76,14 @@ class RGCTransductionModel(val context: Context, private val prefs: Preferences)
         }
         set(value) {
             prefs.getRGCTransductionPref(Param.shouldRemoveAxonsFromTransductionChannel, value)
+        }
+
+    var outputFormat: String
+        get() {
+            return prefs.getRGCTransductionPref(Param.outputFormat, OutputFormat.CSV)
+        }
+        set(value) {
+            prefs.putRGCTransductionPref(Param.outputFormat, value)
         }
 
     var outputFile: String

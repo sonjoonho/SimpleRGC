@@ -2,7 +2,6 @@ package simplergc.commands.batch.controllers
 
 import simplergc.commands.batch.Batchable
 import simplergc.commands.batch.BatchableCellCounter
-import simplergc.commands.batch.RGCBatch.OutputFormat
 import simplergc.commands.batch.models.RGCCounterModel
 import simplergc.commands.batch.models.RGCCounterParameters
 import simplergc.commands.batch.models.RGCParameters
@@ -36,7 +35,7 @@ class RGCCounterController(override val view: RGCCounterView, private val model:
         model.thresholdRadius = p.thresholdRadius
         model.gaussianBlur = p.gaussianBlurSigma
         model.cellDiameter = view.cellDiameterChannelField.field.text
-        model.saveAsCSV = view.outputFileChooserPanel.format == OutputFormat.CSV
+        model.outputFormat = view.outputFileChooserPanel.format
         model.outputFile = view.outputFileChooserPanel.file.absolutePath
     }
 

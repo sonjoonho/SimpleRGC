@@ -41,6 +41,8 @@ class RGCTransductionController(override val view: RGCTransductionView, private 
         model.transductionChannel = p.transductionChannel
         model.cellDiameter = view.cellDiameterChannelField.field.text
         model.shouldRemoveAxonsFromTransductionChannel = p.shouldRemoveAxonsFromTransductionChannel
+        model.outputFormat = view.outputFileChooserPanel.format
+        model.outputFile = view.outputFileChooserPanel.file.absolutePath
     }
 
     override fun makeProcessor(p: RGCParameters): Batchable {

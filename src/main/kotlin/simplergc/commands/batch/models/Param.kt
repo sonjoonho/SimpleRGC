@@ -17,7 +17,6 @@ object Param {
     const val cellDiameter = "cellDiameter"
     const val thresholdRadius = "thresholdRadius"
     const val gaussianBlur = "gaussianBlur"
-    const val saveAsCSV = "saveAsCSV"
-    const val saveAsXML = "saveAsXML"
+    const val outputFormat = "outputFormat"
     const val outputFile = "outputFile"
 }
