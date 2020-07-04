@@ -17,8 +17,8 @@ class RGCCounterController(override val view: RGCCounterView, private val model:
         return RGCCounterParameters(
             view.inputDirectoryChooser.directory,
             view.shouldProcessFilesInNestedFoldersCheckbox.isSelected,
-            view.thresholdRadiusSpinner.value,
             view.channelSpinner.value,
+            view.thresholdRadiusSpinner.value,
             view.gaussianBlurSpinner.value.toDouble(),
             view.shouldRemoveAxonsCheckbox.isSelected,
             CellDiameterRange.parseFromText(view.cellDiameterChannelField.field.text),
