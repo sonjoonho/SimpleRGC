@@ -232,7 +232,7 @@ class RGCTransduction : Command, Previewable {
         // TODO(#135): Remove duplication in this code fragment.
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
-            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
+            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName)
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
