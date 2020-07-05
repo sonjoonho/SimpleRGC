@@ -13,10 +13,9 @@ import simplergc.commands.batch.RGCBatch.OutputFormat
 
 const val COLUMN_WIDTH = 30
 
-class OutputFileChooserPanel(initial: String) : JPanel() {
+class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
 
     var file = File(initial)
-    var format = OutputFormat.CSV
 
     init {
         this.layout = GridLayout(0, 1)
@@ -26,14 +25,11 @@ class OutputFileChooserPanel(initial: String) : JPanel() {
         val resultsOutputLabel = JLabel("Results output")
         resultsOutputPanel.add(resultsOutputLabel)
         val saveAsCSVButton = JRadioButton("Save as a CSV file")
-        val saveAsXMLButton = JRadioButton("Save as XML file")
         saveAsCSVButton.isSelected = format == OutputFormat.CSV
-        saveAsXMLButton.isSelected = !saveAsCSVButton.isSelected
         val bg = ButtonGroup()
-        bg.add(saveAsCSVButton); bg.add(saveAsXMLButton)
+        bg.add(saveAsCSVButton)
         resultsOutputPanel.add(saveAsCSVButton)
         resultsOutputPanel.add(JPanel())
-        resultsOutputPanel.add(saveAsXMLButton)
         this.add(resultsOutputPanel)
 
         val fileChooserPanel = JPanel()

@@ -47,6 +47,7 @@ class BatchableCellCounter(
                 gaussianBlurSigma)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
+
         imageAndCount.forEach { output.addCountForFile(it.second, it.first.title) }
         try {
             output.output()

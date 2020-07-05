@@ -2,6 +2,7 @@ package simplergc.commands.batch.models
 
 import java.util.prefs.Preferences
 import org.scijava.Context
+import simplergc.commands.batch.RGCBatch.OutputFormat
 
 /** RGCCounterModel is used to load initial values, and handles the updating and saving of parameters. **/
 class RGCCounterModel(val context: Context, private val prefs: Preferences) {
@@ -53,20 +54,12 @@ class RGCCounterModel(val context: Context, private val prefs: Preferences) {
             prefs.putRGCCounterPref(Param.gaussianBlur, value)
         }
 
-    var saveAsCSV: Boolean
+    var outputFormat: String
         get() {
-            return prefs.getRGCCounterPref(Param.saveAsCSV, true)
+            return prefs.getRGCCounterPref(Param.outputFormat, OutputFormat.CSV)
         }
         set(value) {
-            prefs.putRGCCounterPref(Param.gaussianBlur, value)
-        }
-
-    var saveAsXML: Boolean
-        get() {
-            return prefs.getRGCCounterPref(Param.saveAsXML, false)
-        }
-        set(value) {
-            prefs.putRGCCounterPref(Param.saveAsXML, value)
+            prefs.putRGCCounterPref(Param.outputFormat, value)
         }
 
     var shouldRemoveAxons: Boolean
