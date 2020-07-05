@@ -272,6 +272,7 @@ class RGCTransduction : Command, Previewable {
     )
 
     private fun writeOutput(result: TransductionResult) {
+        // TODO(arjunsinghrana): merge this with data structure used in batch plugin.
         val transductionParameters = TransductionParameters(
             "RGC Transduction",
             "1.0.0",

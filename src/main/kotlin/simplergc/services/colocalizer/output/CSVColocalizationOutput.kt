@@ -112,7 +112,6 @@ class CSVColocalizationOutput(
             cellByCellData
         )
 
-        // TODO: Save parameters in separate CSV
         // TODO: Add pixel size (micrometers) at a later date
         // Parameters
         val parametersData = ArrayList<Array<String>>()
