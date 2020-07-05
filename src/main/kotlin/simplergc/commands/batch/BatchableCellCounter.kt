@@ -10,6 +10,7 @@ import simplergc.commands.batch.RGCBatch.OutputFormat
 import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.counter.output.CSVCounterOutput
+import simplergc.services.counter.output.XLSXCounterOutput
 
 class BatchableCellCounter(
     private val targetChannel: Int,
@@ -40,7 +41,7 @@ class BatchableCellCounter(
                 cellDiameterRange,
                 localThresholdRadius,
                 gaussianBlurSigma)
-            OutputFormat.XLSX -> CSVCounterOutput(outputFile, targetChannel,
+            OutputFormat.XLSX -> XLSXCounterOutput(outputFile, targetChannel,
                 cellDiameterRange,
                 localThresholdRadius,
                 gaussianBlurSigma)
