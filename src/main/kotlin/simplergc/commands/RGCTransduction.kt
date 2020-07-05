@@ -274,7 +274,7 @@ class RGCTransduction : Command, Previewable {
     private fun writeOutput(result: TransductionResult) {
         val transductionParameters = TransductionParameters(
             "RGC Transduction",
-            "", // TODO
+            "1.0.0",
             this.shouldRemoveAxonsFromTargetChannel.toString(),
             this.transducedChannel.toString(),
             this.shouldRemoveAxonsFromTransductionChannel.toString(),
