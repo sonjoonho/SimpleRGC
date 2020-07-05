@@ -31,6 +31,7 @@ import simplergc.services.colocalizer.drawCells
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.services.counter.output.CSVCounterOutput
 import simplergc.services.counter.output.ImageJTableCounterOutput
+import simplergc.services.counter.output.XLSXCounterOutput
 import simplergc.widgets.AlignedTextWidget
 
 /**
@@ -136,12 +137,13 @@ class RGCCounter : Command, Previewable {
      */
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
+        const val XLSX = "Save as XLSX file"
         const val CSV = "Save as CSV file"
     }
 
     @Parameter(
         label = "Results output",
-        choices = [OutputFormat.DISPLAY, OutputFormat.CSV],
+        choices = [OutputFormat.DISPLAY, OutputFormat.XLSX, OutputFormat.CSV],
         required = true,
         persist = true,
         style = "radioButtonVertical"
@@ -183,7 +185,12 @@ class RGCCounter : Command, Previewable {
 
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
-            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
+            val extension = when (outputFormat) {
+                OutputFormat.CSV -> "csv"
+                OutputFormat.XLSX -> "xlsx"
+                else -> throw IllegalArgumentException("Invalid output type provided")
+            }
+            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".$extension"
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
@@ -204,16 +211,27 @@ class RGCCounter : Command, Previewable {
 
         statusService.showStatus(100, 100, "Done!")
 
-        writeOutput(result.count, image.title)
+        writeOutput(result.count, image.title, diameterRange)
 
         image.show()
         addToRoiManager(result.cells)
     }
 
-    private fun writeOutput(numCells: Int, file: String) {
+    private fun writeOutput(numCells: Int, file: String, cellDiameterRange: CellDiameterRange) {
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableCounterOutput(uiService)
-            OutputFormat.CSV -> CSVCounterOutput(outputFile!!)
+            OutputFormat.XLSX -> XLSXCounterOutput(
+                outputFile!!,
+                targetChannel,
+                cellDiameterRange,
+                localThresholdRadius,
+                gaussianBlurSigma)
+            OutputFormat.CSV -> CSVCounterOutput(
+                outputFile!!,
+                targetChannel,
+                cellDiameterRange,
+                localThresholdRadius,
+                gaussianBlurSigma)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
