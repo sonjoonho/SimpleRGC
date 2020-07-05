@@ -57,11 +57,10 @@ class CSVColocalizationOutput(
                 "RawIntDen"
             )
         )
-        // TODO (tiger-cross): find a way to get input file name
         // TODO (tiger-cross): Calculate other metrics
         summaryData.add(
             arrayOf(
-                "1",
+                transductionParameters.inputFileName,
                 result.targetCellCount.toString(),
                 result.overlappingTwoChannelCells.size.toString(),
                 ((result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100).toString(),
@@ -94,7 +93,7 @@ class CSVColocalizationOutput(
         result.overlappingTransducedIntensityAnalysis.forEach {
             cellByCellData.add(
                 arrayOf(
-                    "TODO:",
+                    transductionParameters.inputFileName,
                     "1",
                     it.area.toString(),
                     it.mean.toString(),
@@ -129,7 +128,6 @@ class CSVColocalizationOutput(
                 "Gaussian blur sigma"
             )
         )
-        // TODO: add parameter values
         parametersData.add(
             arrayOf(
                 transductionParameters.inputFileName,
