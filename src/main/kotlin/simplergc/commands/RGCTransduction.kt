@@ -252,7 +252,7 @@ class RGCTransduction : Command, Previewable {
         }
 
         statusService.showStatus(100, 100, "Done!")
-        writeOutput(result)
+        writeOutput(image.originalFileInfo.fileName, result)
 
         image.show()
         addToRoiManager(result.overlappingTwoChannelCells)
@@ -260,6 +260,7 @@ class RGCTransduction : Command, Previewable {
     }
 
     class TransductionParameters(
+        val inputFileName: String,
         val pluginName: String,
         val pluginVersion: String,
         val excludeAxonsFromMorphologyChannel: String,
@@ -271,9 +272,10 @@ class RGCTransduction : Command, Previewable {
         val morphologyChannel: String
     )
 
-    private fun writeOutput(result: TransductionResult) {
+    private fun writeOutput(inputFileName: String, result: TransductionResult) {
         // TODO(arjunsinghrana): merge this with data structure used in batch plugin.
         val transductionParameters = TransductionParameters(
+            inputFileName,
             "RGC Transduction",
             "1.0.0",
             this.shouldRemoveAxonsFromTargetChannel.toString(),

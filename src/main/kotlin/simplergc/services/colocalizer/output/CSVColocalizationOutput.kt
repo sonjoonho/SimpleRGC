@@ -132,7 +132,7 @@ class CSVColocalizationOutput(
         // TODO: add parameter values
         parametersData.add(
             arrayOf(
-                outputFile.path,
+                transductionParameters.inputFileName,
                 transductionParameters.pluginName,
                 transductionParameters.pluginVersion,
                 transductionParameters.morphologyChannel,
