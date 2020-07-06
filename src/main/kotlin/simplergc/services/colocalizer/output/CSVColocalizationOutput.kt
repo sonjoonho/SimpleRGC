@@ -7,7 +7,6 @@ import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.ArrayList
 import simplergc.commands.RGCTransduction.TransductionResult
-import simplergc.services.SimpleOutput
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -19,8 +18,6 @@ class CSVColocalizationOutput(
     private val outputFile: File
 ) : ColocalizationOutput() {
 
-    private val fileNameAndResultsList: ArrayList<Pair<String, TransductionResult>> = ArrayList()
-
     override fun output() {
         val csvWriter = CsvWriter()
         val outputFileSuccess = File(outputFile.path).mkdir()
@@ -28,6 +25,21 @@ class CSVColocalizationOutput(
             throw IOException()
         }
 
+        // Documentation
+        writeDocumentationCsv(csvWriter)
+
+        // Summary
+        writeSummaryCsv(csvWriter)
+
+        // Per-cell analysis
+        writeTransductionAnalysisCsv(csvWriter)
+
+        // Parameters
+        writeParametersCsv(csvWriter)
+    }
+
+    fun writeDocumentationCsv(csvWriter: CsvWriter) {
+        // Constant array of information
         val documentationData = ArrayList<Array<String>>()
         documentationData.add(arrayOf("The Article: ", "TODO: insert full citation of manuscript when complete"))
         documentationData.add(arrayOf("", ""))
@@ -41,7 +53,9 @@ class CSVColocalizationOutput(
             StandardCharsets.UTF_8,
             documentationData
         )
+    }
 
+    fun writeSummaryCsv(csvWriter: CsvWriter) {
         // Summary
         // TODO (#156): Add integrated density
         val summaryData = ArrayList<Array<String>>()
@@ -59,23 +73,26 @@ class CSVColocalizationOutput(
                 "RawIntDen"
             )
         )
-        summaryData.add(
-            arrayOf(
-                transductionParameters.inputFileName,
-                result.targetCellCount.toString(),
-                result.overlappingTwoChannelCells.size.toString(),
-                ((result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100).toString(),
-                (result.overlappingTransducedIntensityAnalysis.sumBy { it.area } / result.overlappingTransducedIntensityAnalysis.size).toString(),
-                (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(),
-                (result.overlappingTransducedIntensityAnalysis.sumBy { it.median } / result.overlappingTransducedIntensityAnalysis.size).toString(),
-                (result.overlappingTransducedIntensityAnalysis.sumBy { it.min } / result.overlappingTransducedIntensityAnalysis.size).toString(),
-                (result.overlappingTransducedIntensityAnalysis.sumBy { it.max } / result.overlappingTransducedIntensityAnalysis.size).toString(),
-                (result.overlappingTransducedIntensityAnalysis.sumBy { it.rawIntDen } / result.overlappingTransducedIntensityAnalysis.size).toString()
+        fileNameAndResultsList.forEach {
+            summaryData.add(
+                arrayOf(
+                    it.first,
+                    it.second.targetCellCount.toString(),
+                    it.second.overlappingTwoChannelCells.size.toString(),
+                    ((it.second.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100).toString(),
+                    (it.second.overlappingTransducedIntensityAnalysis.sumBy { it.area } / it.second.overlappingTransducedIntensityAnalysis.size).toString(),
+                    (it.second.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / it.second.overlappingTransducedIntensityAnalysis.size).toString(),
+                    (it.second.overlappingTransducedIntensityAnalysis.sumBy { it.median } / it.second.overlappingTransducedIntensityAnalysis.size).toString(),
+                    (it.second.overlappingTransducedIntensityAnalysis.sumBy { it.min } / it.second.overlappingTransducedIntensityAnalysis.size).toString(),
+                    (it.second.overlappingTransducedIntensityAnalysis.sumBy { it.max } / it.second.overlappingTransducedIntensityAnalysis.size).toString(),
+                    (it.second.overlappingTransducedIntensityAnalysis.sumBy { it.rawIntDen } / it.second.overlappingTransducedIntensityAnalysis.size).toString()
+                )
             )
-        )
+        }
         csvWriter.write(File("${outputFile.path}${File.separator}Summary.csv"), StandardCharsets.UTF_8, summaryData)
+    }
 
-        // Per-cell analysis
+    fun writeTransductionAnalysisCsv(csvWriter: CsvWriter) {
         // TODO (#156): Add integrated density
         val cellByCellData = ArrayList<Array<String>>()
         cellByCellData.add(
@@ -90,28 +107,33 @@ class CSVColocalizationOutput(
                 "RawIntDen"
             )
         )
-        result.overlappingTransducedIntensityAnalysis.forEach {
-            cellByCellData.add(
-                arrayOf(
-                    transductionParameters.inputFileName,
-                    "1",
-                    it.area.toString(),
-                    it.mean.toString(),
-                    it.median.toString(),
-                    it.min.toString(),
-                    it.max.toString(),
-                    it.rawIntDen.toString()
+        fileNameAndResultsList.forEach {
+            val fileName = it.first
+            val result = it.second
+            result.overlappingTransducedIntensityAnalysis.forEach {
+                cellByCellData.add(
+                    arrayOf(
+                        fileName,
+                        "1",
+                        it.area.toString(),
+                        it.mean.toString(),
+                        it.median.toString(),
+                        it.min.toString(),
+                        it.max.toString(),
+                        it.rawIntDen.toString()
+                    )
                 )
-            )
+            }
         }
         csvWriter.write(
             File("${outputFile.path}${File.separator}Transduced Cell Analysis.csv"),
             StandardCharsets.UTF_8,
             cellByCellData
         )
+    }
 
+    fun writeParametersCsv(csvWriter: CsvWriter) {
         // TODO (#156): Add pixel size (micrometers) in next sprint.
-        // Parameters
         val parametersData = ArrayList<Array<String>>()
         parametersData.add(
             arrayOf(
@@ -127,46 +149,27 @@ class CSVColocalizationOutput(
                 "Gaussian blur sigma"
             )
         )
-        parametersData.add(
-            arrayOf(
-                transductionParameters.inputFileName,
-                transductionParameters.pluginName,
-                transductionParameters.pluginVersion,
-                transductionParameters.morphologyChannel,
-                transductionParameters.excludeAxonsFromMorphologyChannel,
-                transductionParameters.transductionChannel,
-                transductionParameters.excludeAxonsFromTransductionChannel,
-                transductionParameters.cellDiameterRange,
-                transductionParameters.localThresholdRadius,
-                transductionParameters.gaussianBlurSigma
+        fileNameAndResultsList.forEach {
+            parametersData.add(
+                arrayOf(
+                    it.first,
+                    transductionParameters.pluginName,
+                    transductionParameters.pluginVersion,
+                    transductionParameters.morphologyChannel,
+                    transductionParameters.excludeAxonsFromMorphologyChannel,
+                    transductionParameters.transductionChannel,
+                    transductionParameters.excludeAxonsFromTransductionChannel,
+                    transductionParameters.cellDiameterRange,
+                    transductionParameters.localThresholdRadius,
+                    transductionParameters.gaussianBlurSigma
+                )
             )
-        )
+        }
 
         csvWriter.write(
             File("${outputFile.path}${File.separator}Parameters.csv"),
             StandardCharsets.UTF_8,
             parametersData
-        )
-    }
-
-    override fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
-        fileNameAndResultsList.add(Pair(file, transductionResult))
-    }
-
-    fun writeDocumentationCSV(csvWriter: CsvWriter) {
-        // Constant array of information
-        val documentationData = ArrayList<Array<String>>()
-        documentationData.add(arrayOf("The Article: ", "TODO: insert full citation of manuscript when complete"))
-        documentationData.add(arrayOf("", ""))
-        documentationData.add(arrayOf("Abbreviation: ", "Description"))
-        documentationData.add(arrayOf("Summary: ", "Key overall measurements per image"))
-        documentationData.add(arrayOf("Transduced Cell Analysis: ", "Cell-by-cell metrics of transduced cells"))
-        documentationData.add(arrayOf("Parameters: ", "Parameters used for SimpleRGC plugin"))
-
-        csvWriter.write(
-            File("${outputFile.path}${File.separator}Documentation.csv"),
-            StandardCharsets.UTF_8,
-            documentationData
         )
     }
 }
