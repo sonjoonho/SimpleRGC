@@ -98,8 +98,8 @@ class CSVColocalizationOutput(
                     it.area.toString(),
                     it.mean.toString(),
                     it.median.toString(),
-                    "TODO: Min",
-                    "TODO: Max",
+                    it.min.toString(),
+                    it.max.toString(),
                     "TODO: IntDen",
                     "TODO: RawIntDen"
                 )
