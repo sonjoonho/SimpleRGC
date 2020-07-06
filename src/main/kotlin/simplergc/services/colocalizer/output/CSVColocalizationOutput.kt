@@ -25,16 +25,12 @@ class CSVColocalizationOutput(
             throw IOException()
         }
 
-        // Documentation
         writeDocumentationCsv(csvWriter)
 
-        // Summary
         writeSummaryCsv(csvWriter)
 
-        // Per-cell analysis
         writeTransductionAnalysisCsv(csvWriter)
 
-        // Parameters
         writeParametersCsv(csvWriter)
     }
 
