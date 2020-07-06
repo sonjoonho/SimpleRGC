@@ -67,8 +67,8 @@ class CSVColocalizationOutput(
                 (result.overlappingTransducedIntensityAnalysis.sumBy { it.area } / result.overlappingTransducedIntensityAnalysis.size).toString(),
                 (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(),
                 (result.overlappingTransducedIntensityAnalysis.sumBy { it.median } / result.overlappingTransducedIntensityAnalysis.size).toString(),
-                "TODO: Min",
-                "TODO: Max",
+                (result.overlappingTransducedIntensityAnalysis.sumBy { it.min } / result.overlappingTransducedIntensityAnalysis.size).toString(),
+                (result.overlappingTransducedIntensityAnalysis.sumBy { it.max } / result.overlappingTransducedIntensityAnalysis.size).toString(),
                 "TODO: IntDen",
                 "TODO: RawIntDen"
             )
