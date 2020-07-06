@@ -273,6 +273,7 @@ class RGCTransduction : Command, Previewable {
 
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
         // TODO(arjunsinghrana): merge this with data structure used in batch plugin.
+        // I'd also suggest adding output file to here so we don't have to pass it into the output separately.
         // TODO(arjunsinghrana): Replace magic strings below with constants.
         val transductionParameters = TransductionParameters(
             "RGC Transduction",
@@ -288,7 +289,7 @@ class RGCTransduction : Command, Previewable {
 
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters, result, outputFile!!)
+            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters, outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 

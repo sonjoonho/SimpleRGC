@@ -14,7 +14,6 @@ import simplergc.commands.RGCTransduction.TransductionResult
  */
 class CSVColocalizationOutput(
     private val transductionParameters: RGCTransduction.TransductionParameters,
-    private val result: TransductionResult,
     private val outputFile: File
 ) : ColocalizationOutput() {
 
