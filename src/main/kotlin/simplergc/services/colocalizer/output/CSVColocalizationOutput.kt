@@ -1,12 +1,11 @@
 package simplergc.services.colocalizer.output
 
 import de.siegmar.fastcsv.writer.CsvWriter
-import simplergc.commands.RGCTransduction
 import java.io.File
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.ArrayList
-import simplergc.commands.RGCTransduction.TransductionResult
+import simplergc.commands.RGCTransduction
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -74,7 +73,7 @@ class CSVColocalizationOutput(
                     it.first,
                     it.second.targetCellCount.toString(),
                     it.second.overlappingTwoChannelCells.size.toString(),
-                    ((it.second.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100).toString(),
+                    ((it.second.overlappingTwoChannelCells.size / it.second.targetCellCount.toDouble()) * 100).toString(),
                     (it.second.overlappingTransducedIntensityAnalysis.sumBy { it.area } / it.second.overlappingTransducedIntensityAnalysis.size).toString(),
                     (it.second.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / it.second.overlappingTransducedIntensityAnalysis.size).toString(),
                     (it.second.overlappingTransducedIntensityAnalysis.sumBy { it.median } / it.second.overlappingTransducedIntensityAnalysis.size).toString(),

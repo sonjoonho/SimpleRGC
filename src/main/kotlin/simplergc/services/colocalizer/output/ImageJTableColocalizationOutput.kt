@@ -6,8 +6,6 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
-import simplergc.services.SimpleOutput
-import java.util.ArrayList
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -118,5 +116,4 @@ class ImageJTableColocalizationOutput(
 
         uiService.show(table)
     }
-
 }
