@@ -86,7 +86,7 @@ class ImageJTableColocalizationOutput(
             medianColumn.add(cell.median)
             meanColumn.add(cell.mean)
             integratedDensityColumn.add(cell.area * cell.mean)
-            rawIntegratedDensityColumn.add(cell.sum)
+            rawIntegratedDensityColumn.add(cell.rawIntDen)
         }
 
         table.add(labelColumn)

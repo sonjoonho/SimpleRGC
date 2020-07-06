@@ -274,6 +274,7 @@ class RGCTransduction : Command, Previewable {
 
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
         // TODO(arjunsinghrana): merge this with data structure used in batch plugin.
+        // TODO(arjunsinghrana): Replace magic strings below with constants.
         val transductionParameters = TransductionParameters(
             inputFileName,
             "RGC Transduction",

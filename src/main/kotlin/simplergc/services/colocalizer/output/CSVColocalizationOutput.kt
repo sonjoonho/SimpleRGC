@@ -41,6 +41,7 @@ class CSVColocalizationOutput(
         )
 
         // Summary
+        // TODO (#156): Add integrated density
         val summaryData = ArrayList<Array<String>>()
         summaryData.add(
             arrayOf(
@@ -53,11 +54,9 @@ class CSVColocalizationOutput(
                 "Median Fluorescence Intensity (a.u.)",
                 "Min Fluorescence Intensity (a.u.)",
                 "Max Fluorescence Intensity (a.u.)",
-                "IntDen",
                 "RawIntDen"
             )
         )
-        // TODO (tiger-cross): Calculate other metrics
         summaryData.add(
             arrayOf(
                 transductionParameters.inputFileName,
@@ -69,13 +68,13 @@ class CSVColocalizationOutput(
                 (result.overlappingTransducedIntensityAnalysis.sumBy { it.median } / result.overlappingTransducedIntensityAnalysis.size).toString(),
                 (result.overlappingTransducedIntensityAnalysis.sumBy { it.min } / result.overlappingTransducedIntensityAnalysis.size).toString(),
                 (result.overlappingTransducedIntensityAnalysis.sumBy { it.max } / result.overlappingTransducedIntensityAnalysis.size).toString(),
-                "TODO: IntDen",
-                "TODO: RawIntDen"
+                (result.overlappingTransducedIntensityAnalysis.sumBy { it.rawIntDen } / result.overlappingTransducedIntensityAnalysis.size).toString()
             )
         )
         csvWriter.write(File("${outputFile.path}${File.separator}Summary.csv"), StandardCharsets.UTF_8, summaryData)
 
         // Per-cell analysis
+        // TODO (#156): Add integrated density
         val cellByCellData = ArrayList<Array<String>>()
         cellByCellData.add(
             arrayOf(
@@ -86,7 +85,6 @@ class CSVColocalizationOutput(
                 "Median Fluorescence Intensity (a.u.)",
                 "Min Fluorescence Intensity (a.u.)",
                 "Max Fluorescence Intensity (a.u.)",
-                "IntDen",
                 "RawIntDen"
             )
         )
@@ -100,8 +98,7 @@ class CSVColocalizationOutput(
                     it.median.toString(),
                     it.min.toString(),
                     it.max.toString(),
-                    "TODO: IntDen",
-                    "TODO: RawIntDen"
+                    it.rawIntDen.toString()
                 )
             )
         }
@@ -111,7 +108,7 @@ class CSVColocalizationOutput(
             cellByCellData
         )
 
-        // TODO: Add pixel size (micrometers) at a later date
+        // TODO (#156): Add pixel size (micrometers) in next sprint.
         // Parameters
         val parametersData = ArrayList<Array<String>>()
         parametersData.add(
