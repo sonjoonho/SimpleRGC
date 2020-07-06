@@ -292,6 +292,8 @@ class RGCTransduction : Command, Previewable {
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
+        output.addTransductionResultForFile(result, inputFileName)
+
         try {
             output.output()
         } catch (te: TransformerException) {
