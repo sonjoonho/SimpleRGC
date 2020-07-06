@@ -66,7 +66,7 @@ class CSVColocalizationOutput(
                 ((result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100).toString(),
                 (result.overlappingTransducedIntensityAnalysis.sumBy { it.area } / result.overlappingTransducedIntensityAnalysis.size).toString(),
                 (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(),
-                "TODO: Median",
+                (result.overlappingTransducedIntensityAnalysis.sumBy { it.median } / result.overlappingTransducedIntensityAnalysis.size).toString(),
                 "TODO: Min",
                 "TODO: Max",
                 "TODO: IntDen",
