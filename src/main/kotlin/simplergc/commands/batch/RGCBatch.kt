@@ -1,27 +1,24 @@
 package simplergc.commands.batch
 
-import ij.IJ
-import ij.ImagePlus
-import ij.gui.MessageDialog
-import ij.io.Opener
-import java.io.File
-import loci.formats.UnknownFormatException
-import loci.plugins.BF
-import loci.plugins.`in`.ImporterOptions
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.util.prefs.Preferences
+import javax.swing.BorderFactory
+import javax.swing.JFrame
+import javax.swing.JTabbedPane
 import net.imagej.ImageJ
 import org.scijava.Context
-import org.scijava.ItemVisibility
 import org.scijava.command.Command
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
 import org.scijava.plugin.Plugin
-import org.scijava.ui.UIService
-import org.scijava.widget.NumberWidget
-import simplergc.comparators.AlphanumFileComparator
-import simplergc.services.CellDiameterRange
+import simplergc.commands.batch.controllers.RGCCounterController
+import simplergc.commands.batch.controllers.RGCTransductionController
+import simplergc.commands.batch.models.RGCCounterModel
+import simplergc.commands.batch.models.RGCTransductionModel
+import simplergc.commands.batch.views.RGCCounterView
+import simplergc.commands.batch.views.RGCTransductionView
 import simplergc.services.CellSegmentationService
-import simplergc.services.DiameterParseException
-import simplergc.widgets.AlignedTextWidget
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Batch")
 class RGCBatch : Command {
@@ -30,265 +27,48 @@ class RGCBatch : Command {
     private lateinit var logService: LogService
 
     @Parameter
-    private lateinit var uiService: UIService
-
-    @Parameter
     private lateinit var context: Context
 
-    object PluginChoice {
-        const val RGCCounter = "RGC Counter"
-        const val RGCTransduction = "RGC Transduction"
-    }
+    private val prefs = Preferences.userRoot().node(this.javaClass.name)
 
-    @Parameter(
-        label = "Which plugin would you like to run in batch mode?",
-        choices = [PluginChoice.RGCCounter, PluginChoice.RGCTransduction],
-        required = true,
-        persist = true,
-        style = "radioButtonVertical"
-    )
-    private var pluginChoice = PluginChoice.RGCCounter
-
-    @Parameter(
-        label = "Input folder",
-        required = true,
-        persist = true,
-        style = "directory"
-    )
-    private lateinit var inputFolder: File
-
-    @Parameter(
-        label = "Batch process files in nested sub-folders?",
-        required = true,
-        persist = true
-    )
-    private var shouldProcessFilesInNestedFolders: Boolean = true
-
-    @Parameter(
-        label = "<html><div align=\"right\">\nWhen performing batch colocalization, ensure that <br />all input images have the same channel ordering as<br />specified below.</div></html>",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private var colocalizationInstruction = ""
-
-    /**
-     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
-     * the channels available at the parameter initialisation stage.
-     * By default this is 1 (red) channel.
-     */
-    @Parameter(
-        label = "Cell morphology channel 1",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = true
-    )
-    private var targetChannel = 1
-
-    /**
-     * Specify the channel for the transduced cells.
-     * By default this is the 2 (green) channel.
-     */
-    @Parameter(
-        label = "Transduction channel (colocalization only)",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = true
-    )
-    private var transducedChannel = 2
-
-    @Parameter(
-        label = "Image processing parameters",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var processingParametersHeader: String
-
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter for morphology channel 1 (px)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = true
-    )
-    var cellDiameterText = "0.0-30.0"
-
-    /**
-     * Used as the size of the window over which the threshold will be locally computed.
-     */
-    @Parameter(
-        label = "Local threshold radius",
-        // TODO(#133): Improve this description to make more intuitive.
-        description = "The radius of the local domain over which the threshold will be computed.",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = true
-    )
-    var localThresholdRadius = 20
-
-    @Parameter(
-        label = "Gaussian blur sigma",
-        description = "Sigma value used for blurring the image during the processing," +
-            " a lower value is recommended if there is a high cell density",
-        min = "1",
-        stepSize = "1",
-        style = NumberWidget.SPINNER_STYLE,
-        required = true,
-        persist = true
-    )
-    private var gaussianBlurSigma = 3.0
-
-    @Parameter(
-        label = "Output parameters",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var outputParametersHeader: String
-
-    /**
-     * The user can optionally output the results to a file.
-     *
-     * TODO(Arjun): Reinstate a parameter for this once display output is built
-     */
     object OutputFormat {
+        const val XLSX = "Save as XLSX file (recommended)"
         const val CSV = "Save as CSV file"
     }
 
-    @Parameter(
-        label = "Results output",
-        choices = [OutputFormat.CSV],
-        required = true,
-        persist = true,
-        style = "radioButtonVertical"
-    )
-    private var outputFormat = OutputFormat.CSV
+    private fun gui() {
+        val frame = JFrame()
 
-    @Parameter(
-        label = "Output file",
-        required = true,
-        persist = false,
-        style = "save"
-    )
-    private lateinit var outputFile: File
+        val counterModel = RGCCounterModel(context, prefs)
+        val counterView = RGCCounterView(counterModel)
+        RGCCounterController(counterView, counterModel)
+
+        val transductionModel = RGCTransductionModel(context, prefs)
+        val transductionView = RGCTransductionView(transductionModel)
+        RGCTransductionController(transductionView, transductionModel)
+
+        val tp = JTabbedPane()
+        tp.add("RGCCounter", counterView)
+        tp.add("RGCTransduction", transductionView)
+        tp.border = BorderFactory.createEmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE)
+        frame.add(tp, BorderLayout.CENTER)
+        frame.preferredSize = Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT)
+
+        frame.pack()
+        frame.isVisible = true
+    }
 
     override fun run() {
-        if (!inputFolder.exists()) {
-            MessageDialog(
-                IJ.getInstance(), "Error",
-                "The input folder could not be opened. Please create it if it does not already exist"
-            )
-            return
-        }
-
-        val cellDiameterRange: CellDiameterRange
-        try {
-            cellDiameterRange = CellDiameterRange.parseFromText(cellDiameterText)
-        } catch (e: DiameterParseException) {
-            MessageDialog(IJ.getInstance(), "Error", e.message)
-            return
-        }
-
-        // Validate output file extension.
-        when (outputFormat) {
-            OutputFormat.CSV -> {
-                if (!outputFile.path.endsWith(".csv", ignoreCase = true)) {
-                    outputFile = File("${outputFile.path}.csv")
-                }
-            }
-        }
-
-        val files = getAllFiles(inputFolder, shouldProcessFilesInNestedFolders)
-
-        val strategy = when (pluginChoice) {
-            PluginChoice.RGCCounter -> BatchableCellCounter(targetChannel, context)
-            PluginChoice.RGCTransduction -> BatchableColocalizer(
-                targetChannel,
-                transducedChannel,
-                context
-            )
-            else -> throw IllegalArgumentException("Invalid plugin choice provided")
-        }
-        // TODO(#136): Think more about allCellsDiameter and where to pass it.
-        strategy.process(
-            openFiles(files),
-            cellDiameterRange,
-            localThresholdRadius,
-            gaussianBlurSigma,
-            outputFormat,
-            outputFile
-        )
-
-        MessageDialog(
-            IJ.getInstance(),
-            "Saved",
-            "The batch processing results have successfully been saved to the specified file."
-        )
-    }
-
-    private fun getAllFiles(file: File, shouldProcessFilesInNestedFolders: Boolean): List<File> {
-        return if (shouldProcessFilesInNestedFolders) {
-            file.walkTopDown().filter { f -> !f.isDirectory }.toList()
-        } else {
-            file.listFiles()?.filter { f -> !f.isDirectory }?.toList() ?: listOf(file)
-        }.sortedWith(AlphanumFileComparator)
-    }
-
-    private fun openFiles(inputFiles: List<File>): List<ImagePlus> {
-        /*
-        First, we attempt to use the default ImageJ Opener. The ImageJ Opener falls back to a plugin called
-        HandleExtraFileTypes when it cannot open a file - which attempts to use Bio-Formats when it encounters a LIF.
-        Unfortunately, the LociImporter (what Bio-Formats uses) opens a dialog box when it does this. It does
-        support a "windowless" option, but it's not possible to pass this option (or any of our desired options) through
-        HandleExtraFileTypes. So instead, we limit the scope of possible file types by supporting native ImageJ formats
-        (Opener.types), preventing HandleExtraFileTypes from being triggered, and failing this fall back to calling the
-        Bio-Formats Importer manually. This handles the most common file types we expect to encounter.
-
-        Also, note that Opener returns null when it fails to open a file, whereas the Bio-Formats Importer throws an
-        UnknownFormatException`. To simplify the logic, an UnknownFormatException is thrown when Opener returns null.
-        */
-        val opener = Opener()
-        val inputImages = mutableListOf<ImagePlus>()
-
-        for (file in inputFiles) {
-
-            try {
-                if (Opener.types.contains(file.extension)) {
-                    val image = opener.openImage(file.absolutePath) ?: throw UnknownFormatException()
-                    inputImages.add(image)
-                } else {
-                    val options = ImporterOptions()
-                    options.id = file.path
-                    options.colorMode = ImporterOptions.COLOR_MODE_COMPOSITE
-                    options.isAutoscale = true
-                    options.setOpenAllSeries(true)
-
-                    // Note that the call to BF.openImagePlus returns an array of images because a single LIF file can
-                    // contain multiple series.
-                    inputImages.addAll(BF.openImagePlus(options))
-                }
-            } catch (e: UnknownFormatException) {
-                logService.warn("Skipping file with unsupported type \"${file.name}\"")
-            } catch (e: NoClassDefFoundError) {
-                MessageDialog(
-                    IJ.getInstance(), "Error",
-                    """
-                    It appears that the Bio-Formats plugin is not installed.
-                    Please enable the Fiji update site in order to enable this functionality.
-                    """.trimIndent()
-                )
-            }
-        }
-
-        return inputImages
+        gui()
     }
 
     companion object {
+
+        // Size constants for RGC Batch JFrame
+        private const val BORDER_SIZE = 5
+        private const val PREFERRED_WIDTH = 600
+        private const val PREFERRED_HEIGHT = 600
+
         /**
          * Entry point to directly open the plugin, used for debugging purposes.
          *

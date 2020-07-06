@@ -5,5 +5,9 @@ package simplergc.services
  */
 abstract class SimpleOutput {
 
+    companion object {
+        const val ARTICLE_CITATION = "[insert full citation]"
+    }
+
     abstract fun output()
 }
