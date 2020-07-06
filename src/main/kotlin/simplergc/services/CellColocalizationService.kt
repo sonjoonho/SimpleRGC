@@ -10,7 +10,7 @@ import org.scijava.service.Service
 @Plugin(type = Service::class)
 class CellColocalizationService : AbstractService(), ImageJService {
 
-    data class CellAnalysis(val area: Int, val mean: Int, val median: Int, val sum: Int)
+    data class CellAnalysis(val area: Int, val mean: Int, val median: Int, val min: Int, val max: Int, val sum: Int)
 
     /**
      *  Analyses the intensity of a cell.
