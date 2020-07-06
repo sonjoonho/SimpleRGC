@@ -17,7 +17,9 @@ class CSVColocalizationOutput(
     private val transductionParameters: RGCTransduction.TransductionParameters,
     private val result: TransductionResult,
     private val outputFile: File
-) : SimpleOutput() {
+) : ColocalizationOutput() {
+
+    private val fileNameAndResultsList: ArrayList<Pair<String, TransductionResult>> = ArrayList()
 
     override fun output() {
         val csvWriter = CsvWriter()
@@ -144,6 +146,27 @@ class CSVColocalizationOutput(
             File("${outputFile.path}${File.separator}Parameters.csv"),
             StandardCharsets.UTF_8,
             parametersData
+        )
+    }
+
+    override fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
+        fileNameAndResultsList.add(Pair(file, transductionResult))
+    }
+
+    fun writeDocumentationCSV(csvWriter: CsvWriter) {
+        // Constant array of information
+        val documentationData = ArrayList<Array<String>>()
+        documentationData.add(arrayOf("The Article: ", "TODO: insert full citation of manuscript when complete"))
+        documentationData.add(arrayOf("", ""))
+        documentationData.add(arrayOf("Abbreviation: ", "Description"))
+        documentationData.add(arrayOf("Summary: ", "Key overall measurements per image"))
+        documentationData.add(arrayOf("Transduced Cell Analysis: ", "Cell-by-cell metrics of transduced cells"))
+        documentationData.add(arrayOf("Parameters: ", "Parameters used for SimpleRGC plugin"))
+
+        csvWriter.write(
+            File("${outputFile.path}${File.separator}Documentation.csv"),
+            StandardCharsets.UTF_8,
+            documentationData
         )
     }
 }

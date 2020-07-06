@@ -7,6 +7,7 @@ import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.SimpleOutput
+import java.util.ArrayList
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -15,7 +16,10 @@ import simplergc.services.SimpleOutput
 class ImageJTableColocalizationOutput(
     val result: TransductionResult,
     val uiService: UIService
-) : SimpleOutput() {
+) : ColocalizationOutput() {
+
+    // TODO (131): Use below results list in output
+    private val fileNameAndResultsList: ArrayList<Pair<String, TransductionResult>> = ArrayList()
 
     override fun output() {
         val table = DefaultGenericTable()
@@ -70,6 +74,14 @@ class ImageJTableColocalizationOutput(
         integratedDensityColumn.add(0)
         rawIntegratedDensityColumn.add(0)
 
+        labelColumn.add("----------------------------------------------")
+        countColumn.add(0)
+        areaColumn.add(0)
+        medianColumn.add(0)
+        meanColumn.add(0)
+        integratedDensityColumn.add(0)
+        rawIntegratedDensityColumn.add(0)
+
         labelColumn.add("--- Transduced Channel Analysis, Colocalized Cells ---")
         countColumn.add(0)
         areaColumn.add(0)
@@ -106,5 +118,9 @@ class ImageJTableColocalizationOutput(
         table.setColumnHeader(6, "Raw Integrated Density")
 
         uiService.show(table)
+    }
+
+    override fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
+        fileNameAndResultsList.add(Pair(file, transductionResult))
     }
 }
