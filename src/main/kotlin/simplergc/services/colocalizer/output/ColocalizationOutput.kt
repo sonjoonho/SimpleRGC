@@ -8,10 +8,14 @@ import simplergc.services.SimpleOutput
  */
 abstract class ColocalizationOutput : SimpleOutput() {
 
+    val fileNameAndResultsList: ArrayList<Pair<String, TransductionResult>> = ArrayList()
+
     companion object {
         const val PLUGIN_NAME = "RGC Transduction"
         const val PLUGIN_VERSION = "1.0.0"
     }
 
-    abstract fun addTransductionResultForFile(transductionResult: TransductionResult, file: String)
+    fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
+        fileNameAndResultsList.add(Pair(file, transductionResult))
+    }
 }
