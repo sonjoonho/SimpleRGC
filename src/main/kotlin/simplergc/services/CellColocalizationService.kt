@@ -27,9 +27,11 @@ class CellColocalizationService : AbstractService(), ImageJService {
                 area++
                 sum += pixelData[0]
             }
-            val median = cell.containedPoints.map { image.getPixel(it.x, it.y)[0] }.sorted()
-                .let { (it[it.size / 2] + it[(it.size - 1) / 2]) / 2 }
-            CellAnalysis(area, sum / area, median, sum)
+            val sortedPixelintensities = cell.containedPoints.map { image.getPixel(it.x, it.y)[0] }.sorted()
+            val median = sortedPixelintensities.let { (it[it.size / 2] + it[(it.size - 1) / 2]) / 2 }
+            val min = sortedPixelintensities.first()
+            val max = sortedPixelintensities.last()
+            CellAnalysis(area, sum / area, median, min, max, sum)
         }.toTypedArray()
     }
 
