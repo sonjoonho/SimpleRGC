@@ -64,7 +64,7 @@ class CSVColocalizationOutput(
                 result.targetCellCount.toString(),
                 result.overlappingTwoChannelCells.size.toString(),
                 ((result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100).toString(),
-                "TODO: Average Morphology Area",
+                (result.overlappingTransducedIntensityAnalysis.sumBy { it.area } / result.overlappingTransducedIntensityAnalysis.size).toString(),
                 (result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size).toString(),
                 "TODO: Median",
                 "TODO: Min",
