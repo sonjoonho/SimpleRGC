@@ -47,6 +47,10 @@ class RGCTransduction : Command, Previewable {
 
     private val intensityPercentageThreshold: Float = 90f
 
+    private val pluginName = "RGC Transduction"
+
+    private val pluginVersion = "1.0.0"
+
     @Parameter
     private lateinit var logService: LogService
 
@@ -274,10 +278,9 @@ class RGCTransduction : Command, Previewable {
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
         // TODO(arjunsinghrana): merge this with data structure used in batch plugin.
         // I'd also suggest adding output file to here so we don't have to pass it into the output separately.
-        // TODO(arjunsinghrana): Replace magic strings below with constants.
         val transductionParameters = TransductionParameters(
-            "RGC Transduction",
-            "1.0.0",
+            pluginName,
+            pluginVersion,
             this.shouldRemoveAxonsFromTargetChannel.toString(),
             this.transducedChannel.toString(),
             this.shouldRemoveAxonsFromTransductionChannel.toString(),
