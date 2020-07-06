@@ -18,8 +18,7 @@ class ImageJTableColocalizationOutput(
     val uiService: UIService
 ) : ColocalizationOutput() {
 
-    // TODO (131): Use below results list in output
-    private val fileNameAndResultsList: ArrayList<Pair<String, TransductionResult>> = ArrayList()
+    // TODO (131): Use fileNameAndResultsList in output
 
     override fun output() {
         val table = DefaultGenericTable()
@@ -120,7 +119,4 @@ class ImageJTableColocalizationOutput(
         uiService.show(table)
     }
 
-    override fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
-        fileNameAndResultsList.add(Pair(file, transductionResult))
-    }
 }
