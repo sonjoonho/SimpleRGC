@@ -260,7 +260,6 @@ class RGCTransduction : Command, Previewable {
     }
 
     class TransductionParameters(
-        val inputFileName: String,
         val pluginName: String,
         val pluginVersion: String,
         val excludeAxonsFromMorphologyChannel: String,
@@ -276,7 +275,6 @@ class RGCTransduction : Command, Previewable {
         // TODO(arjunsinghrana): merge this with data structure used in batch plugin.
         // TODO(arjunsinghrana): Replace magic strings below with constants.
         val transductionParameters = TransductionParameters(
-            inputFileName,
             "RGC Transduction",
             "1.0.0",
             this.shouldRemoveAxonsFromTargetChannel.toString(),
