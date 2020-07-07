@@ -1,9 +1,9 @@
 package simplergc.services.colocalizer.output
 
 import org.apache.commons.io.FilenameUtils
-import java.io.File
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.commands.RGCTransduction.TransductionParameters
+import java.io.File
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -24,20 +24,9 @@ class XLSXColocalizationOutput(
 
         writeTransductionAnalysisSheet(workbook)
 
-        val paramsSheet = workbook.createSheet("Parameters")
-        val paramsHeader = arrayOf(
-            "File name",
-            "Simple RGC plugin",
-            "Version",
-            "Pixel size (micrometers)",
-            "Morphology channel",
-            "Transduction channel",
-            "Cell diameter (px)",
-            "Local threshold radius",
-            "Gaussian blur sigma",
-            "Exclude axons"
-        )
-        // TODO: insert params here
+        writeParamsSheet(workbook)
+
+        autoSizeColumns(workbook)
 
         // Write file and close streams
         val outputXlsxFile = File(FilenameUtils.removeExtension(transductionParameters.outputFile.path) + ".xlsx")
@@ -150,6 +139,64 @@ class XLSXColocalizationOutput(
                 analysisData.forEachIndexed { colIdx, dataEntry ->
                     val cell = analysisRow.createCell(colIdx)
                     cell.setCellValue(dataEntry)
+                }
+            }
+        }
+    }
+
+    private fun writeParamsSheet(workbook: XSSFWorkbook) {
+        val paramsSheet = workbook.createSheet("Parameters")
+        val paramsHeader = arrayOf(
+            "File name",
+            "Simple RGC plugin",
+            "Version",
+            "Pixel size (micrometers)",
+            "Morphology channel",
+            "Transduction channel",
+            "Cell diameter (px)",
+            "Local threshold radius",
+            "Gaussian blur sigma",
+            "Exclude axons"
+        )
+        // Create header for parameters
+        val paramsHeaderRow = paramsSheet.createRow(0)
+        paramsHeader.forEachIndexed { columnIdx, headerTitle ->
+            val cell = paramsHeaderRow.createCell(columnIdx)
+            cell.setCellValue(headerTitle)
+        }
+        // Add parameters data
+        fileNameAndResultsList.forEachIndexed { rowIdx, fileNameAndResult ->
+            val paramsRow = paramsSheet.createRow(rowIdx)
+            val paramsData = arrayOf(
+                fileNameAndResult.first,
+                transductionParameters.pluginName,
+                transductionParameters.pluginVersion,
+                transductionParameters.morphologyChannel,
+                transductionParameters.excludeAxonsFromMorphologyChannel,
+                transductionParameters.transductionChannel,
+                transductionParameters.excludeAxonsFromTransductionChannel,
+                transductionParameters.cellDiameterRange,
+                transductionParameters.localThresholdRadius,
+                transductionParameters.gaussianBlurSigma
+            )
+            paramsData.forEachIndexed { colIdx, dataEntry ->
+                val cell = paramsRow.createCell(colIdx)
+                cell.setCellValue(dataEntry)
+            }
+        }
+    }
+
+    fun autoSizeColumns(workbook: XSSFWorkbook) {
+        val numberOfSheets: Int = workbook.getNumberOfSheets()
+        for (i in 0 until numberOfSheets) {
+            val sheet = workbook.getSheetAt(i)
+            if (sheet.physicalNumberOfRows > 0) {
+                val row = sheet.getRow(sheet.firstRowNum)
+                val cellIterator = row.cellIterator()
+                while (cellIterator.hasNext()) {
+                    val cell = cellIterator.next()
+                    val columnIndex: Int = cell.columnIndex
+                    sheet.autoSizeColumn(columnIndex)
                 }
             }
         }
