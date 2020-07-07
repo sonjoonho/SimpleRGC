@@ -177,7 +177,7 @@ class RGCTransduction : Command, Previewable {
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
         const val XLSX = "Save as Excel file (Reccomended)"
-        const val CSV = "Save as CSV file"
+        const val CSV = "Save as CSV files"
     }
 
     @Parameter(
