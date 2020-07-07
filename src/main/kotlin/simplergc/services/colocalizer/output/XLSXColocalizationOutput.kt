@@ -3,15 +3,14 @@ package simplergc.services.colocalizer.output
 import org.apache.commons.io.FilenameUtils
 import java.io.File
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import simplergc.commands.RGCTransduction.TransductionResult
+import simplergc.commands.RGCTransduction.TransductionParameters
 
 /**
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
 class XLSXColocalizationOutput(
-    private val result: TransductionResult,
-    private val outputFile: File
+    private val transductionParameters: TransductionParameters
 ) : ColocalizationOutput() {
 
     override fun output() {
@@ -41,7 +40,7 @@ class XLSXColocalizationOutput(
         // TODO: insert params here
 
         // Write file and close streams
-        val outputXlsxFile = File(FilenameUtils.removeExtension(outputFile.path) + ".xlsx")
+        val outputXlsxFile = File(FilenameUtils.removeExtension(transductionParameters.outputFile.path) + ".xlsx")
         val xlsxFileOut = outputXlsxFile.outputStream()
         workbook.write(xlsxFileOut)
         xlsxFileOut.close()
@@ -155,4 +154,4 @@ class XLSXColocalizationOutput(
             }
         }
     }
-}}
+}
