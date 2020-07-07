@@ -23,44 +23,7 @@ class XLSXColocalizationOutput(
 
         writeSummarySheet(workbook)
 
-        val perCellAnalysisSheet = workbook.createSheet("Transduced cells analysis")
-        val perCellAnalysisHeader = arrayOf(
-            "File Name",
-            "Transduced Cell",
-            "Morphology Area (pixel^2)",
-            "Mean Fluorescence Intensity (a.u.)",
-            "Median Fluorescence Intensity (a.u.)",
-            "Min Fluorescence Intensity (a.u.)",
-            "Max Fluorescence Intensity (a.u.)",
-            "IntDen",
-            "RawIntDen"
-        )
-        // Create header for transduced cell analysis
-        val perCellAnalysisHeaderRow = perCellAnalysisSheet.createRow(0)
-        perCellAnalysisHeader.forEachIndexed { columnIdx, headerTitle ->
-            val cell = perCellAnalysisHeaderRow.createCell(columnIdx)
-            cell.setCellValue(headerTitle)
-        }
-        // Add transduced cell analysis data
-        result.overlappingTransducedIntensityAnalysis.forEachIndexed { rowIdx, cellAnalysis ->
-            val analysisRow = perCellAnalysisSheet.createRow(rowIdx)
-            val analysisData = arrayOf(
-                "",
-                "TODO:",
-                "1",
-                cellAnalysis.area.toString(),
-                cellAnalysis.mean.toString(),
-                cellAnalysis.median.toString(),
-                "TODO: Min",
-                "TODO: Max",
-                "TODO: IntDen",
-                "TODO: RawIntDen"
-            )
-            analysisData.forEachIndexed { colIdx, dataEntry ->
-                val cell = analysisRow.createCell(colIdx)
-                cell.setCellValue(dataEntry)
-            }
-        }
+        writeTransductionAnalysisSheet(workbook)
 
         val paramsSheet = workbook.createSheet("Parameters")
         val paramsHeader = arrayOf(
@@ -85,7 +48,7 @@ class XLSXColocalizationOutput(
         workbook.close()
     }
 
-    fun writeDocSheet(workbook: XSSFWorkbook) {
+    private fun writeDocSheet(workbook: XSSFWorkbook) {
         val docSheet = workbook.createSheet("Documentation")
         val docInfo = ArrayList<Array<String>>(
             arrayListOf(
@@ -111,7 +74,6 @@ class XLSXColocalizationOutput(
     }
 
     private fun writeSummarySheet(workbook: XSSFWorkbook) {
-        // TODO: Modify following 2 sheets to work on a per file basis
         val summarySheet = workbook.createSheet("Summary")
         val summaryHeader = arrayOf(
             "File Name",
@@ -152,4 +114,45 @@ class XLSXColocalizationOutput(
             }
         }
     }
-}
+
+    private fun writeTransductionAnalysisSheet(workbook: XSSFWorkbook) {
+        val perCellAnalysisSheet = workbook.createSheet("Transduced cells analysis")
+        val perCellAnalysisHeader = arrayOf(
+            "File Name",
+            "Transduced Cell",
+            "Morphology Area (pixel^2)",
+            "Mean Fluorescence Intensity (a.u.)",
+            "Median Fluorescence Intensity (a.u.)",
+            "Min Fluorescence Intensity (a.u.)",
+            "Max Fluorescence Intensity (a.u.)",
+            "IntDen",
+            "RawIntDen"
+        )
+        // Create header for transduced cell analysis
+        val perCellAnalysisHeaderRow = perCellAnalysisSheet.createRow(0)
+        perCellAnalysisHeader.forEachIndexed { columnIdx, headerTitle ->
+            val cell = perCellAnalysisHeaderRow.createCell(columnIdx)
+            cell.setCellValue(headerTitle)
+        }
+        // Add transduced cell analysis data
+        fileNameAndResultsList.forEachIndexed { baseRowIdx, fileNameAndResult ->
+            fileNameAndResult.second.overlappingTransducedIntensityAnalysis.forEachIndexed { addedRowIdx, cellAnalysis ->
+                val analysisRow = perCellAnalysisSheet.createRow(baseRowIdx + addedRowIdx)
+                val analysisData = arrayOf(
+                    fileNameAndResult.first,
+                    addedRowIdx.toString(),
+                    cellAnalysis.area.toString(),
+                    cellAnalysis.mean.toString(),
+                    cellAnalysis.median.toString(),
+                    cellAnalysis.min.toString(),
+                    cellAnalysis.max.toString(),
+                    cellAnalysis.rawIntDen.toString()
+                )
+                analysisData.forEachIndexed { colIdx, dataEntry ->
+                    val cell = analysisRow.createCell(colIdx)
+                    cell.setCellValue(dataEntry)
+                }
+            }
+        }
+    }
+}}
