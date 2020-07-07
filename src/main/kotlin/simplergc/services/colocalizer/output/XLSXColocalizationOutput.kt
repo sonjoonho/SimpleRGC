@@ -19,15 +19,6 @@ class XLSXColocalizationOutput(
         // Create Excel File.
         val workbook = XSSFWorkbook()
 
-        // val createHelper = workbook.creationHelper
-        // Set header font to blue and bold.
-        // val headerFont = workbook.createFont()
-        // headerFont.bold = true
-        // headerFont.color = IndexedColors.BLUE.getIndex()
-        // TODO: Left this code here in case anyone wants to pretty up the sheet
-        // val headerCellStyle = workbook.createCellStyle()
-        // headerCellStyle.setFont(headerFont)
-
         // Create sheets
         val docSheet = workbook.createSheet("Documentation")
         val docInfo = ArrayList<Array<String>>(
