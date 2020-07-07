@@ -3,6 +3,7 @@ package simplergc.services.colocalizer.output
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.commands.RGCTransduction.TransductionParameters
+import java.awt.HeadlessException
 import java.io.File
 
 /**
@@ -12,6 +13,10 @@ import java.io.File
 class XLSXColocalizationOutput(
     private val transductionParameters: TransductionParameters
 ) : ColocalizationOutput() {
+
+    companion object {
+        const val HEADER_OFFSET = 1
+    }
 
     override fun output() {
 
@@ -50,7 +55,7 @@ class XLSXColocalizationOutput(
         )
         docInfo.forEachIndexed { rowIdx, rows ->
             run {
-                val row = docSheet.createRow(rowIdx)
+                val row = docSheet.createRow(rowIdx + HEADER_OFFSET)
                 rows.forEachIndexed { colIdx, str ->
                     run {
                         val cell = row.createCell(colIdx)
@@ -95,7 +100,7 @@ class XLSXColocalizationOutput(
                 (fileNameAndResult.second.overlappingTransducedIntensityAnalysis.sumBy { it.max } / fileNameAndResult.second.overlappingTransducedIntensityAnalysis.size).toString(),
                 (fileNameAndResult.second.overlappingTransducedIntensityAnalysis.sumBy { it.rawIntDen } / fileNameAndResult.second.overlappingTransducedIntensityAnalysis.size).toString()
             )
-            val summaryDataRow = summarySheet.createRow(rowIdx)
+            val summaryDataRow = summarySheet.createRow(rowIdx + HEADER_OFFSET)
             summaryData.forEachIndexed { columnIdx, dataEntry ->
                 val cell = summaryDataRow.createCell(columnIdx)
                 cell.setCellValue(dataEntry)
@@ -125,7 +130,7 @@ class XLSXColocalizationOutput(
         // Add transduced cell analysis data
         fileNameAndResultsList.forEachIndexed { baseRowIdx, fileNameAndResult ->
             fileNameAndResult.second.overlappingTransducedIntensityAnalysis.forEachIndexed { addedRowIdx, cellAnalysis ->
-                val analysisRow = perCellAnalysisSheet.createRow(baseRowIdx + addedRowIdx)
+                val analysisRow = perCellAnalysisSheet.createRow(baseRowIdx + addedRowIdx + HEADER_OFFSET)
                 val analysisData = arrayOf(
                     fileNameAndResult.first,
                     addedRowIdx.toString(),
@@ -166,7 +171,7 @@ class XLSXColocalizationOutput(
         }
         // Add parameters data
         fileNameAndResultsList.forEachIndexed { rowIdx, fileNameAndResult ->
-            val paramsRow = paramsSheet.createRow(rowIdx)
+            val paramsRow = paramsSheet.createRow(rowIdx + HEADER_OFFSET)
             val paramsData = arrayOf(
                 fileNameAndResult.first,
                 transductionParameters.pluginName,
