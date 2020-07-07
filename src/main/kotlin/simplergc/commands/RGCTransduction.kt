@@ -296,7 +296,7 @@ class RGCTransduction : Command, Previewable {
 
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputFormat.XLSX -> XLSXColocalizationOutput(result, outputFile!!)
+            OutputFormat.XLSX -> XLSXColocalizationOutput(transductionParameters)
             OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
