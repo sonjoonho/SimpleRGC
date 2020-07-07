@@ -234,7 +234,7 @@ class RGCTransduction : Command, Previewable {
         // TODO(#135): Remove duplication in this code fragment.
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
-            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
+            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName)
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
@@ -254,20 +254,49 @@ class RGCTransduction : Command, Previewable {
         }
 
         statusService.showStatus(100, 100, "Done!")
-        writeOutput(result)
+        writeOutput(image.originalFileInfo.fileName, result)
 
         image.show()
         addToRoiManager(result.overlappingTwoChannelCells)
         // showHistogram(result.overlappingTransducedIntensityAnalysis)
     }
 
-    private fun writeOutput(result: TransductionResult) {
+    class TransductionParameters(
+        val pluginName: String,
+        val pluginVersion: String,
+        val excludeAxonsFromMorphologyChannel: String,
+        val transductionChannel: String,
+        val excludeAxonsFromTransductionChannel: String,
+        val cellDiameterRange: String,
+        val localThresholdRadius: String,
+        val gaussianBlurSigma: String,
+        val morphologyChannel: String
+    )
+
+    private fun writeOutput(inputFileName: String, result: TransductionResult) {
+        // TODO(arjunsinghrana): merge this with data structure used in batch plugin.
+        // I'd also suggest adding output file to here so we don't have to pass it into the output separately.
+        // TODO(arjunsinghrana): Replace magic strings below with constants.
+        val transductionParameters = TransductionParameters(
+            "RGC Transduction",
+            "1.0.0",
+            this.shouldRemoveAxonsFromTargetChannel.toString(),
+            this.transducedChannel.toString(),
+            this.shouldRemoveAxonsFromTransductionChannel.toString(),
+            this.cellDiameterText,
+            this.localThresholdRadius.toString(),
+            this.gaussianBlurSigma.toString(),
+            this.targetChannel.toString()
+        )
+
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
             OutputFormat.XLSX -> XLSXColocalizationOutput(result, outputFile!!)
-            OutputFormat.CSV -> CSVColocalizationOutput(result, outputFile!!)
+            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters, outputFile!!)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
+
+        output.addTransductionResultForFile(result, inputFileName)
 
         try {
             output.output()

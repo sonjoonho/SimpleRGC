@@ -6,7 +6,6 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
-import simplergc.services.SimpleOutput
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -15,7 +14,9 @@ import simplergc.services.SimpleOutput
 class ImageJTableColocalizationOutput(
     val result: TransductionResult,
     val uiService: UIService
-) : SimpleOutput() {
+) : ColocalizationOutput() {
+
+    // TODO (131): Use fileNameAndResultsList in output
 
     override fun output() {
         val table = DefaultGenericTable()
@@ -70,6 +71,14 @@ class ImageJTableColocalizationOutput(
         integratedDensityColumn.add(0)
         rawIntegratedDensityColumn.add(0)
 
+        labelColumn.add("----------------------------------------------")
+        countColumn.add(0)
+        areaColumn.add(0)
+        medianColumn.add(0)
+        meanColumn.add(0)
+        integratedDensityColumn.add(0)
+        rawIntegratedDensityColumn.add(0)
+
         labelColumn.add("--- Transduced Channel Analysis, Colocalized Cells ---")
         countColumn.add(0)
         areaColumn.add(0)
@@ -86,7 +95,7 @@ class ImageJTableColocalizationOutput(
             medianColumn.add(cell.median)
             meanColumn.add(cell.mean)
             integratedDensityColumn.add(cell.area * cell.mean)
-            rawIntegratedDensityColumn.add(cell.sum)
+            rawIntegratedDensityColumn.add(cell.rawIntDen)
         }
 
         table.add(labelColumn)
