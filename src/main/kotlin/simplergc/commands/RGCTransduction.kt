@@ -38,6 +38,7 @@ import simplergc.services.colocalizer.PositionedCell
 import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
 import simplergc.services.colocalizer.output.CSVColocalizationOutput
+import simplergc.services.colocalizer.output.ColocalizationOutput
 import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplergc.services.colocalizer.output.XLSXColocalizationOutput
 import simplergc.services.colocalizer.resetRoiManager
@@ -280,26 +281,23 @@ class RGCTransduction : Command, Previewable {
 
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
 
-        val output = when (outputFormat) {
-            OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputFormat.CSV -> {
-                val transductionParameters = TransductionParameters(
-                    pluginName,
-                    pluginVersion,
-                    this.shouldRemoveAxonsFromTargetChannel.toString(),
-                    this.transducedChannel.toString(),
-                    this.shouldRemoveAxonsFromTransductionChannel.toString(),
-                    this.cellDiameterText,
-                    this.localThresholdRadius.toString(),
-                    this.gaussianBlurSigma.toString(),
-                    this.targetChannel.toString(),
-                    this.outputFile!!
-                )
+        val transductionParameters = TransductionParameters(
+            ColocalizationOutput.PLUGIN_NAME,
+            ColocalizationOutput.PLUGIN_VERSION,
+            this.shouldRemoveAxonsFromTargetChannel.toString(),
+            this.transducedChannel.toString(),
+            this.shouldRemoveAxonsFromTransductionChannel.toString(),
+            this.cellDiameterText,
+            this.localThresholdRadius.toString(),
+            this.gaussianBlurSigma.toString(),
+            this.targetChannel.toString(),
+            this.outputFile!!
+        )
 
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
             OutputFormat.XLSX -> XLSXColocalizationOutput(result, outputFile!!)
-            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters, outputFile!!)
+            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
