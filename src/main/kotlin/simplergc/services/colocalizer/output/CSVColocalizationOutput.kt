@@ -12,14 +12,13 @@ import simplergc.commands.RGCTransduction
  * overlapping, transduced cells.
  */
 class CSVColocalizationOutput(
-    private val transductionParameters: RGCTransduction.TransductionParameters,
-    private val outputFile: File
+    private val transductionParameters: RGCTransduction.TransductionParameters
 ) : ColocalizationOutput() {
 
     override fun output() {
         val csvWriter = CsvWriter()
-        val outputFileSuccess = File(outputFile.path).mkdir()
-        if (!outputFileSuccess and !outputFile.exists()) {
+        val outputFileSuccess = File(transductionParameters.outputFile.path).mkdir()
+        if (!outputFileSuccess and !transductionParameters.outputFile.exists()) {
             throw IOException()
         }
 
@@ -43,7 +42,7 @@ class CSVColocalizationOutput(
         documentationData.add(arrayOf("Parameters: ", "Parameters used for SimpleRGC plugin"))
 
         csvWriter.write(
-            File("${outputFile.path}${File.separator}Documentation.csv"),
+            File("${transductionParameters.outputFile.path}${File.separator}Documentation.csv"),
             StandardCharsets.UTF_8,
             documentationData
         )
@@ -83,7 +82,7 @@ class CSVColocalizationOutput(
                 )
             )
         }
-        csvWriter.write(File("${outputFile.path}${File.separator}Summary.csv"), StandardCharsets.UTF_8, summaryData)
+        csvWriter.write(File("${transductionParameters.outputFile.path}${File.separator}Summary.csv"), StandardCharsets.UTF_8, summaryData)
     }
 
     fun writeTransductionAnalysisCsv(csvWriter: CsvWriter) {
@@ -120,7 +119,7 @@ class CSVColocalizationOutput(
             }
         }
         csvWriter.write(
-            File("${outputFile.path}${File.separator}Transduced Cell Analysis.csv"),
+            File("${transductionParameters.outputFile.path}${File.separator}Transduced Cell Analysis.csv"),
             StandardCharsets.UTF_8,
             cellByCellData
         )
@@ -161,7 +160,7 @@ class CSVColocalizationOutput(
         }
 
         csvWriter.write(
-            File("${outputFile.path}${File.separator}Parameters.csv"),
+            File("${transductionParameters.outputFile.path}${File.separator}Parameters.csv"),
             StandardCharsets.UTF_8,
             parametersData
         )

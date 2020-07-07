@@ -216,6 +216,23 @@ class RGCTransduction : Command, Previewable {
         val overlappingTwoChannelCells: List<PositionedCell>
     )
 
+    /**
+     * Class that consolidates all the parameters required for transduction
+     * Used to pass respective values to the the CSV output
+     */
+    data class TransductionParameters(
+        val pluginName: String,
+        val pluginVersion: String,
+        val excludeAxonsFromMorphologyChannel: String,
+        val transductionChannel: String,
+        val excludeAxonsFromTransductionChannel: String,
+        val cellDiameterRange: String,
+        val localThresholdRadius: String,
+        val gaussianBlurSigma: String,
+        val morphologyChannel: String,
+        val outputFile: File
+    )
+
     override fun run() {
         val image = WindowManager.getCurrentImage()
         if (image == null) {
@@ -261,33 +278,23 @@ class RGCTransduction : Command, Previewable {
         // showHistogram(result.overlappingTransducedIntensityAnalysis)
     }
 
-    class TransductionParameters(
-        val pluginName: String,
-        val pluginVersion: String,
-        val excludeAxonsFromMorphologyChannel: String,
-        val transductionChannel: String,
-        val excludeAxonsFromTransductionChannel: String,
-        val cellDiameterRange: String,
-        val localThresholdRadius: String,
-        val gaussianBlurSigma: String,
-        val morphologyChannel: String
-    )
-
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
-        // TODO(arjunsinghrana): merge this with data structure used in batch plugin.
-        // I'd also suggest adding output file to here so we don't have to pass it into the output separately.
-        // TODO(arjunsinghrana): Replace magic strings below with constants.
-        val transductionParameters = TransductionParameters(
-            "RGC Transduction",
-            "1.0.0",
-            this.shouldRemoveAxonsFromTargetChannel.toString(),
-            this.transducedChannel.toString(),
-            this.shouldRemoveAxonsFromTransductionChannel.toString(),
-            this.cellDiameterText,
-            this.localThresholdRadius.toString(),
-            this.gaussianBlurSigma.toString(),
-            this.targetChannel.toString()
-        )
+
+        val output = when (outputFormat) {
+            OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
+            OutputFormat.CSV -> {
+                val transductionParameters = TransductionParameters(
+                    pluginName,
+                    pluginVersion,
+                    this.shouldRemoveAxonsFromTargetChannel.toString(),
+                    this.transducedChannel.toString(),
+                    this.shouldRemoveAxonsFromTransductionChannel.toString(),
+                    this.cellDiameterText,
+                    this.localThresholdRadius.toString(),
+                    this.gaussianBlurSigma.toString(),
+                    this.targetChannel.toString(),
+                    this.outputFile!!
+                )
 
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
