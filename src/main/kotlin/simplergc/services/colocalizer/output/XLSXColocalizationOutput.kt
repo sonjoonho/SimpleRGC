@@ -1,9 +1,10 @@
 package simplergc.services.colocalizer.output
 
 import org.apache.commons.io.FilenameUtils
+import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.commands.RGCTransduction.TransductionParameters
-import java.awt.HeadlessException
 import java.io.File
 
 /**
@@ -20,16 +21,17 @@ class XLSXColocalizationOutput(
 
     override fun output() {
 
-        // Create Excel File.
         val workbook = XSSFWorkbook()
 
         writeDocSheet(workbook)
 
-        writeSummarySheet(workbook)
+        val headerCellStyle = createHeaderCellStyle(workbook)
 
-        writeTransductionAnalysisSheet(workbook)
+        writeSummarySheet(workbook, headerCellStyle)
 
-        writeParamsSheet(workbook)
+        writeTransductionAnalysisSheet(workbook, headerCellStyle)
+
+        writeParamsSheet(workbook, headerCellStyle)
 
         autoSizeColumns(workbook)
 
@@ -66,7 +68,10 @@ class XLSXColocalizationOutput(
         }
     }
 
-    private fun writeSummarySheet(workbook: XSSFWorkbook) {
+    private fun writeSummarySheet(
+        workbook: XSSFWorkbook,
+        headerCellStyle: XSSFCellStyle?
+    ) {
         val summarySheet = workbook.createSheet("Summary")
         val summaryHeader = arrayOf(
             "File Name",
@@ -85,6 +90,7 @@ class XLSXColocalizationOutput(
         summaryHeader.forEachIndexed { columnIdx, headerTitle ->
             val cell = summaryHeaderRow.createCell(columnIdx)
             cell.setCellValue(headerTitle)
+            cell.cellStyle = headerCellStyle
         }
         // Add summary data
         fileNameAndResultsList.forEachIndexed { rowIdx, fileNameAndResult ->
@@ -108,7 +114,10 @@ class XLSXColocalizationOutput(
         }
     }
 
-    private fun writeTransductionAnalysisSheet(workbook: XSSFWorkbook) {
+    private fun writeTransductionAnalysisSheet(
+        workbook: XSSFWorkbook,
+        headerCellStyle: XSSFCellStyle?
+    ) {
         val perCellAnalysisSheet = workbook.createSheet("Transduced cells analysis")
         val perCellAnalysisHeader = arrayOf(
             "File Name",
@@ -126,6 +135,7 @@ class XLSXColocalizationOutput(
         perCellAnalysisHeader.forEachIndexed { columnIdx, headerTitle ->
             val cell = perCellAnalysisHeaderRow.createCell(columnIdx)
             cell.setCellValue(headerTitle)
+            cell.cellStyle = headerCellStyle
         }
         // Add transduced cell analysis data
         fileNameAndResultsList.forEachIndexed { baseRowIdx, fileNameAndResult ->
@@ -149,7 +159,10 @@ class XLSXColocalizationOutput(
         }
     }
 
-    private fun writeParamsSheet(workbook: XSSFWorkbook) {
+    private fun writeParamsSheet(
+        workbook: XSSFWorkbook,
+        headerCellStyle: XSSFCellStyle?
+    ) {
         val paramsSheet = workbook.createSheet("Parameters")
         val paramsHeader = arrayOf(
             "File name",
@@ -168,6 +181,7 @@ class XLSXColocalizationOutput(
         paramsHeader.forEachIndexed { columnIdx, headerTitle ->
             val cell = paramsHeaderRow.createCell(columnIdx)
             cell.setCellValue(headerTitle)
+            cell.cellStyle = headerCellStyle
         }
         // Add parameters data
         fileNameAndResultsList.forEachIndexed { rowIdx, fileNameAndResult ->
@@ -189,6 +203,16 @@ class XLSXColocalizationOutput(
                 cell.setCellValue(dataEntry)
             }
         }
+    }
+
+    private fun createHeaderCellStyle(workbook: XSSFWorkbook): XSSFCellStyle? {
+        val headerFont = workbook.createFont()
+        headerFont.bold = true
+        headerFont.color = IndexedColors.BLUE.getIndex()
+
+        val headerCellStyle = workbook.createCellStyle()
+        headerCellStyle.setFont(headerFont)
+        return headerCellStyle
     }
 
     fun autoSizeColumns(workbook: XSSFWorkbook) {
