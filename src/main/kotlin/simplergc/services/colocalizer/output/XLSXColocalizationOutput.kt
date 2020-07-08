@@ -1,11 +1,11 @@
 package simplergc.services.colocalizer.output
 
+import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.commands.RGCTransduction.TransductionParameters
-import java.io.File
 
 /**
  * Displays a table for a transduction analysis with the result of
