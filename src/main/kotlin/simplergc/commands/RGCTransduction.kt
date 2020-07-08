@@ -47,6 +47,10 @@ class RGCTransduction : Command, Previewable {
 
     private val intensityPercentageThreshold: Float = 90f
 
+    private val pluginName = "RGC Transduction"
+
+    private val pluginVersion = "1.0.0"
+
     @Parameter
     private lateinit var logService: LogService
 
@@ -214,6 +218,23 @@ class RGCTransduction : Command, Previewable {
         val overlappingTwoChannelCells: List<PositionedCell>
     )
 
+    /**
+     * Class that consolidates all the parameters required for transduction
+     * Used to pass respective values to the the CSV output
+     */
+    data class TransductionParameters(
+        val pluginName: String,
+        val pluginVersion: String,
+        val excludeAxonsFromMorphologyChannel: String,
+        val transductionChannel: String,
+        val excludeAxonsFromTransductionChannel: String,
+        val cellDiameterRange: String,
+        val localThresholdRadius: String,
+        val gaussianBlurSigma: String,
+        val morphologyChannel: String,
+        val outputFile: File
+    )
+
     override fun run() {
         val image = WindowManager.getCurrentImage()
         if (image == null) {
@@ -232,7 +253,7 @@ class RGCTransduction : Command, Previewable {
         // TODO(#135): Remove duplication in this code fragment.
         if (outputFormat != OutputFormat.DISPLAY && outputFile == null) {
             val path = image.originalFileInfo.directory
-            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName) + ".csv"
+            val name = FilenameUtils.removeExtension(image.originalFileInfo.fileName)
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
@@ -252,19 +273,37 @@ class RGCTransduction : Command, Previewable {
         }
 
         statusService.showStatus(100, 100, "Done!")
-        writeOutput(result)
+        writeOutput(image.originalFileInfo.fileName, result)
 
         image.show()
         addToRoiManager(result.overlappingTwoChannelCells)
         // showHistogram(result.overlappingTransducedIntensityAnalysis)
     }
 
-    private fun writeOutput(result: TransductionResult) {
+    private fun writeOutput(inputFileName: String, result: TransductionResult) {
+
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputFormat.CSV -> CSVColocalizationOutput(result, outputFile!!)
+            OutputFormat.CSV -> {
+                val transductionParameters = TransductionParameters(
+                    pluginName,
+                    pluginVersion,
+                    this.shouldRemoveAxonsFromTargetChannel.toString(),
+                    this.transducedChannel.toString(),
+                    this.shouldRemoveAxonsFromTransductionChannel.toString(),
+                    this.cellDiameterText,
+                    this.localThresholdRadius.toString(),
+                    this.gaussianBlurSigma.toString(),
+                    this.targetChannel.toString(),
+                    this.outputFile!!
+                )
+
+                CSVColocalizationOutput(transductionParameters)
+            }
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
+
+        output.addTransductionResultForFile(result, inputFileName)
 
         try {
             output.output()
