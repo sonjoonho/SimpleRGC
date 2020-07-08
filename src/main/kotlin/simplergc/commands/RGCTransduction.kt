@@ -49,6 +49,10 @@ class RGCTransduction : Command, Previewable {
 
     private val intensityPercentageThreshold: Float = 90f
 
+    private val pluginName = "RGC Transduction"
+
+    private val pluginVersion = "1.0.0"
+
     @Parameter
     private lateinit var logService: LogService
 
