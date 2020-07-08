@@ -57,7 +57,7 @@ class XLSXColocalizationOutput(
         )
         docInfo.forEachIndexed { rowIdx, rows ->
             run {
-                val row = docSheet.createRow(rowIdx + HEADER_OFFSET)
+                val row = docSheet.createRow(rowIdx)
                 rows.forEachIndexed { colIdx, str ->
                     run {
                         val cell = row.createCell(colIdx)
