@@ -5,6 +5,9 @@ import java.io.FileOutputStream
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.CellDiameterRange
+import simplergc.services.SimpleOutput.Companion.ARTICLE_CITATION
+import simplergc.services.SimpleOutput.Companion.PLUGIN_VERSION
+import simplergc.services.counter.output.CounterOutput.Companion.PLUGIN_NAME
 
 class XLSXCounterOutput(
     private val outputFile: File,
@@ -12,7 +15,7 @@ class XLSXCounterOutput(
     private val cellDiameterRange: CellDiameterRange,
     private val localThresholdRadius: Int,
     private val gaussianBlurSigma: Double
-) : CounterOutput() {
+) : CounterOutput {
 
     private val fileNameAndCountList: ArrayList<Pair<String, Int>> = ArrayList()
 

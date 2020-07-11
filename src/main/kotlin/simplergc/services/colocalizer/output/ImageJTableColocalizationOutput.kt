@@ -6,6 +6,7 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
+import simplergc.services.BaseTable
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -13,107 +14,86 @@ import simplergc.commands.RGCTransduction.TransductionResult
  */
 class ImageJTableColocalizationOutput(
     val result: TransductionResult,
-    val uiService: UIService
-) : ColocalizationOutput() {
+    private val uiService: UIService
+) : ColocalizationOutput {
 
     // TODO (131): Use fileNameAndResultsList in output
 
+    private val table = ColocalizationTable(DefaultGenericTable())
+
     override fun output() {
-        val table = DefaultGenericTable()
+        table.addRow(ColocalizationTable.Row(label = "--- Summary ---", count = result.targetCellCount))
 
-        val labelColumn = DefaultColumn(String::class.java)
-        val countColumn = IntColumn()
-        val areaColumn = IntColumn()
-        val medianColumn = IntColumn()
-        val meanColumn = IntColumn()
-        val integratedDensityColumn = IntColumn()
-        val rawIntegratedDensityColumn = IntColumn()
+        table.addRow(ColocalizationTable.Row(label = "Total number of cells in cell morphology channel 1", count = result.targetCellCount))
 
-        // Summary columns
-        labelColumn.add("--- Summary ---")
-        countColumn.add(result.targetCellCount)
-        areaColumn.add(0)
-        medianColumn.add(0)
-        meanColumn.add(0)
-        integratedDensityColumn.add(0)
-        rawIntegratedDensityColumn.add(0)
-
-        labelColumn.add("Total number of cells in cell morphology channel 1")
-        countColumn.add(result.targetCellCount)
-        areaColumn.add(0)
-        medianColumn.add(0)
-        meanColumn.add(0)
-        integratedDensityColumn.add(0)
-        rawIntegratedDensityColumn.add(0)
-
-        labelColumn.add("Transduced cells in channel 1")
-        countColumn.add(result.overlappingTwoChannelCells.size)
-        areaColumn.add(0)
-        medianColumn.add(0)
-        meanColumn.add(0)
-        integratedDensityColumn.add(0)
-        rawIntegratedDensityColumn.add(0)
+        table.addRow(ColocalizationTable.Row(label = "Transduced cells in channel 1", count = result.overlappingTwoChannelCells.size))
 
         val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
-        labelColumn.add("Transduction Efficiency (rounded to nearest integer) %")
-        countColumn.add(transductionEfficiency.roundToInt())
-        areaColumn.add(0)
-        medianColumn.add(0)
-        meanColumn.add(0)
-        integratedDensityColumn.add(0)
-        rawIntegratedDensityColumn.add(0)
+        table.addRow(ColocalizationTable.Row(label = "Transduction Efficiency (rounded to nearest integer) %", count = transductionEfficiency.roundToInt()))
 
-        labelColumn.add("Mean intensity of colocalized cells")
-        countColumn.add(result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size)
-        areaColumn.add(0)
-        medianColumn.add(0)
-        meanColumn.add(0)
-        integratedDensityColumn.add(0)
-        rawIntegratedDensityColumn.add(0)
+        table.addRow(ColocalizationTable.Row(label = "Mean intensity of colocalized cells", count = result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size))
 
-        labelColumn.add("----------------------------------------------")
-        countColumn.add(0)
-        areaColumn.add(0)
-        medianColumn.add(0)
-        meanColumn.add(0)
-        integratedDensityColumn.add(0)
-        rawIntegratedDensityColumn.add(0)
+        table.addRow(ColocalizationTable.Row(label = "----------------------------------------------"))
 
-        labelColumn.add("--- Transduced Channel Analysis, Colocalized Cells ---")
-        countColumn.add(0)
-        areaColumn.add(0)
-        medianColumn.add(0)
-        meanColumn.add(0)
-        integratedDensityColumn.add(0)
-        rawIntegratedDensityColumn.add(0)
+        table.addRow(ColocalizationTable.Row(label = "--- Transduced Channel Analysis, Colocalized Cells ---"))
 
         // Construct column values using the channel analysis values.
         result.overlappingTransducedIntensityAnalysis.forEachIndexed { i, cell ->
-            labelColumn.add("Cell ${i + 1}")
-            countColumn.add(1)
-            areaColumn.add(cell.area)
-            medianColumn.add(cell.median)
-            meanColumn.add(cell.mean)
-            integratedDensityColumn.add(cell.area * cell.mean)
-            rawIntegratedDensityColumn.add(cell.rawIntDen)
+            table.addRow(ColocalizationTable.Row("Cell ${i + 1}", 1, cell.area, cell.median, cell.mean, cell.area * cell.mean, cell.rawIntDen))
         }
 
-        table.add(labelColumn)
-        table.add(countColumn)
-        table.add(areaColumn)
-        table.add(medianColumn)
-        table.add(meanColumn)
-        table.add(integratedDensityColumn)
-        table.add(rawIntegratedDensityColumn)
+        uiService.show(table.produce())
+    }
 
-        table.setColumnHeader(0, "Label")
-        table.setColumnHeader(1, "Count")
-        table.setColumnHeader(2, "Area")
-        table.setColumnHeader(3, "Median")
-        table.setColumnHeader(4, "Mean")
-        table.setColumnHeader(5, "Integrated Density")
-        table.setColumnHeader(6, "Raw Integrated Density")
+    class ColocalizationTable(private val table: DefaultGenericTable) : BaseTable(table) {
+        private val labelColumn = DefaultColumn(String::class.java)
+        private val countColumn = IntColumn()
+        private val areaColumn = IntColumn()
+        private val medianColumn = IntColumn()
+        private val meanColumn = IntColumn()
+        private val integratedDensityColumn = IntColumn()
+        private val rawIntegratedDensityColumn = IntColumn()
 
-        uiService.show(table)
+        data class Row(
+            val label: String = "",
+            val count: Int = 0,
+            val area: Int = 0,
+            val median: Int = 0,
+            val mean: Int = 0,
+            val integratedDensity: Int = 0,
+            val rawIntegratedDensity: Int = 0
+        )
+
+        init {
+            labelColumn.header = "Label"
+            countColumn.header = "Count"
+            areaColumn.header = "Area"
+            medianColumn.header = "Median"
+            meanColumn.header = "Mean"
+            integratedDensityColumn.header = "Integrated Density"
+            rawIntegratedDensityColumn.header = "Raw Integrated Density"
+        }
+
+        fun addRow(row: Row) {
+            labelColumn.add(row.label)
+            countColumn.add(row.count)
+            areaColumn.add(row.area)
+            medianColumn.add(row.median)
+            meanColumn.add(row.mean)
+            integratedDensityColumn.add(row.integratedDensity)
+            rawIntegratedDensityColumn.add(row.rawIntegratedDensity)
+        }
+
+        override fun produce(): DefaultGenericTable {
+            table.add(labelColumn)
+            table.add(countColumn)
+            table.add(areaColumn)
+            table.add(medianColumn)
+            table.add(meanColumn)
+            table.add(integratedDensityColumn)
+            table.add(rawIntegratedDensityColumn)
+
+            return table
+        }
     }
 }

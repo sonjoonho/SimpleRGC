@@ -13,7 +13,7 @@ import simplergc.commands.RGCTransduction
  */
 class CSVColocalizationOutput(
     private val transductionParameters: RGCTransduction.TransductionParameters
-) : ColocalizationOutput() {
+) : ColocalizationOutput {
 
     override fun output() {
         val csvWriter = CsvWriter()
@@ -31,7 +31,7 @@ class CSVColocalizationOutput(
         writeParametersCsv(csvWriter)
     }
 
-    fun writeDocumentationCsv(csvWriter: CsvWriter) {
+    private fun writeDocumentationCsv(csvWriter: CsvWriter) {
         // Constant array of information
         val documentationData = ArrayList<Array<String>>()
         documentationData.add(arrayOf("The Article: ", "TODO: insert full citation of manuscript when complete"))
@@ -48,7 +48,7 @@ class CSVColocalizationOutput(
         )
     }
 
-    fun writeSummaryCsv(csvWriter: CsvWriter) {
+    private fun writeSummaryCsv(csvWriter: CsvWriter) {
         // Summary
         // TODO (#156): Add integrated density
         val summaryData = ArrayList<Array<String>>()
@@ -85,7 +85,7 @@ class CSVColocalizationOutput(
         csvWriter.write(File("${transductionParameters.outputFile.path}${File.separator}Summary.csv"), StandardCharsets.UTF_8, summaryData)
     }
 
-    fun writeTransductionAnalysisCsv(csvWriter: CsvWriter) {
+    private fun writeTransductionAnalysisCsv(csvWriter: CsvWriter) {
         // TODO (#156): Add integrated density
         val cellByCellData = ArrayList<Array<String>>()
         cellByCellData.add(
@@ -125,7 +125,7 @@ class CSVColocalizationOutput(
         )
     }
 
-    fun writeParametersCsv(csvWriter: CsvWriter) {
+    private fun writeParametersCsv(csvWriter: CsvWriter) {
         // TODO (#156): Add pixel size (micrometers) in next sprint.
         val parametersData = ArrayList<Array<String>>()
         parametersData.add(

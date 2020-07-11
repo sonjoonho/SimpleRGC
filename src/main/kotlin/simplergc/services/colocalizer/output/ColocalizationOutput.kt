@@ -6,13 +6,13 @@ import simplergc.services.SimpleOutput
 /**
  * Outputs the result of cell counting.
  */
-abstract class ColocalizationOutput : SimpleOutput() {
+interface ColocalizationOutput : SimpleOutput {
 
-    val fileNameAndResultsList: ArrayList<Pair<String, TransductionResult>> = ArrayList()
+    val fileNameAndResultsList: ArrayList<Pair<String, TransductionResult>>
+        get() = ArrayList()
 
     companion object {
         const val PLUGIN_NAME = "RGC Transduction"
-        const val PLUGIN_VERSION = "1.0.0"
     }
 
     fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {

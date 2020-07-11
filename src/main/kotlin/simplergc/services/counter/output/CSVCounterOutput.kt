@@ -4,6 +4,8 @@ import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
 import simplergc.services.CellDiameterRange
+import simplergc.services.SimpleOutput.Companion.PLUGIN_VERSION
+import simplergc.services.counter.output.CounterOutput.Companion.PLUGIN_NAME
 
 class CSVCounterOutput(
     private val outputFile: File,
@@ -11,7 +13,7 @@ class CSVCounterOutput(
     private val cellDiameterRange: CellDiameterRange,
     private val localThresholdRadius: Int,
     private val gaussianBlurSigma: Double
-) : CounterOutput() {
+) : CounterOutput {
 
     private val fileNameAndCountList: ArrayList<Pair<String, Int>> = ArrayList()
 
