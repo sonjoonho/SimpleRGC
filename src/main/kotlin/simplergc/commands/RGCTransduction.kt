@@ -12,7 +12,6 @@ import ij.process.FloatProcessor
 import ij.process.StackStatistics
 import java.io.File
 import java.io.IOException
-import javax.xml.transform.TransformerException
 import kotlin.math.max
 import kotlin.math.min
 import net.imagej.ImageJ

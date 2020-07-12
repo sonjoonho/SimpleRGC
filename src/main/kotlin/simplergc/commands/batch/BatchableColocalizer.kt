@@ -12,7 +12,6 @@ import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.colocalizer.output.CSVColocalizationOutput
 import simplergc.services.colocalizer.output.XLSXColocalizationOutput
-import javax.xml.transform.TransformerException
 
 class BatchableColocalizer(
     private val targetChannel: Int,

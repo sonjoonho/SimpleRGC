@@ -9,7 +9,6 @@ import ij.plugin.ChannelSplitter
 import ij.plugin.frame.RoiManager
 import java.io.File
 import java.io.IOException
-import javax.xml.transform.TransformerException
 import net.imagej.ImageJ
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
