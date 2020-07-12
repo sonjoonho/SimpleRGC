@@ -188,8 +188,8 @@ class XLSXColocalizationOutput(
             val paramsRow = paramsSheet.createRow(rowIdx + HEADER_OFFSET)
             val paramsData = arrayOf(
                 fileNameAndResult.first,
-                transductionParameters.pluginName,
-                transductionParameters.pluginVersion,
+                PLUGIN_NAME,
+                PLUGIN_VERSION,
                 transductionParameters.morphologyChannel,
                 transductionParameters.excludeAxonsFromMorphologyChannel,
                 transductionParameters.transductionChannel,

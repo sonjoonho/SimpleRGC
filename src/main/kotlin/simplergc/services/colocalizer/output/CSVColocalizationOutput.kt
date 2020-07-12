@@ -146,8 +146,8 @@ class CSVColocalizationOutput(
             parametersData.add(
                 arrayOf(
                     it.first,
-                    transductionParameters.pluginName,
-                    transductionParameters.pluginVersion,
+                    PLUGIN_NAME,
+                    PLUGIN_VERSION,
                     transductionParameters.morphologyChannel,
                     transductionParameters.excludeAxonsFromMorphologyChannel,
                     transductionParameters.transductionChannel,

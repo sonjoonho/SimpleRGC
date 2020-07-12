@@ -38,7 +38,6 @@ import simplergc.services.colocalizer.PositionedCell
 import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
 import simplergc.services.colocalizer.output.CSVColocalizationOutput
-import simplergc.services.colocalizer.output.ColocalizationOutput
 import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplergc.services.colocalizer.output.XLSXColocalizationOutput
 import simplergc.services.colocalizer.resetRoiManager
@@ -177,7 +176,7 @@ class RGCTransduction : Command, Previewable {
      */
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
-        const val XLSX = "Save as Excel file (Reccomended)"
+        const val XLSX = "Save as Excel file (Recommended)"
         const val CSV = "Save as CSV files"
     }
 
@@ -222,8 +221,6 @@ class RGCTransduction : Command, Previewable {
      * Used to pass respective values to the the CSV output
      */
     data class TransductionParameters(
-        val pluginName: String,
-        val pluginVersion: String,
         val excludeAxonsFromMorphologyChannel: String,
         val transductionChannel: String,
         val excludeAxonsFromTransductionChannel: String,
@@ -282,8 +279,6 @@ class RGCTransduction : Command, Previewable {
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
 
         val transductionParameters = TransductionParameters(
-            ColocalizationOutput.PLUGIN_NAME,
-            ColocalizationOutput.PLUGIN_VERSION,
             this.shouldRemoveAxonsFromTargetChannel.toString(),
             this.transducedChannel.toString(),
             this.shouldRemoveAxonsFromTransductionChannel.toString(),
