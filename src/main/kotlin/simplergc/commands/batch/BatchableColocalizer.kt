@@ -8,6 +8,7 @@ import java.io.IOException
 import org.scijava.Context
 import simplergc.commands.ChannelDoesNotExistException
 import simplergc.commands.RGCTransduction
+import simplergc.commands.batch.RGCBatch.OutputFormat
 import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.colocalizer.output.CSVColocalizationOutput
@@ -60,8 +61,8 @@ class BatchableColocalizer(
         )
 
         val output = when (outputFormat) {
-            RGCTransduction.OutputFormat.XLSX -> XLSXColocalizationOutput(transductionParameters)
-            RGCTransduction.OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters)
+            OutputFormat.XLSX -> XLSXColocalizationOutput(transductionParameters)
+            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
