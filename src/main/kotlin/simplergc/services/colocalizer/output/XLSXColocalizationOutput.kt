@@ -127,7 +127,6 @@ class XLSXColocalizationOutput(
             "Median Fluorescence Intensity (a.u.)",
             "Min Fluorescence Intensity (a.u.)",
             "Max Fluorescence Intensity (a.u.)",
-            "IntDen",
             "RawIntDen"
         )
         // Create header for transduced cell analysis
