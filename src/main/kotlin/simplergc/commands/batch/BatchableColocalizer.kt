@@ -14,13 +14,16 @@ import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.commands.batch.RGCBatch.OutputFormat
 import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
+import simplergc.services.colocalizer.output.CSVColocalizationOutput
+import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
+import simplergc.services.colocalizer.output.XLSXColocalizationOutput
+import javax.xml.transform.TransformerException
 
 class BatchableColocalizer(
     private val targetChannel: Int,
     private val shouldRemoveAxonsFromTargetChannel: Boolean,
     private val transducedChannel: Int,
     private val shouldRemoveAxonsFromTransductionChannel: Boolean,
-
     private val context: Context
 ) : Batchable {
     override fun process(
@@ -33,7 +36,6 @@ class BatchableColocalizer(
     ) {
         val rgcTransduction = RGCTransduction()
 
-        // TODO: Update branch to use exclude axons feature in colocaliser.
         rgcTransduction.localThresholdRadius = localThresholdRadius
         rgcTransduction.targetChannel = targetChannel
         rgcTransduction.shouldRemoveAxonsFromTargetChannel = shouldRemoveAxonsFromTargetChannel
@@ -52,34 +54,44 @@ class BatchableColocalizer(
 
         val fileNameAndAnalysis = inputImages.map { it.title }.zip(analyses)
 
+        val transductionParameters = RGCTransduction.TransductionParameters(
+            shouldRemoveAxonsFromTargetChannel.toString(),
+            transducedChannel.toString(),
+            shouldRemoveAxonsFromTransductionChannel.toString(),
+            cellDiameterRange.toString(),
+            localThresholdRadius.toString(),
+            gaussianBlurSigma.toString(),
+            this.targetChannel.toString(),
+            outputFile
+        )
+
+        val output = when (outputFormat) {
+            RGCTransduction.OutputFormat.XLSX -> XLSXColocalizationOutput(transductionParameters)
+            RGCTransduction.OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters)
+            else -> throw IllegalArgumentException("Invalid output type provided")
+        }
+
+        fileNameAndAnalysis.forEach {
+            output.addTransductionResultForFile(it.second, it.first)
+        }
+
         try {
-            when (outputFormat) {
-                OutputFormat.CSV -> outputToCSV(fileNameAndAnalysis, outputFile)
-                else -> throw IllegalArgumentException("Invalid output type provided")
-            }
+            output.output()
+        } catch (te: TransformerException) {
+            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
             displayOutputFileErrorDialog()
         }
-    }
 
-    private fun outputToCSV(
-        fileNameAndAnalysis: List<Pair<String, TransductionResult>>,
-        outputFile: File
-    ) {
-        val csvWriter = CsvWriter()
-        val outputData = mutableListOf(
-            arrayOf(
-                "File Name",
-                "Total number of cells in cell morphology channel 1",
-                "Transduced cells in channel 1",
-                "Transduced cells in both morphology channels"
+        // The colocalization results are clearly displayed if the output
+        // destination is set to DISPLAY, however, a visual confirmation
+        // is useful if the output is saved to file.
+        if (outputFormat != RGCTransduction.OutputFormat.DISPLAY) {
+            MessageDialog(
+                IJ.getInstance(),
+                "Saved",
+                "The colocalization results have successfully been saved to the specified file"
             )
-        )
-        outputData.addAll(fileNameAndAnalysis.map {
-            val totalTargetCells = it.second.targetCellCount.toString()
-            val totalTransducedTargetCells = it.second.overlappingTwoChannelCells.size.toString()
-            arrayOf(it.first.replace(",", ""), totalTargetCells, totalTransducedTargetCells)
-        })
-        csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
+        }
     }
 }
