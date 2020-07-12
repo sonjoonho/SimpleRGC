@@ -136,7 +136,7 @@ class RGCCounter : Command, Previewable {
      */
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
-        const val XLSX = "Save as XLSX file"
+        const val XLSX = "Save as Excel file (Recommended)"
         const val CSV = "Save as CSV file"
     }
 
