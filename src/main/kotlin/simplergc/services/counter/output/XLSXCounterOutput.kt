@@ -1,7 +1,7 @@
 package simplergc.services.counter.output
 
+import org.apache.commons.io.FilenameUtils
 import java.io.File
-import java.io.FileOutputStream
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.CellDiameterRange
@@ -141,9 +141,10 @@ class XLSXCounterOutput(
         generateResultsSheet(workbook)
         generateParametersSheet(workbook)
 
-        val fileOut = FileOutputStream(outputFile)
-        workbook.write(fileOut)
-        fileOut.close()
+        val outputXlsxFile = File(FilenameUtils.removeExtension(outputFile.path) + ".xlsx")
+        val xlsxFileOut = outputXlsxFile.outputStream()
+        workbook.write(xlsxFileOut)
+        xlsxFileOut.close()
         workbook.close()
     }
 }
