@@ -33,7 +33,7 @@ class RGCBatch : Command {
 
     object OutputFormat {
         const val XLSX = "Save as XLSX file (recommended)"
-        const val CSV = "Save as CSV file"
+        const val CSV = "Save as CSV file(s)"
     }
 
     private fun gui() {
