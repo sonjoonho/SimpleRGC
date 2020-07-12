@@ -1,6 +1,8 @@
 package simplergc.services.counter.output
 
 import org.apache.commons.io.FilenameUtils
+import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import java.io.File
 import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -49,12 +51,28 @@ class XLSXCounterOutput(
     /**
      * Generate a table header and add to the [sheet] at the [rowNumber].
      */
-    private fun generateTableHeader(sheet: XSSFSheet, headers: Array<String>, rowNumber: Int) {
+    private fun generateTableHeader(
+        sheet: XSSFSheet,
+        headers: Array<String>,
+        rowNumber: Int,
+        headerCellStyle: XSSFCellStyle?
+    ) {
         val headerRow = sheet.createRow(rowNumber)
         for (col in headers.indices) {
             val cell = headerRow.createCell(col)
             cell.setCellValue(headers[col])
+            cell.cellStyle = headerCellStyle
         }
+    }
+
+    private fun createHeaderCellStyle(workbook: XSSFWorkbook): XSSFCellStyle? {
+        val headerFont = workbook.createFont()
+        headerFont.bold = true
+        headerFont.color = IndexedColors.BLUE.getIndex()
+
+        val headerCellStyle = workbook.createCellStyle()
+        headerCellStyle.setFont(headerFont)
+        return headerCellStyle
     }
 
     /**
@@ -65,8 +83,10 @@ class XLSXCounterOutput(
 
         val createHelper = workbook.creationHelper
 
+        val headerCellStyle = createHeaderCellStyle(workbook)
+
         generateCitation(resultsSheet, 0)
-        generateTableHeader(resultsSheet, resultsFields, 2)
+        generateTableHeader(resultsSheet, resultsFields, 2, headerCellStyle)
 
         val numberCellStyle = workbook.createCellStyle()
         numberCellStyle.dataFormat = createHelper.createDataFormat().getFormat("#")
@@ -94,7 +114,9 @@ class XLSXCounterOutput(
     private fun generateParametersSheet(workbook: XSSFWorkbook) {
         val parametersSheet = workbook.createSheet("Parameters")
 
-        generateTableHeader(parametersSheet, parametersFields, 0)
+        val headerCellStyle = createHeaderCellStyle(workbook)
+
+        generateTableHeader(parametersSheet, parametersFields, 0, headerCellStyle)
 
         var rowIdx = 1
         for (pair in fileNameAndCountList) {
