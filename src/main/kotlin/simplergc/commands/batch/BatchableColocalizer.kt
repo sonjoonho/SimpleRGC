@@ -75,16 +75,5 @@ class BatchableColocalizer(
         } catch (ioe: IOException) {
             displayOutputFileErrorDialog()
         }
-
-        // The colocalization results are clearly displayed if the output
-        // destination is set to DISPLAY, however, a visual confirmation
-        // is useful if the output is saved to file.
-        if (outputFormat != RGCTransduction.OutputFormat.DISPLAY) {
-            MessageDialog(
-                IJ.getInstance(),
-                "Saved",
-                "The colocalization results have successfully been saved to the specified file"
-            )
-        }
     }
 }
