@@ -45,25 +45,19 @@ class XLSXColocalizationOutput(
 
     private fun writeDocSheet(workbook: XSSFWorkbook) {
         val docSheet = workbook.createSheet("Documentation")
-        val docInfo = ArrayList<Array<String>>(
-            arrayListOf(
-                arrayOf("The article: ", "TODO: Insert citation"),
-                arrayOf("", ""),
-                arrayOf("Abbreviation", "Description"),
-                arrayOf("Summary", "Key measurements per image"),
-                arrayOf("Transduced cells analysis", "Per-cell metrics of transduced cells"),
-                arrayOf("Parameters", "Parameters used to run the SimpleRGC plugin")
-            )
+        val docInfo = arrayListOf(
+            listOf("The article: ", "TODO: Insert citation"),
+            listOf("", ""),
+            listOf("Abbreviation", "Description"),
+            listOf("Summary", "Key measurements per image"),
+            listOf("Transduced cells analysis", "Per-cell metrics of transduced cells"),
+            listOf("Parameters", "Parameters used to run the SimpleRGC plugin")
         )
         docInfo.forEachIndexed { rowIdx, rows ->
-            run {
-                val row = docSheet.createRow(rowIdx)
-                rows.forEachIndexed { colIdx, str ->
-                    run {
-                        val cell = row.createCell(colIdx)
-                        cell.setCellValue(str)
-                    }
-                }
+            val row = docSheet.createRow(rowIdx)
+            rows.forEachIndexed { colIdx, str ->
+                val cell = row.createCell(colIdx)
+                cell.setCellValue(str)
             }
         }
     }
@@ -73,7 +67,7 @@ class XLSXColocalizationOutput(
         headerCellStyle: XSSFCellStyle?
     ) {
         val summarySheet = workbook.createSheet("Summary")
-        val summaryHeader = arrayOf(
+        val summaryHeader = listOf(
             "File Name",
             "Number of Cells",
             "Number of Transduced Cells",
@@ -94,7 +88,7 @@ class XLSXColocalizationOutput(
         }
         // Add summary data
         fileNameAndResultsList.forEachIndexed { rowIdx, fileNameAndResult ->
-            val summaryData = arrayOf(
+            val summaryData = listOf(
                 fileNameAndResult.first,
                 fileNameAndResult.second.targetCellCount.toString(),
                 fileNameAndResult.second.overlappingTwoChannelCells.size.toString(),
@@ -119,7 +113,7 @@ class XLSXColocalizationOutput(
         headerCellStyle: XSSFCellStyle?
     ) {
         val perCellAnalysisSheet = workbook.createSheet("Transduced cells analysis")
-        val perCellAnalysisHeader = arrayOf(
+        val perCellAnalysisHeader = listOf(
             "File Name",
             "Transduced Cell",
             "Morphology Area (pixel^2)",
@@ -141,7 +135,7 @@ class XLSXColocalizationOutput(
         fileNameAndResultsList.forEachIndexed { baseRowIdx, fileNameAndResult ->
             fileNameAndResult.second.overlappingTransducedIntensityAnalysis.forEachIndexed { addedRowIdx, cellAnalysis ->
                 val analysisRow = perCellAnalysisSheet.createRow(baseRowIdx + addedRowIdx + HEADER_OFFSET)
-                val analysisData = arrayOf(
+                val analysisData = listOf(
                     fileNameAndResult.first,
                     addedRowIdx.toString(),
                     cellAnalysis.area.toString(),
@@ -164,7 +158,7 @@ class XLSXColocalizationOutput(
         headerCellStyle: XSSFCellStyle?
     ) {
         val paramsSheet = workbook.createSheet("Parameters")
-        val paramsHeader = arrayOf(
+        val paramsHeader = listOf(
             "File name",
             "Simple RGC plugin",
             "Version",
@@ -186,7 +180,7 @@ class XLSXColocalizationOutput(
         // Add parameters data
         fileNameAndResultsList.forEachIndexed { rowIdx, fileNameAndResult ->
             val paramsRow = paramsSheet.createRow(rowIdx + HEADER_OFFSET)
-            val paramsData = arrayOf(
+            val paramsData = listOf(
                 fileNameAndResult.first,
                 PLUGIN_NAME,
                 PLUGIN_VERSION,
@@ -205,7 +199,7 @@ class XLSXColocalizationOutput(
         }
     }
 
-    private fun createHeaderCellStyle(workbook: XSSFWorkbook): XSSFCellStyle? {
+    private fun createHeaderCellStyle(workbook: XSSFWorkbook): XSSFCellStyle {
         val headerFont = workbook.createFont()
         headerFont.bold = true
         headerFont.color = IndexedColors.BLUE.getIndex()
@@ -215,16 +209,12 @@ class XLSXColocalizationOutput(
         return headerCellStyle
     }
 
-    fun autoSizeColumns(workbook: XSSFWorkbook) {
-        val numberOfSheets: Int = workbook.getNumberOfSheets()
-        for (i in 0 until numberOfSheets) {
-            val sheet = workbook.getSheetAt(i)
+    private fun autoSizeColumns(workbook: XSSFWorkbook) {
+        for (sheet in workbook.sheetIterator()) {
             if (sheet.physicalNumberOfRows > 0) {
                 val row = sheet.getRow(sheet.firstRowNum)
-                val cellIterator = row.cellIterator()
-                while (cellIterator.hasNext()) {
-                    val cell = cellIterator.next()
-                    val columnIndex: Int = cell.columnIndex
+                for (cell in row.cellIterator()) {
+                    val columnIndex = cell.columnIndex
                     sheet.autoSizeColumn(columnIndex)
                 }
             }
