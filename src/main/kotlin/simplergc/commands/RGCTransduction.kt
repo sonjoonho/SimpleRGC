@@ -39,6 +39,7 @@ import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
 import simplergc.services.colocalizer.output.CSVColocalizationOutput
 import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
+import simplergc.services.colocalizer.output.XLSXColocalizationOutput
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.widgets.AlignedTextWidget
 
@@ -179,12 +180,13 @@ class RGCTransduction : Command, Previewable {
      */
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
-        const val CSV = "Save as CSV file"
+        const val XLSX = "Save as Excel file (Recommended)"
+        const val CSV = "Save as CSV files"
     }
 
     @Parameter(
         label = "Results Output:",
-        choices = [OutputFormat.DISPLAY, OutputFormat.CSV],
+        choices = [OutputFormat.DISPLAY, OutputFormat.XLSX, OutputFormat.CSV],
         required = true,
         persist = true,
         style = "radioButtonVertical"
@@ -223,8 +225,6 @@ class RGCTransduction : Command, Previewable {
      * Used to pass respective values to the the CSV output
      */
     data class TransductionParameters(
-        val pluginName: String,
-        val pluginVersion: String,
         val excludeAxonsFromMorphologyChannel: String,
         val transductionChannel: String,
         val excludeAxonsFromTransductionChannel: String,
@@ -282,24 +282,21 @@ class RGCTransduction : Command, Previewable {
 
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
 
+        val transductionParameters = TransductionParameters(
+            this.shouldRemoveAxonsFromTargetChannel.toString(),
+            this.transducedChannel.toString(),
+            this.shouldRemoveAxonsFromTransductionChannel.toString(),
+            this.cellDiameterText,
+            this.localThresholdRadius.toString(),
+            this.gaussianBlurSigma.toString(),
+            this.targetChannel.toString(),
+            this.outputFile!!
+        )
+
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputFormat.CSV -> {
-                val transductionParameters = TransductionParameters(
-                    pluginName,
-                    pluginVersion,
-                    this.shouldRemoveAxonsFromTargetChannel.toString(),
-                    this.transducedChannel.toString(),
-                    this.shouldRemoveAxonsFromTransductionChannel.toString(),
-                    this.cellDiameterText,
-                    this.localThresholdRadius.toString(),
-                    this.gaussianBlurSigma.toString(),
-                    this.targetChannel.toString(),
-                    this.outputFile!!
-                )
-
-                CSVColocalizationOutput(transductionParameters)
-            }
+            OutputFormat.XLSX -> XLSXColocalizationOutput(transductionParameters)
+            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
