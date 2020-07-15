@@ -28,4 +28,4 @@ printf "Deploying the plugin\n"
 $IJ_LAUNCHER --update edit-update-site $UPDATE_SITE $URL "webdav:$USER:$WIKI_UPLOAD_PASS" .
 $IJ_LAUNCHER --update update
 # Upload to the update site.
-yes 1 | $IJ_LAUNCHER --update upload --update-site $UPDATE_SITE --force-shadow --forget-missing-dependencies jars/SimpleColocalization.jar
+yes 1 | $IJ_LAUNCHER --update upload --update-site $UPDATE_SITE --force-shadow --forget-missing-dependencies jars/SimpleRGC.jar
