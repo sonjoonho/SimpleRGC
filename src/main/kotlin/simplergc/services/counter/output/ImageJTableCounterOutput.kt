@@ -1,17 +1,21 @@
 package simplergc.services.counter.output
 
-import org.scijava.table.DefaultGenericTable
-import org.scijava.table.IntColumn
 import org.scijava.ui.UIService
-import simplergc.services.BaseTable
+import simplergc.services.BaseRow
+import simplergc.services.ImageJTable
+import simplergc.services.Table
 
 class ImageJTableCounterOutput(private val uiService: UIService) : CounterOutput {
 
-    private val table: CounterTable = CounterTable(DefaultGenericTable())
+    private val schema = arrayOf("Count")
+    private val table: Table = ImageJTable(schema, uiService)
+
+    data class Row(val count: Int) : BaseRow {
+        override fun toStringArray(): Array<String> = arrayOf(count.toString())
+    }
 
     override fun addCountForFile(count: Int, file: String) {
-        table.addRow(CounterTable.Row(count))
-
+        table.addRow(Row(count))
         // TODO(#131): Implement storing and displaying filenames
     }
 
@@ -19,26 +23,6 @@ class ImageJTableCounterOutput(private val uiService: UIService) : CounterOutput
      * Displays GUI window using an ImageJ table to output count results.
      */
     override fun output() {
-        uiService.show(table.produce())
-    }
-
-    class CounterTable(private val table: DefaultGenericTable) : BaseTable(table) {
-
-        private val countColumn: IntColumn = IntColumn()
-
-        data class Row(val count: Int = 0)
-
-        init {
-            countColumn.header = "Count"
-        }
-
-        fun addRow(row: Row) {
-            countColumn.add(row.count)
-        }
-
-        override fun produce(): DefaultGenericTable {
-            table.add(countColumn)
-            return table
-        }
+        table.produce()
     }
 }

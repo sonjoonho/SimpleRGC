@@ -11,7 +11,6 @@ import ij.plugin.frame.RoiManager
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
 import java.io.File
-import java.io.IOException
 import javax.xml.transform.TransformerException
 import kotlin.math.max
 import kotlin.math.min
@@ -47,10 +46,6 @@ import simplergc.widgets.AlignedTextWidget
 class RGCTransduction : Command, Previewable {
 
     private val intensityPercentageThreshold: Float = 90f
-
-    private val pluginName = "RGC Transduction"
-
-    private val pluginVersion = "1.0.0"
 
     @Parameter
     private lateinit var logService: LogService
@@ -218,22 +213,32 @@ class RGCTransduction : Command, Previewable {
         val targetCellCount: Int, // Number of red cells
         val overlappingTransducedIntensityAnalysis: Array<CellColocalizationService.CellAnalysis>,
         val overlappingTwoChannelCells: List<PositionedCell>
-    )
-
-    /**
-     * Class that consolidates all the parameters required for transduction
-     * Used to pass respective values to the the CSV output
-     */
-    data class TransductionParameters(
-        val excludeAxonsFromMorphologyChannel: String,
-        val transductionChannel: String,
-        val excludeAxonsFromTransductionChannel: String,
-        val cellDiameterRange: String,
-        val localThresholdRadius: String,
-        val gaussianBlurSigma: String,
-        val morphologyChannel: String,
-        val outputFile: File
-    )
+    ) {
+        data class Summary(
+            val targetCellCount: Int,
+            val transducedCellCount: Int,
+            val transductionEfficiency: Double,
+            val avgMorphologyArea: Int,
+            val meanFluorescenceIntensity: Int,
+            val medianFluorescenceIntensity: Int,
+            val minFluorescenceIntensity: Int,
+            val maxFluorescenceIntenstity: Int,
+            val rawIntDen: Int
+        )
+        fun getSummary(): Summary {
+            return Summary(
+                targetCellCount,
+                overlappingTwoChannelCells.size,
+                ((overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100),
+                (overlappingTransducedIntensityAnalysis.sumBy { it.area } / overlappingTransducedIntensityAnalysis.size),
+                (overlappingTransducedIntensityAnalysis.sumBy { it.mean } / overlappingTransducedIntensityAnalysis.size),
+                (overlappingTransducedIntensityAnalysis.sumBy { it.median } / overlappingTransducedIntensityAnalysis.size),
+                (overlappingTransducedIntensityAnalysis.sumBy { it.min } / overlappingTransducedIntensityAnalysis.size),
+                (overlappingTransducedIntensityAnalysis.sumBy { it.max } / overlappingTransducedIntensityAnalysis.size),
+                (overlappingTransducedIntensityAnalysis.sumBy { it.rawIntDen } / overlappingTransducedIntensityAnalysis.size)
+            )
+        }
+    }
 
     override fun run() {
         val image = WindowManager.getCurrentImage()
@@ -282,21 +287,30 @@ class RGCTransduction : Command, Previewable {
 
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
 
-        val transductionParameters = TransductionParameters(
-            this.shouldRemoveAxonsFromTargetChannel.toString(),
-            this.transducedChannel.toString(),
-            this.shouldRemoveAxonsFromTransductionChannel.toString(),
-            this.cellDiameterText,
-            this.localThresholdRadius.toString(),
-            this.gaussianBlurSigma.toString(),
-            this.targetChannel.toString(),
-            this.outputFile!!
-        )
-
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputFormat.XLSX -> XLSXColocalizationOutput(transductionParameters)
-            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters)
+            OutputFormat.XLSX -> XLSXColocalizationOutput(
+                outputFile!!,
+                shouldRemoveAxonsFromTargetChannel,
+                transducedChannel,
+                shouldRemoveAxonsFromTransductionChannel,
+                cellDiameterText,
+                localThresholdRadius,
+                gaussianBlurSigma,
+                targetChannel
+            )
+            OutputFormat.CSV -> {
+                CSVColocalizationOutput(
+                    outputFile!!,
+                    shouldRemoveAxonsFromTargetChannel,
+                    transducedChannel,
+                    shouldRemoveAxonsFromTransductionChannel,
+                    cellDiameterText,
+                    localThresholdRadius,
+                    gaussianBlurSigma,
+                    targetChannel
+                )
+            }
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
@@ -306,9 +320,11 @@ class RGCTransduction : Command, Previewable {
             output.output()
         } catch (te: TransformerException) {
             displayOutputFileErrorDialog(filetype = "XML")
-        } catch (ioe: IOException) {
-            displayOutputFileErrorDialog()
         }
+        // catch (ioe: IOException) {
+        //     println("THERE")
+        //     displayOutputFileErrorDialog()
+        // }
 
         // The colocalization results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation

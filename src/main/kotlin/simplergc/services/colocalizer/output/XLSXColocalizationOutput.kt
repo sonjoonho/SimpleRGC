@@ -5,15 +5,23 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import simplergc.commands.RGCTransduction.TransductionParameters
+import simplergc.services.SimpleOutput.Companion.PLUGIN_VERSION
+import simplergc.services.colocalizer.output.ColocalizationOutput.Companion.PLUGIN_NAME
 
 /**
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
 class XLSXColocalizationOutput(
-    private val transductionParameters: TransductionParameters
-) : ColocalizationOutput() {
+    private val outputFile: File,
+    private val shouldRemoveAxonFromTargetChannel: Boolean,
+    private val transducedChannel: Int,
+    private val shouldRemoveAxonFromTransductionChannel: Boolean,
+    private val cellDiameterText: String,
+    private val localThresholdRadius: Int,
+    private val gaussianBlurSigma: Double,
+    private val targetChannel: Int
+) : ColocalizationOutput {
 
     companion object {
         const val HEADER_OFFSET = 1
@@ -36,7 +44,7 @@ class XLSXColocalizationOutput(
         autoSizeColumns(workbook)
 
         // Write file and close streams
-        val outputXlsxFile = File(FilenameUtils.removeExtension(transductionParameters.outputFile.path) + ".xlsx")
+        val outputXlsxFile = File(FilenameUtils.removeExtension(outputFile.path) + ".xlsx")
         val xlsxFileOut = outputXlsxFile.outputStream()
         workbook.write(xlsxFileOut)
         xlsxFileOut.close()
@@ -184,17 +192,17 @@ class XLSXColocalizationOutput(
                 fileNameAndResult.first,
                 PLUGIN_NAME,
                 PLUGIN_VERSION,
-                transductionParameters.morphologyChannel,
-                transductionParameters.excludeAxonsFromMorphologyChannel,
-                transductionParameters.transductionChannel,
-                transductionParameters.excludeAxonsFromTransductionChannel,
-                transductionParameters.cellDiameterRange,
-                transductionParameters.localThresholdRadius,
-                transductionParameters.gaussianBlurSigma
+                targetChannel,
+                shouldRemoveAxonFromTargetChannel,
+                transducedChannel,
+                shouldRemoveAxonFromTransductionChannel,
+                cellDiameterText,
+                localThresholdRadius,
+                gaussianBlurSigma
             )
             paramsData.forEachIndexed { colIdx, dataEntry ->
                 val cell = paramsRow.createCell(colIdx)
-                cell.setCellValue(dataEntry)
+                cell.setCellValue(dataEntry.toString())
             }
         }
     }
