@@ -4,7 +4,6 @@ import kotlin.math.roundToInt
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.BaseRow
-import simplergc.services.Field
 import simplergc.services.IntField
 import simplergc.services.StringField
 import simplergc.services.Table
@@ -39,7 +38,7 @@ class ImageJTableColocalizationOutput(
         val integratedDensity: Int = 0,
         val rawIntegratedDensity: Int = 0
     ) : BaseRow {
-        override fun toFieldArray(): Array<Field> = arrayOf(
+        override fun toList() = listOf(
             StringField(label),
             IntField(count),
             IntField(area),

@@ -40,16 +40,15 @@ class XLSXColocalizationOutput(private val transductionParameters: Parameters.Tr
 
     private fun writeSummarySheet(workbook: XSSFWorkbook) {
         // Add summary data
-        fileNameAndResultsList.forEach {
-            summaryData.addRow(SummaryRow(it.first, it.second.getSummary()))
+        for ((fileName, result) in fileNameAndResultsList) {
+            summaryData.addRow(SummaryRow(fileName, result.getSummary()))
         }
         summaryData.produceXLSX(workbook, "Summary")
     }
 
     private fun writeTransductionAnalysisSheet(workbook: XSSFWorkbook) {
-        fileNameAndResultsList.forEach {
-            val fileName = it.first
-            it.second.overlappingTransducedIntensityAnalysis.forEach { cellAnalysis ->
+        for ((fileName, result) in fileNameAndResultsList) {
+            result.overlappingTransducedIntensityAnalysis.forEach { cellAnalysis ->
                 transductionAnalysisData.addRow(TransductionAnalysisRow(fileName, cellAnalysis))
             }
         }
@@ -58,17 +57,17 @@ class XLSXColocalizationOutput(private val transductionParameters: Parameters.Tr
 
     private fun writeParamsSheet(workbook: XSSFWorkbook) {
         // Add parameters data
-        fileNameAndResultsList.forEach {
+        for ((fileName, _) in fileNameAndResultsList) {
             parametersData.addRow(
                 ParametersRow(
-                    it.first,
-                    transductionParameters.targetChannel,
-                    transductionParameters.shouldRemoveAxonsFromTargetChannel,
-                    transductionParameters.transducedChannel,
-                    transductionParameters.shouldRemoveAxonsFromTransductionChannel,
-                    transductionParameters.cellDiameterText,
-                    transductionParameters.localThresholdRadius,
-                    transductionParameters.gaussianBlurSigma
+                    fileName = fileName,
+                    morphologyChannel = transductionParameters.targetChannel,
+                    excludeAxonsFromMorphologyChannel = transductionParameters.shouldRemoveAxonsFromTargetChannel,
+                    transductionChannel = transductionParameters.transducedChannel,
+                    excludeAxonsFromTransductionChannel = transductionParameters.shouldRemoveAxonsFromTransductionChannel,
+                    cellDiameterText = transductionParameters.cellDiameterText,
+                    localThresholdRadius = transductionParameters.localThresholdRadius,
+                    gaussianBlurSigma = transductionParameters.gaussianBlurSigma
                 )
             )
         }

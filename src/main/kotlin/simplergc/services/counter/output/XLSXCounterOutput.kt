@@ -1,9 +1,9 @@
 package simplergc.services.counter.output
 
-import java.io.FileOutputStream
+import java.io.File
+import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.BaseRow
-import simplergc.services.Field
 import simplergc.services.Parameters
 import simplergc.services.SimpleOutput.Companion.ARTICLE_CITATION
 import simplergc.services.StringField
@@ -11,7 +11,7 @@ import simplergc.services.StringField
 class XLSXCounterOutput(private val counterParameters: Parameters.CounterParameters) : CounterOutput() {
 
     data class Citation(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
-        override fun toFieldArray(): Array<Field> = arrayOf(StringField(article), StringField(citation))
+        override fun toList() = listOf(StringField(article), StringField(citation))
     }
 
     /**
@@ -21,8 +21,8 @@ class XLSXCounterOutput(private val counterParameters: Parameters.CounterParamet
         val createHelper = workbook.creationHelper
         val numberCellStyle = workbook.createCellStyle()
         numberCellStyle.dataFormat = createHelper.createDataFormat().getFormat("#")
-        for (pair in fileNameAndCountList) {
-            resultsData.addRow(ResultsRow(pair.first.replace(",", ""), pair.second))
+        for ((fileName, count) in fileNameAndCountList) {
+            resultsData.addRow(ResultsRow(fileName.replace(",", ""), count))
         }
         resultsData.addRow(Citation())
         resultsData.produceXLSX(workbook, "Results")
@@ -32,9 +32,9 @@ class XLSXCounterOutput(private val counterParameters: Parameters.CounterParamet
      * Generate the 'Parameters' sheet, containing the parameters used for each filename.
      */
     private fun generateParametersSheet(workbook: XSSFWorkbook) {
-        for (pair in fileNameAndCountList) {
+        for ((fileName, _) in fileNameAndCountList) {
             parametersData.addRow(ParametersRow(
-                fileName = pair.first.replace(",", ""),
+                fileName = fileName.replace(",", ""),
                 targetChannel = counterParameters.targetChannel,
                 smallestCellDiameter = counterParameters.cellDiameterRange.smallest,
                 largestCellDiameter = counterParameters.cellDiameterRange.largest,
@@ -54,9 +54,10 @@ class XLSXCounterOutput(private val counterParameters: Parameters.CounterParamet
         generateResultsSheet(workbook)
         generateParametersSheet(workbook)
 
-        val fileOut = FileOutputStream(counterParameters.outputFile)
-        workbook.write(fileOut)
-        fileOut.close()
+        val outputXlsxFile = File(FilenameUtils.removeExtension(counterParameters.outputFile.path) + ".xlsx")
+        val xlsxFileOut = outputXlsxFile.outputStream()
+        workbook.write(xlsxFileOut)
+        xlsxFileOut.close()
         workbook.close()
     }
 }
