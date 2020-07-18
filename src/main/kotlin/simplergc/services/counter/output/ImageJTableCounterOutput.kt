@@ -2,16 +2,17 @@ package simplergc.services.counter.output
 
 import org.scijava.ui.UIService
 import simplergc.services.BaseRow
-import simplergc.services.ImageJTable
+import simplergc.services.Field
+import simplergc.services.IntField
 import simplergc.services.Table
 
 class ImageJTableCounterOutput(private val uiService: UIService) : CounterOutput {
 
     private val schema = arrayOf("Count")
-    private val table: Table = ImageJTable(schema, uiService)
+    private val table: Table = Table(schema)
 
-    data class Row(val count: Int) : BaseRow {
-        override fun toStringArray(): Array<String> = arrayOf(count.toString())
+    data class Row(private val count: Int) : BaseRow {
+        override fun toFieldArray(): Array<Field> = arrayOf(IntField(count))
     }
 
     override fun addCountForFile(count: Int, file: String) {
@@ -23,6 +24,6 @@ class ImageJTableCounterOutput(private val uiService: UIService) : CounterOutput
      * Displays GUI window using an ImageJ table to output count results.
      */
     override fun output() {
-        table.produce()
+        table.produceImageJTable(uiService)
     }
 }

@@ -1,22 +1,19 @@
 package simplergc.services.counter.output
 
-import java.io.File
 import simplergc.services.BaseRow
-import simplergc.services.CSV
-import simplergc.services.CellDiameterRange
+import simplergc.services.DoubleField
+import simplergc.services.Field
+import simplergc.services.IntField
+import simplergc.services.Parameters
 import simplergc.services.SimpleOutput.Companion.PLUGIN_VERSION
+import simplergc.services.StringField
+import simplergc.services.Table
 import simplergc.services.counter.output.CounterOutput.Companion.PLUGIN_NAME
 
-class CSVCounterOutput(
-    outputFile: File,
-    private val morphologyChannel: Int,
-    private val cellDiameterRange: CellDiameterRange,
-    private val localThresholdRadius: Int,
-    private val gaussianBlurSigma: Double
-) : CounterOutput {
+class CSVCounterOutput(private val counterParameters: Parameters.CounterParameters) : CounterOutput {
 
     private val fileNameAndCountList: ArrayList<Pair<String, Int>> = ArrayList()
-    private val csv: CSV = CSV(outputFile, arrayOf(
+    private val csv = Table(arrayOf(
         "File Name",
         "Cell Count",
         "Simple RGC Plugin",
@@ -39,16 +36,16 @@ class CSVCounterOutput(
         val localThresholdRadius: Int,
         val gaussianBlurSigma: Double
     ) : BaseRow {
-        override fun toStringArray(): Array<String> = arrayOf(
-            fileName,
-            cellCount.toString(),
-            pluginName,
-            pluginVersion,
-            morphologyChannel.toString(),
-            smallestCellDiameter.toString(),
-            largestCellDiameter.toString(),
-            localThresholdRadius.toString(),
-            gaussianBlurSigma.toString()
+        override fun toFieldArray(): Array<Field> = arrayOf(
+            StringField(fileName),
+            IntField(cellCount),
+            StringField(pluginName),
+            StringField(pluginVersion),
+            IntField(morphologyChannel),
+            DoubleField(smallestCellDiameter),
+            DoubleField(largestCellDiameter),
+            IntField(localThresholdRadius),
+            DoubleField(gaussianBlurSigma)
         )
     }
 
@@ -64,14 +61,14 @@ class CSVCounterOutput(
             csv.addRow(Row(
                 fileName = it.first.replace(",", ""),
                 cellCount = it.second,
-                morphologyChannel = morphologyChannel,
-                smallestCellDiameter = cellDiameterRange.smallest,
-                largestCellDiameter = cellDiameterRange.largest,
-                localThresholdRadius = localThresholdRadius,
-                gaussianBlurSigma = gaussianBlurSigma
+                morphologyChannel = counterParameters.targetChannel,
+                smallestCellDiameter = counterParameters.cellDiameterRange.smallest,
+                largestCellDiameter = counterParameters.cellDiameterRange.largest,
+                localThresholdRadius = counterParameters.localThresholdRadius,
+                gaussianBlurSigma = counterParameters.gaussianBlurSigma
                 ))
         }
 
-        csv.produce()
+        csv.produceCSV(counterParameters.outputFile)
     }
 }

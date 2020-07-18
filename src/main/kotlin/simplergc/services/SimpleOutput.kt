@@ -3,6 +3,8 @@ package simplergc.services
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
+import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.ui.UIService
@@ -21,47 +23,105 @@ interface SimpleOutput {
 }
 
 interface BaseRow {
-    fun toStringArray(): Array<String>
+    fun toFieldArray(): Array<Field>
 }
 
-interface Table {
-    val data: Any
-    fun addRow(row: BaseRow)
-    fun produce()
+enum class FieldType {
+    STRING, INT, DOUBLE, BOOLEAN
 }
 
-class ImageJTable(private val schema: Array<String>, private val uiService: UIService) : Table {
+open class Field(val type: FieldType, private val value: Any) {
+    override fun toString(): String {
+        return value.toString()
+    }
+}
 
-    private val table: DefaultGenericTable = DefaultGenericTable()
-    override val data: Map<String, ArrayList<String>> = schema.map { it to arrayListOf<String>() }.toMap()
+class StringField(val value: String) : Field(FieldType.STRING, value)
+class IntField(val value: Int) : Field(FieldType.INT, value)
+class DoubleField(val value: Double) : Field(FieldType.DOUBLE, value)
+class BooleanField(val value: Boolean) : Field(FieldType.BOOLEAN, value)
 
-    override fun addRow(row: BaseRow) {
-        val rowStringArray = row.toStringArray()
-        for (i in rowStringArray.indices) {
-            (data[schema[i]] ?: error("Field does not exist in schema")).add(rowStringArray[i])
-        }
+class Table(private val schema: Array<String>?) {
+    val data: ArrayList<Array<Field>> = if (schema.isNullOrEmpty()) arrayListOf() else arrayListOf(schema.map { StringField(it) as Field }.toTypedArray())
+
+    fun addRow(row: BaseRow) {
+        data.add(row.toFieldArray())
     }
 
-    override fun produce() {
-        data.forEach {
-            val column = DefaultColumn(String::class.java, it.key)
-            column.addAll(it.value)
-            table.add(column)
+    fun produceImageJTable(uiService: UIService) {
+        val table = DefaultGenericTable()
+        var columns: List<DefaultColumn<String>> = listOf()
+        if (!schema.isNullOrEmpty()) {
+            columns = data[0].map { DefaultColumn(String::class.java, it.toString()) }
         }
+        data.drop(1).forEach {
+            for (i in it.indices) {
+                columns[i].add(it[i].toString())
+            }
+        }
+        table.addAll(columns)
         uiService.show(table)
     }
+
+    fun produceCSV(file: File) {
+        CsvWriter().write(file, StandardCharsets.UTF_8, data.map { it.map { it.toString() }.toTypedArray() })
+    }
+
+    fun produceXLSX(workbook: XSSFWorkbook, sheetName: String) {
+        val currSheet = workbook.createSheet(sheetName)
+        var rowNum = 0
+        if (!schema.isNullOrEmpty()) {
+            val headerFont = workbook.createFont()
+            headerFont.bold = true
+            headerFont.color = IndexedColors.BLUE.index
+            val headerCellStyle = workbook.createCellStyle()
+            headerCellStyle.setFont(headerFont)
+            val headerRow = currSheet.createRow(rowNum)
+            for (i in data[0].indices) {
+                val cell = headerRow.createCell(i)
+                cell.cellStyle = headerCellStyle
+                cell.setCellValue(data[0][i].toString())
+            }
+            rowNum = 1
+        }
+        for (row in data.drop(rowNum)) {
+            val currRow = currSheet.createRow(rowNum)
+            for (i in row.indices) {
+                val currCell = currRow.createCell(i)
+                when (row[i].type) {
+                    FieldType.STRING -> currCell.setCellValue(row[i].toString())
+                    FieldType.INT -> currCell.setCellValue(row[i].toString().toDouble())
+                    FieldType.DOUBLE -> currCell.setCellValue(row[i].toString().toDouble())
+                    FieldType.BOOLEAN -> currCell.setCellValue(row[i].toString().toBoolean())
+                }
+            }
+            rowNum++
+        }
+        if (data.isNotEmpty()) {
+            for (i in data[0].indices) {
+                currSheet.autoSizeColumn(i)
+            }
+        }
+    }
 }
 
-class CSV(private val file: File, schema: Array<String>?) : Table {
+sealed class Parameters {
+    data class CounterParameters(
+        val outputFile: File,
+        val targetChannel: Int,
+        val cellDiameterRange: CellDiameterRange,
+        val localThresholdRadius: Int,
+        val gaussianBlurSigma: Double
+    ) : Parameters()
 
-    override val data: ArrayList<Array<String>> = if (schema != null) arrayListOf(schema) else arrayListOf()
-    private val csvWriter: CsvWriter = CsvWriter()
-
-    override fun addRow(row: BaseRow) {
-        data.add(row.toStringArray())
-    }
-
-    override fun produce() {
-        csvWriter.write(file, StandardCharsets.UTF_8, data)
-    }
+    data class TransductionParameters(
+        val outputFile: File,
+        val shouldRemoveAxonsFromTargetChannel: Boolean,
+        val transducedChannel: Int,
+        val shouldRemoveAxonsFromTransductionChannel: Boolean,
+        val cellDiameterText: String,
+        val localThresholdRadius: Int,
+        val gaussianBlurSigma: Double,
+        val targetChannel: Int
+    ) : Parameters()
 }

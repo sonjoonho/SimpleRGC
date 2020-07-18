@@ -31,6 +31,7 @@ import simplergc.services.CellColocalizationService
 import simplergc.services.CellDiameterRange
 import simplergc.services.CellSegmentationService
 import simplergc.services.DiameterParseException
+import simplergc.services.Parameters
 import simplergc.services.cellcomparator.SubsetPixelCellComparator
 import simplergc.services.colocalizer.BucketedNaiveColocalizer
 import simplergc.services.colocalizer.PositionedCell
@@ -286,31 +287,20 @@ class RGCTransduction : Command, Previewable {
     }
 
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
-
+        val transductionParameters = Parameters.TransductionParameters(
+            outputFile!!,
+            shouldRemoveAxonsFromTargetChannel,
+            transducedChannel,
+            shouldRemoveAxonsFromTransductionChannel,
+            cellDiameterText,
+            localThresholdRadius,
+            gaussianBlurSigma,
+            targetChannel
+        )
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputFormat.XLSX -> XLSXColocalizationOutput(
-                outputFile!!,
-                shouldRemoveAxonsFromTargetChannel,
-                transducedChannel,
-                shouldRemoveAxonsFromTransductionChannel,
-                cellDiameterText,
-                localThresholdRadius,
-                gaussianBlurSigma,
-                targetChannel
-            )
-            OutputFormat.CSV -> {
-                CSVColocalizationOutput(
-                    outputFile!!,
-                    shouldRemoveAxonsFromTargetChannel,
-                    transducedChannel,
-                    shouldRemoveAxonsFromTransductionChannel,
-                    cellDiameterText,
-                    localThresholdRadius,
-                    gaussianBlurSigma,
-                    targetChannel
-                )
-            }
+            OutputFormat.XLSX -> XLSXColocalizationOutput(transductionParameters)
+            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
@@ -360,7 +350,7 @@ class RGCTransduction : Command, Previewable {
         )
     }
 
-    fun analyseTransduction(
+    private fun analyseTransduction(
         targetChannel: ImagePlus,
         transducedChannel: ImagePlus,
         cellDiameterRange: CellDiameterRange

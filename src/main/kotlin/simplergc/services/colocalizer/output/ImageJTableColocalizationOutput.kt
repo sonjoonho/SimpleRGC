@@ -4,7 +4,10 @@ import kotlin.math.roundToInt
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.BaseRow
-import simplergc.services.ImageJTable
+import simplergc.services.Field
+import simplergc.services.IntField
+import simplergc.services.StringField
+import simplergc.services.Table
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -13,11 +16,11 @@ import simplergc.services.ImageJTable
 class ImageJTableColocalizationOutput(
     val result: TransductionResult,
     private val uiService: UIService
-) : ColocalizationOutput {
+) : ColocalizationOutput() {
 
     // TODO (131): Use fileNameAndResultsList in output
 
-    private val table = ImageJTable(arrayOf(
+    private val table = Table(arrayOf(
         "Label",
         "Count",
         "Area",
@@ -25,7 +28,7 @@ class ImageJTableColocalizationOutput(
         "Mean",
         "Integrated Density",
         "Raw Integrated Density"
-    ), uiService)
+    ))
 
     data class Row(
         val label: String,
@@ -36,14 +39,14 @@ class ImageJTableColocalizationOutput(
         val integratedDensity: Int = 0,
         val rawIntegratedDensity: Int = 0
     ) : BaseRow {
-        override fun toStringArray(): Array<String> = arrayOf(
-            label,
-            count.toString(),
-            area.toString(),
-            median.toString(),
-            mean.toString(),
-            integratedDensity.toString(),
-            rawIntegratedDensity.toString())
+        override fun toFieldArray(): Array<Field> = arrayOf(
+            StringField(label),
+            IntField(count),
+            IntField(area),
+            IntField(median),
+            IntField(mean),
+            IntField(integratedDensity),
+            IntField(rawIntegratedDensity))
     }
 
     override fun output() {
@@ -67,6 +70,6 @@ class ImageJTableColocalizationOutput(
             table.addRow(Row("Cell ${i + 1}", 1, cell.area, cell.median, cell.mean, cell.area * cell.mean, cell.rawIntDen))
         }
 
-        table.produce()
+        table.produceImageJTable(uiService)
     }
 }
