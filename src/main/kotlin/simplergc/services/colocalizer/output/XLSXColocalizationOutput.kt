@@ -2,8 +2,6 @@ package simplergc.services.colocalizer.output
 
 import java.io.File
 import org.apache.commons.io.FilenameUtils
-import org.apache.poi.ss.usermodel.IndexedColors
-import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Parameters
 import simplergc.services.Table
@@ -14,21 +12,12 @@ import simplergc.services.Table
  */
 class XLSXColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) : ColocalizationOutput() {
 
-    companion object {
-        const val HEADER_OFFSET = 1
-    }
-
     override fun output() {
         val workbook = XSSFWorkbook()
         writeDocSheet(workbook)
-
-        val headerCellStyle = createHeaderCellStyle(workbook)
-
-        writeSummarySheet(workbook, headerCellStyle)
-
-        writeTransductionAnalysisSheet(workbook, headerCellStyle)
-
-        writeParamsSheet(workbook, headerCellStyle)
+        writeSummarySheet(workbook)
+        writeTransductionAnalysisSheet(workbook)
+        writeParamsSheet(workbook)
 
         // Write file and close streams
         val outputXlsxFile = File(FilenameUtils.removeExtension(transductionParameters.outputFile.path) + ".xlsx")
@@ -49,7 +38,7 @@ class XLSXColocalizationOutput(private val transductionParameters: Parameters.Tr
         docXLSX.produceXLSX(workbook, "Documentation")
     }
 
-    private fun writeSummarySheet(workbook: XSSFWorkbook, headerCellStyle: XSSFCellStyle?) {
+    private fun writeSummarySheet(workbook: XSSFWorkbook) {
         // Add summary data
         fileNameAndResultsList.forEach {
             summaryData.addRow(SummaryRow(it.first, it.second.getSummary()))
@@ -57,7 +46,7 @@ class XLSXColocalizationOutput(private val transductionParameters: Parameters.Tr
         summaryData.produceXLSX(workbook, "Summary")
     }
 
-    private fun writeTransductionAnalysisSheet(workbook: XSSFWorkbook, headerCellStyle: XSSFCellStyle?) {
+    private fun writeTransductionAnalysisSheet(workbook: XSSFWorkbook) {
         fileNameAndResultsList.forEach {
             val fileName = it.first
             it.second.overlappingTransducedIntensityAnalysis.forEach { cellAnalysis ->
@@ -67,7 +56,7 @@ class XLSXColocalizationOutput(private val transductionParameters: Parameters.Tr
         transductionAnalysisData.produceXLSX(workbook, "Transduction Analysis")
     }
 
-    private fun writeParamsSheet(workbook: XSSFWorkbook, headerCellStyle: XSSFCellStyle?) {
+    private fun writeParamsSheet(workbook: XSSFWorkbook) {
         // Add parameters data
         fileNameAndResultsList.forEach {
             parametersData.addRow(
@@ -84,15 +73,5 @@ class XLSXColocalizationOutput(private val transductionParameters: Parameters.Tr
             )
         }
         parametersData.produceXLSX(workbook, "Parameters")
-    }
-
-    private fun createHeaderCellStyle(workbook: XSSFWorkbook): XSSFCellStyle {
-        val headerFont = workbook.createFont()
-        headerFont.bold = true
-        headerFont.color = IndexedColors.BLUE.getIndex()
-
-        val headerCellStyle = workbook.createCellStyle()
-        headerCellStyle.setFont(headerFont)
-        return headerCellStyle
     }
 }
