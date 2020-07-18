@@ -11,6 +11,7 @@ import ij.plugin.frame.RoiManager
 import ij.process.FloatProcessor
 import ij.process.StackStatistics
 import java.io.File
+import java.io.IOException
 import javax.xml.transform.TransformerException
 import kotlin.math.max
 import kotlin.math.min
@@ -310,11 +311,9 @@ class RGCTransduction : Command, Previewable {
             output.output()
         } catch (te: TransformerException) {
             displayOutputFileErrorDialog(filetype = "XML")
+        } catch (ioe: IOException) {
+            displayOutputFileErrorDialog()
         }
-        // catch (ioe: IOException) {
-        //     println("THERE")
-        //     displayOutputFileErrorDialog()
-        // }
 
         // The colocalization results are clearly displayed if the output
         // destination is set to DISPLAY, however, a visual confirmation

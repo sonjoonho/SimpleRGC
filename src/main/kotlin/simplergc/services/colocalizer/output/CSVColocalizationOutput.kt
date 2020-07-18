@@ -1,6 +1,7 @@
 package simplergc.services.colocalizer.output
 
 import java.io.File
+import java.io.IOException
 import simplergc.services.Parameters
 import simplergc.services.Table
 
@@ -13,6 +14,10 @@ class CSVColocalizationOutput(private val transductionParameters: Parameters.Tra
     private val outputPath: String = "${transductionParameters.outputFile.path}${File.separator}"
 
     override fun output() {
+        val outputFileSuccess = File(transductionParameters.outputFile.path).mkdir()
+        if (!outputFileSuccess and !transductionParameters.outputFile.exists()) {
+            throw IOException()
+        }
         writeDocumentationCsv()
         writeSummaryCsv()
         writeTransductionAnalysisCsv()
@@ -35,18 +40,16 @@ class CSVColocalizationOutput(private val transductionParameters: Parameters.Tra
     private fun writeSummaryCsv() {
         // Summary
         // TODO (#156): Add integrated density
-        println("file name and results size: ${fileNameAndResultsList.size}")
-        fileNameAndResultsList.forEach {
-            summaryData.addRow(SummaryRow(it.first, it.second.getSummary()))
+        for ((fileName, result) in fileNameAndResultsList) {
+            summaryData.addRow(SummaryRow(fileName = fileName, summary = result.getSummary()))
         }
         summaryData.produceCSV(File("${outputPath}Summary.csv"))
     }
 
     private fun writeTransductionAnalysisCsv() {
-        fileNameAndResultsList.forEach {
-            val fileName = it.first
-            it.second.overlappingTransducedIntensityAnalysis.forEach { cellAnalysis ->
-                transductionAnalysisData.addRow(TransductionAnalysisRow(fileName, cellAnalysis))
+        for ((fileName, result) in fileNameAndResultsList) {
+            result.overlappingTransducedIntensityAnalysis.forEachIndexed { i, cellAnalysis ->
+                transductionAnalysisData.addRow(TransductionAnalysisRow(fileName = fileName, transducedCell = i, cellAnalysis = cellAnalysis))
             }
         }
         transductionAnalysisData.produceCSV(File("${outputPath}Transduced Cell Analysis.csv"))
@@ -54,17 +57,17 @@ class CSVColocalizationOutput(private val transductionParameters: Parameters.Tra
 
     private fun writeParametersCsv() {
         // TODO (#156): Add pixel size (micrometers) in next sprint.
-        fileNameAndResultsList.forEach {
+        for ((fileName, _) in fileNameAndResultsList) {
             parametersData.addRow(
                 ParametersRow(
-                    it.first,
-                    transductionParameters.targetChannel,
-                    transductionParameters.shouldRemoveAxonsFromTargetChannel,
-                    transductionParameters.transducedChannel,
-                    transductionParameters.shouldRemoveAxonsFromTransductionChannel,
-                    transductionParameters.cellDiameterText,
-                    transductionParameters.localThresholdRadius,
-                    transductionParameters.gaussianBlurSigma
+                    fileName = fileName,
+                    morphologyChannel = transductionParameters.targetChannel,
+                    excludeAxonsFromMorphologyChannel = transductionParameters.shouldRemoveAxonsFromTargetChannel,
+                    transductionChannel = transductionParameters.transducedChannel,
+                    excludeAxonsFromTransductionChannel = transductionParameters.shouldRemoveAxonsFromTransductionChannel,
+                    cellDiameterText = transductionParameters.cellDiameterText,
+                    localThresholdRadius = transductionParameters.localThresholdRadius,
+                    gaussianBlurSigma = transductionParameters.gaussianBlurSigma
                 )
             )
         }

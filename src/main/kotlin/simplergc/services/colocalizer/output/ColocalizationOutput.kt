@@ -5,7 +5,6 @@ import simplergc.services.BaseRow
 import simplergc.services.BooleanField
 import simplergc.services.CellColocalizationService
 import simplergc.services.DoubleField
-import simplergc.services.Field
 import simplergc.services.IntField
 import simplergc.services.SimpleOutput
 import simplergc.services.StringField
@@ -16,10 +15,10 @@ import simplergc.services.Table
  */
 abstract class ColocalizationOutput : SimpleOutput {
 
-    val fileNameAndResultsList: ArrayList<Pair<String, TransductionResult>> = arrayListOf()
+    val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
     data class DocumentationRow(val key: String, val description: String) : BaseRow {
-        override fun toFieldArray(): Array<Field> = arrayOf(StringField(key), StringField(description))
+        override fun toList() = listOf(StringField(key), StringField(description))
     }
 
     companion object {
@@ -47,7 +46,7 @@ abstract class ColocalizationOutput : SimpleOutput {
         val fileName: String,
         val summary: TransductionResult.Summary
     ) : BaseRow {
-        override fun toFieldArray(): Array<Field> = arrayOf(
+        override fun toList() = listOf(
             StringField(fileName),
             IntField(summary.targetCellCount),
             IntField(summary.transducedCellCount),
@@ -74,11 +73,12 @@ abstract class ColocalizationOutput : SimpleOutput {
 
     data class TransductionAnalysisRow(
         val fileName: String,
+        val transducedCell: Int,
         val cellAnalysis: CellColocalizationService.CellAnalysis
     ) : BaseRow {
-        override fun toFieldArray(): Array<Field> = arrayOf(
+        override fun toList() = listOf(
             StringField(fileName),
-            IntField(1),
+            IntField(transducedCell),
             IntField(cellAnalysis.area),
             IntField(cellAnalysis.mean),
             IntField(cellAnalysis.median),
@@ -111,7 +111,7 @@ abstract class ColocalizationOutput : SimpleOutput {
         val localThresholdRadius: Int,
         val gaussianBlurSigma: Double
     ) : BaseRow {
-        override fun toFieldArray(): Array<Field> = arrayOf(
+        override fun toList() = listOf(
             StringField(fileName),
             StringField(PLUGIN_NAME),
             StringField(SimpleOutput.PLUGIN_VERSION),

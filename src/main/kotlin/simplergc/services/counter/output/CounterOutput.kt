@@ -2,7 +2,6 @@ package simplergc.services.counter.output
 
 import simplergc.services.BaseRow
 import simplergc.services.DoubleField
-import simplergc.services.Field
 import simplergc.services.IntField
 import simplergc.services.SimpleOutput
 import simplergc.services.StringField
@@ -13,7 +12,7 @@ import simplergc.services.Table
  */
 abstract class CounterOutput : SimpleOutput {
 
-    protected val fileNameAndCountList: ArrayList<Pair<String, Int>> = ArrayList()
+    protected val fileNameAndCountList = mutableListOf<Pair<String, Int>>()
 
     companion object {
         const val PLUGIN_NAME = "RGC Counter"
@@ -25,7 +24,7 @@ abstract class CounterOutput : SimpleOutput {
 
     protected val resultsData = Table(arrayOf("File Name", "Cell Count"))
     data class ResultsRow(val fileName: String, val count: Int) : BaseRow {
-        override fun toFieldArray(): Array<Field> = arrayOf(StringField(fileName), IntField(count))
+        override fun toList() = listOf(StringField(fileName), IntField(count))
     }
 
     protected val parametersData = Table(arrayOf(
@@ -48,18 +47,16 @@ abstract class CounterOutput : SimpleOutput {
         val localThresholdRadius: Int,
         val gaussianBlurSigma: Double
     ) : BaseRow {
-        override fun toFieldArray(): Array<Field> {
-            return arrayOf(
-                StringField(fileName),
-                StringField(pluginName),
-                StringField(pluginVersion),
-                IntField(targetChannel),
-                DoubleField(smallestCellDiameter),
-                DoubleField(largestCellDiameter),
-                IntField(localThresholdRadius),
-                DoubleField(gaussianBlurSigma)
-            )
-        }
+        override fun toList() = listOf(
+            StringField(fileName),
+            StringField(pluginName),
+            StringField(pluginVersion),
+            IntField(targetChannel),
+            DoubleField(smallestCellDiameter),
+            DoubleField(largestCellDiameter),
+            IntField(localThresholdRadius),
+            DoubleField(gaussianBlurSigma)
+        )
     }
 
     protected val parametersAndResultsData = Table(arrayOf(
@@ -85,7 +82,7 @@ abstract class CounterOutput : SimpleOutput {
         val localThresholdRadius: Int,
         val gaussianBlurSigma: Double
     ) : BaseRow {
-        override fun toFieldArray(): Array<Field> = arrayOf(
+        override fun toList() = listOf(
             StringField(fileName),
             IntField(cellCount),
             StringField(pluginName),

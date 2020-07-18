@@ -23,17 +23,18 @@ interface SimpleOutput {
 }
 
 interface BaseRow {
-    fun toFieldArray(): Array<Field>
+    fun toList(): List<Field>
 }
 
 enum class FieldType {
     STRING, INT, DOUBLE, BOOLEAN
 }
 
-open class Field(val type: FieldType, private val value: Any) {
-    override fun toString(): String {
-        return value.toString()
-    }
+abstract class Field(val type: FieldType, private val value: Any) {
+    override fun toString() = value as String
+    fun toInt() = value as Int
+    fun toDouble() = value as Double
+    fun toBoolean() = value as Boolean
 }
 
 class StringField(val value: String) : Field(FieldType.STRING, value)
@@ -42,10 +43,10 @@ class DoubleField(val value: Double) : Field(FieldType.DOUBLE, value)
 class BooleanField(val value: Boolean) : Field(FieldType.BOOLEAN, value)
 
 class Table(private val schema: Array<String>?) {
-    val data: ArrayList<Array<Field>> = if (schema.isNullOrEmpty()) arrayListOf() else arrayListOf(schema.map { StringField(it) as Field }.toTypedArray())
+    val data: MutableList<List<Field>> = if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) as Field })
 
     fun addRow(row: BaseRow) {
-        data.add(row.toFieldArray())
+        data.add(row.toList())
     }
 
     fun produceImageJTable(uiService: UIService) {
@@ -88,11 +89,13 @@ class Table(private val schema: Array<String>?) {
             val currRow = currSheet.createRow(rowNum)
             for (i in row.indices) {
                 val currCell = currRow.createCell(i)
+                println("here")
                 when (row[i].type) {
                     FieldType.STRING -> currCell.setCellValue(row[i].toString())
-                    FieldType.INT -> currCell.setCellValue(row[i].toString().toDouble())
-                    FieldType.DOUBLE -> currCell.setCellValue(row[i].toString().toDouble())
-                    FieldType.BOOLEAN -> currCell.setCellValue(row[i].toString().toBoolean())
+                    // Cell value cannot be set to an Int so we convert to Double.
+                    FieldType.INT -> currCell.setCellValue(row[i].toInt().toDouble())
+                    FieldType.DOUBLE -> currCell.setCellValue(row[i].toDouble())
+                    FieldType.BOOLEAN -> currCell.setCellValue(row[i].toBoolean())
                 }
             }
             rowNum++

@@ -8,10 +8,10 @@ class CSVCounterOutput(private val counterParameters: Parameters.CounterParamete
      * Saves count results into csv file at specified output path.
      */
     override fun output() {
-        fileNameAndCountList.forEach {
+        for ((fileName, count) in fileNameAndCountList) {
             parametersAndResultsData.addRow(ParametersResultsRow(
-                fileName = it.first.replace(",", ""),
-                cellCount = it.second,
+                fileName = fileName.replace(",", ""),
+                cellCount = count,
                 morphologyChannel = counterParameters.targetChannel,
                 smallestCellDiameter = counterParameters.cellDiameterRange.smallest,
                 largestCellDiameter = counterParameters.cellDiameterRange.largest,
