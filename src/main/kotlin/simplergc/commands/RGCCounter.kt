@@ -25,6 +25,7 @@ import org.scijava.widget.NumberWidget
 import simplergc.services.CellDiameterRange
 import simplergc.services.CellSegmentationService
 import simplergc.services.DiameterParseException
+import simplergc.services.Parameters
 import simplergc.services.colocalizer.PositionedCell
 import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
@@ -218,20 +219,17 @@ class RGCCounter : Command, Previewable {
     }
 
     private fun writeOutput(numCells: Int, file: String, cellDiameterRange: CellDiameterRange) {
+        val counterParameters = Parameters.CounterParameters(
+            outputFile!!,
+            targetChannel,
+            cellDiameterRange,
+            localThresholdRadius,
+            gaussianBlurSigma
+        )
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableCounterOutput(uiService)
-            OutputFormat.XLSX -> XLSXCounterOutput(
-                outputFile!!,
-                targetChannel,
-                cellDiameterRange,
-                localThresholdRadius,
-                gaussianBlurSigma)
-            OutputFormat.CSV -> CSVCounterOutput(
-                outputFile!!,
-                targetChannel,
-                cellDiameterRange,
-                localThresholdRadius,
-                gaussianBlurSigma)
+            OutputFormat.XLSX -> XLSXCounterOutput(counterParameters)
+            OutputFormat.CSV -> CSVCounterOutput(counterParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
