@@ -13,7 +13,7 @@ class CellDiameterField(initial: String) : JPanel() {
         this.layout = GridLayout(0, 2)
         val textPanel = JPanel()
         textPanel.layout = BoxLayout(textPanel, BoxLayout.X_AXIS)
-        val label = JLabel("Cell diameter (px)")
+        val label = ParameterLabel("Cell diameter (px)")
         field.maximumSize = Dimension(Integer.MAX_VALUE, TEXT_FEILD_MAX_HEIGHT)
         field.text = initial
 

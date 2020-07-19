@@ -66,7 +66,7 @@ class RGCBatch : Command {
 
         // Size constants for RGC Batch JFrame
         private const val BORDER_SIZE = 5
-        private const val PREFERRED_WIDTH = 700
+        private const val PREFERRED_WIDTH = 600
         private const val PREFERRED_HEIGHT = 600
 
         /**

@@ -1,10 +1,12 @@
 package simplergc.commands.batch.views.common
 
+import java.awt.Component
 import java.awt.GridLayout
 import java.io.File
 import javax.swing.JFileChooser
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.border.EmptyBorder
 
 class InputDirectoryChooserPanel(container: JPanel, initial: String) : JPanel() {
 
@@ -12,7 +14,8 @@ class InputDirectoryChooserPanel(container: JPanel, initial: String) : JPanel() 
 
     init {
         this.layout = GridLayout(0, 2)
-        val label = JLabel("Input folder")
+        val label = ParameterLabel("Input folder")
+        label.border = EmptyBorder(0, 0, 0, 10)
         this.add(label)
 
         val chooserPanel = FileChooserPanel(directory)

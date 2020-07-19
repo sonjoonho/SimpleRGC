@@ -20,7 +20,7 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
 
         val resultsOutputPanel = JPanel()
         resultsOutputPanel.layout = GridLayout(0, 2)
-        val resultsOutputLabel = JLabel("Results output")
+        val resultsOutputLabel = ParameterLabel("Results output")
         resultsOutputPanel.add(resultsOutputLabel)
         val saveAsCSVButton = JRadioButton("Save as a CSV file")
         saveAsCSVButton.isSelected = format == OutputFormat.CSV
@@ -32,7 +32,7 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
 
         val outputFilePanel = JPanel()
         outputFilePanel.layout = GridLayout(0, 2)
-        val label = JLabel("Output File (if saving)")
+        val label = ParameterLabel("Output file (if saving)")
         outputFilePanel.add(label)
 
         val chooserPanel = FileChooserPanel(file)

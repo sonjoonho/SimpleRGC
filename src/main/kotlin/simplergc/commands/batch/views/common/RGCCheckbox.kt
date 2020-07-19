@@ -10,7 +10,7 @@ class RGCCheckbox(labelName: String, initial: Boolean) : JPanel() {
     var isSelected: Boolean
     init {
         this.layout = GridLayout(0, 2)
-        val label = JLabel(labelName)
+        val label = ParameterLabel(labelName)
         val checkbox = JCheckBox()
 
         checkbox.isSelected = initial

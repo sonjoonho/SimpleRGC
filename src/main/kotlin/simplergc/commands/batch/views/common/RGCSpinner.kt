@@ -14,7 +14,7 @@ class RGCSpinner(labelName: String, model: SpinnerNumberModel) : JPanel() {
     var value: Int = 0
     init {
         this.layout = GridLayout(0, 2)
-        val label = JLabel(labelName)
+        val label = ParameterLabel(labelName)
         val spinnerPanel = JPanel()
         spinnerPanel.layout = BoxLayout(spinnerPanel, BoxLayout.X_AXIS)
         val spinner = JSpinner(model)
