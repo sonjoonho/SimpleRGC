@@ -12,7 +12,7 @@ import simplergc.services.Table
 open class CSVColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
     ColocalizationOutput() {
 
-    private val outputPath: String = "${transductionParameters.outputFile.path}${File.separator}"
+    protected val outputPath: String = "${transductionParameters.outputFile.path}${File.separator}"
 
     override fun output() {
         checkOutputFolderCanBeCreated()
@@ -29,7 +29,7 @@ open class CSVColocalizationOutput(private val transductionParameters: Parameter
         }
     }
 
-    private val documentationCsv = Table(arrayOf())
+    protected val documentationCsv = Table(arrayOf())
 
     private fun writeDocumentationCsv() {
         // Constant array of information
