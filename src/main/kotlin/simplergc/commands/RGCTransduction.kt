@@ -72,11 +72,23 @@ class RGCTransduction : Command, Previewable {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Channel selection",
+        label = "Target (morphology) cells",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var channelSelectionHeader: String
+    private lateinit var TargetCellHeader: String
+
+    /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Cell diameter (px)",
+        description = "Used as minimum/maximum diameter when identifying cells",
+        required = true,
+        style = AlignedTextWidget.RIGHT,
+        persist = true
+    )
+    var cellDiameterText = "0.0-30.0"
 
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
@@ -84,7 +96,7 @@ class RGCTransduction : Command, Previewable {
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Cell morphology channel",
+        label = "Channel",
         min = "1",
         stepSize = "1",
         required = true,
@@ -93,18 +105,25 @@ class RGCTransduction : Command, Previewable {
     var targetChannel = 1
 
     @Parameter(
-        label = "Exclude axons from cell morphology channel",
+        label = "Exclude axons",
         required = true,
         persist = true
     )
     var shouldRemoveAxonsFromTargetChannel: Boolean = false
+
+    @Parameter(
+        label = "Transduced cells",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var TransducedCellHeader: String
 
     /**
      * Specify the channel for the transduced cells.
      * By default this is the 2 (green) channel.
      */
     @Parameter(
-        label = "Transduction channel",
+        label = "Channel",
         min = "1",
         stepSize = "1",
         required = true,
@@ -113,7 +132,7 @@ class RGCTransduction : Command, Previewable {
     var transducedChannel = 2
 
     @Parameter(
-        label = "Exclude axons from transduction channel",
+        label = "Exclude axons",
         required = true,
         persist = true
     )
@@ -125,18 +144,6 @@ class RGCTransduction : Command, Previewable {
         required = false
     )
     private lateinit var preprocessingParamsHeader: String
-
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter for morphology channel 1 (px)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = true
-    )
-    var cellDiameterText = "0.0-30.0"
 
     /**
      * Used as the size of the window over which the threshold will be locally computed.
