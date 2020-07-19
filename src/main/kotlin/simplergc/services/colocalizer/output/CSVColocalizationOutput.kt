@@ -9,36 +9,50 @@ import simplergc.services.Table
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
-class CSVColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) : ColocalizationOutput() {
+open class CSVColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
+    ColocalizationOutput() {
 
     private val outputPath: String = "${transductionParameters.outputFile.path}${File.separator}"
 
     override fun output() {
-        val outputFileSuccess = File(transductionParameters.outputFile.path).mkdir()
-        if (!outputFileSuccess and !transductionParameters.outputFile.exists()) {
-            throw IOException()
-        }
+        checkOutputFolderCanBeCreated()
         writeDocumentationCsv()
         writeSummaryCsv()
         writeTransductionAnalysisCsv()
         writeParametersCsv()
     }
 
+    protected fun checkOutputFolderCanBeCreated() {
+        val outputFileSuccess = File(transductionParameters.outputFile.path).mkdir()
+        if (!outputFileSuccess and !transductionParameters.outputFile.exists()) {
+            throw IOException()
+        }
+    }
+
     private val documentationCsv = Table(arrayOf())
 
     private fun writeDocumentationCsv() {
         // Constant array of information
-        documentationCsv.addRow(DocumentationRow("The Article: ", "TODO: insert full citation of manuscript when complete"))
+        documentationCsv.addRow(
+            DocumentationRow(
+                "The Article: ",
+                "TODO: insert full citation of manuscript when complete"
+            )
+        )
         documentationCsv.addRow(DocumentationRow("", ""))
         documentationCsv.addRow(DocumentationRow("Abbreviation: ", "Description"))
         documentationCsv.addRow(DocumentationRow("Summary: ", "Key overall measurements per image"))
-        documentationCsv.addRow(DocumentationRow("Transduced Cell Analysis: ", "Cell-by-cell metrics of transduced cells"))
+        documentationCsv.addRow(
+            DocumentationRow(
+                "Transduced Cell Analysis: ",
+                "Cell-by-cell metrics of transduced cells"
+            )
+        )
         documentationCsv.addRow(DocumentationRow("Parameters: ", "Parameters used for SimpleRGC plugin"))
         documentationCsv.produceCSV(File("${outputPath}Documentation.csv"))
     }
 
-    private fun writeSummaryCsv() {
-        // Summary
+    protected fun writeSummaryCsv() {
         // TODO (#156): Add integrated density
         for ((fileName, result) in fileNameAndResultsList) {
             summaryData.addRow(SummaryRow(fileName = fileName, summary = result.getSummary()))
@@ -62,7 +76,7 @@ class CSVColocalizationOutput(private val transductionParameters: Parameters.Tra
         transductionAnalysisData.produceCSV(File("${outputPath}Transduced Cell Analysis.csv"))
     }
 
-    private fun writeParametersCsv() {
+    protected fun writeParametersCsv() {
         // TODO (#156): Add pixel size (micrometers) in next sprint.
         for ((fileName, _) in fileNameAndResultsList) {
             parametersData.addRow(
