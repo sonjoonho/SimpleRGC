@@ -5,6 +5,7 @@ import java.io.FileNotFoundException
 import simplergc.commands.batch.Batchable
 import simplergc.commands.batch.models.RGCParameters
 import simplergc.commands.batch.views.RGCView
+import simplergc.comparators.AlphanumFileComparator
 
 abstract class RGCController {
     abstract val view: RGCView
@@ -22,9 +23,10 @@ abstract class RGCController {
         val processor = makeProcessor(p)
 
         val files = getAllFiles(p.inputDirectory!!, p.shouldProcessFilesInNestedFolders)
+        val orderedFiles = files.sortedWith(AlphanumFileComparator)
 
         processor.process(
-            openFiles(files),
+            openFiles(orderedFiles),
             p.cellDiameterRange,
             p.thresholdRadius,
             p.gaussianBlurSigma,
