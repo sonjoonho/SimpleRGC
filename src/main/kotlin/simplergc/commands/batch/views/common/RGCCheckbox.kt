@@ -2,7 +2,6 @@ package simplergc.commands.batch.views.common
 
 import java.awt.GridLayout
 import javax.swing.JCheckBox
-import javax.swing.JLabel
 import javax.swing.JPanel
 
 /** Adds a checkbox with the given label to the container, returning the JCheckBox. */

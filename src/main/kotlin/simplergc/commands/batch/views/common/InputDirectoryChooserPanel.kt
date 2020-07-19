@@ -1,10 +1,8 @@
 package simplergc.commands.batch.views.common
 
-import java.awt.Component
 import java.awt.GridLayout
 import java.io.File
 import javax.swing.JFileChooser
-import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
 

@@ -1,11 +1,8 @@
 package simplergc.commands.batch.views.common
 
-import java.awt.Component
 import java.awt.Container
 import java.awt.GridLayout
-import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.SwingConstants
 import javax.swing.border.EmptyBorder
 
 fun addMessage(container: Container, labelName: String) {
