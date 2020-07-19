@@ -79,6 +79,18 @@ class RGCTransduction : Command, Previewable {
     private lateinit var TargetCellHeader: String
 
     /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
+    @Parameter(
+        label = "Cell diameter (px)",
+        description = "Used as minimum/maximum diameter when identifying cells",
+        required = true,
+        style = AlignedTextWidget.RIGHT,
+        persist = true
+    )
+    var cellDiameterText = "0.0-30.0"
+
+    /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
      * the channels available at the parameter initiation stage.
      * By default this is 1 (red) channel.
@@ -132,18 +144,6 @@ class RGCTransduction : Command, Previewable {
         required = false
     )
     private lateinit var preprocessingParamsHeader: String
-
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter for morphology channel 1 (px)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = true
-    )
-    var cellDiameterText = "0.0-30.0"
 
     /**
      * Used as the size of the window over which the threshold will be locally computed.
