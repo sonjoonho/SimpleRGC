@@ -1,12 +1,10 @@
 package simplergc.commands.batch.views.common
 
-import java.awt.GridBagLayout
 import java.awt.GridLayout
 import java.io.File
-import javax.swing.JButton
 import javax.swing.JFileChooser
-import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.border.EmptyBorder
 
 class InputDirectoryChooserPanel(container: JPanel, initial: String) : JPanel() {
 
@@ -14,24 +12,20 @@ class InputDirectoryChooserPanel(container: JPanel, initial: String) : JPanel() 
 
     init {
         this.layout = GridLayout(0, 2)
-        val inputFolderLabel = JLabel("Input folder")
-        val buttonPanel = JPanel()
-        buttonPanel.layout = GridBagLayout()
-        val browseButton = JButton("Browse")
-        val folderName = FileChooserTextArea(directory.absolutePath, 1, COLUMN_WIDTH)
-        inputFolderLabel.labelFor = browseButton
-        this.add(inputFolderLabel)
-        buttonPanel.add(folderName)
-        buttonPanel.add(browseButton)
-        this.add(buttonPanel)
+        val label = ParameterLabel("Input folder")
+        label.border = EmptyBorder(0, 0, 0, 10)
+        this.add(label)
 
-        browseButton.addActionListener {
+        val chooserPanel = FileChooserPanel(directory)
+
+        this.add(chooserPanel)
+
+        chooserPanel.browseButton.addActionListener {
             val fileChooser = JFileChooser()
             fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
-            val i = fileChooser.showOpenDialog(container)
-            if (i == JFileChooser.APPROVE_OPTION) {
+            if (fileChooser.showOpenDialog(container) == JFileChooser.APPROVE_OPTION) {
                 directory = fileChooser.selectedFile
-                folderName.text = directory.absolutePath
+                chooserPanel.path.text = directory.absolutePath
                 // TODO(sonjoonho): This.
                 // prefs.putRGCTransductionPref("folderName", directory.absolutePath)
             }
