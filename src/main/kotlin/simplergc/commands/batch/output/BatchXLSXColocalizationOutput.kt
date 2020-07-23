@@ -55,8 +55,8 @@ class BatchXLSXColocalizationOutput(private val transductionParameters: Paramete
     }
 
     private fun writeMetricSheet(metricName: String, workbook: XSSFWorkbook) {
-        val maxRows =
-            fileNameAndResultsList.maxBy { it.second.overlappingTwoChannelCells.size }?.second?.overlappingTwoChannelCells?.size
+        val maxRows = getMaxRows()
+        val metricData = getMetricData()
         for (rowIdx in 0..maxRows!!) {
             val rowData = getMetricMappings().getValue(metricName).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(metricRow(rowIdx, rowData))
