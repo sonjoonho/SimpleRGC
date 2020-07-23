@@ -71,7 +71,7 @@ class BatchableColocalizer(
         transductionParameters: Parameters.TransductionParameters,
         outputFormat: String
     ) {
-        val output: ColocalizationOutput = when (outputFormat) {
+        val output = when (outputFormat) {
             OutputFormat.XLSX -> BatchXLSXColocalizationOutput(transductionParameters)
             OutputFormat.CSV -> BatchCSVColocalizationOutput(transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
