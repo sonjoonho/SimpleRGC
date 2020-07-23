@@ -84,8 +84,8 @@ class BatchCSVColocalizationOutput(transductionParameters: Parameters.Transducti
     }
 
     private fun writeMetricCSV(metricName: String) {
-        val maxRows =
-            fileNameAndResultsList.maxBy { it.second.overlappingTwoChannelCells.size }?.second?.overlappingTwoChannelCells?.size
+        val maxRows = getMaxRows()
+        val metricData = getMetricData()
         for (rowIdx in 0..maxRows!!) {
             val rowData = getMetricMappings().getOrDefault(metricName, emptyList()).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(metricRow(rowIdx, rowData))
