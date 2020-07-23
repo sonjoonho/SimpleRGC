@@ -20,7 +20,9 @@ class BatchCSVColocalizationOutput(private val transductionParameters: Transduct
         checkOutputFolderCanBeCreated()
         writeSummaryCsv()
         writeDocumentationCsv()
-        // TODO (tiger-cross): Add method for writing individual metrics CSVs
+        for (metricName in metricMappings.keys) {
+            writeMetricCSV(metricName)
+        }
         writeParametersCsv()
     }
 
@@ -109,5 +111,6 @@ class BatchCSVColocalizationOutput(private val transductionParameters: Transduct
             val rowData = metricMappings.getOrDefault(metricName, emptyList()).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(metricRow(rowIdx, rowData))
         }
+        metricData.produceCSV(File("${outputPath}${metricName}.csv"))
     }
 }
