@@ -26,7 +26,7 @@ class BatchXLSXColocalizationOutput(private val transductionParameters: Paramete
         val workbook = XSSFWorkbook()
         writeDocSheet(workbook)
         XLSXColocalizationOutput.writeSummarySheet(workbook)
-        for (metricName in metricMappings.keys) {
+        for (metricName in getMetricMappings().keys) {
             writeMetricSheet(metricName, workbook)
         }
         XLSXColocalizationOutput.writeParamsSheet(workbook)
@@ -58,7 +58,7 @@ class BatchXLSXColocalizationOutput(private val transductionParameters: Paramete
         val maxRows =
             fileNameAndResultsList.maxBy { it.second.overlappingTwoChannelCells.size }?.second?.overlappingTwoChannelCells?.size
         for (rowIdx in 0..maxRows!!) {
-            val rowData = metricMappings.getOrDefault(metricName, emptyList()).map { it.second.getOrNull(rowIdx) }
+            val rowData = getMetricMappings().getValue(metricName).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(metricRow(rowIdx, rowData))
         }
         metricData.produceXLSX(workbook, metricName)

@@ -9,39 +9,40 @@ import simplergc.services.colocalizer.output.ColocalizationOutput
 
 abstract class BatchColocalizationOutput : ColocalizationOutput() {
 
-    protected val metricMappings = mapOf(
-        "Morphology Area" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.area })
-        },
-        "Mean Int" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.mean })
-        },
-        "Median Int" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.median })
-        },
-        "Min Int" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.min })
-        },
-        "Max Int" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.max })
-        },
-        "Raw IntDen" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.rawIntDen })
-        }
-
-    )
+    fun getMetricMappings(): Map<String, List<Pair<String, List<Int>>>> {
+        return mapOf(
+            "Morphology Area" to fileNameAndResultsList.map {
+                Pair(
+                    it.first,
+                    it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.area })
+            },
+            "Mean Int" to fileNameAndResultsList.map {
+                Pair(
+                    it.first,
+                    it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.mean })
+            },
+            "Median Int" to fileNameAndResultsList.map {
+                Pair(
+                    it.first,
+                    it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.median })
+            },
+            "Min Int" to fileNameAndResultsList.map {
+                Pair(
+                    it.first,
+                    it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.min })
+            },
+            "Max Int" to fileNameAndResultsList.map {
+                Pair(
+                    it.first,
+                    it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.max })
+            },
+            "Raw IntDen" to fileNameAndResultsList.map {
+                Pair(
+                    it.first,
+                    it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.rawIntDen })
+            }
+        )
+    }
 
     val metricData = Table(
         arrayOf(
