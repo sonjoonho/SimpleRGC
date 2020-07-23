@@ -9,10 +9,10 @@ import simplergc.services.Table
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
-open class CSVColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
+class CSVColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
     ColocalizationOutput() {
 
-    protected val outputPath: String = "${transductionParameters.outputFile.path}${File.separator}"
+    val outputPath: String = "${transductionParameters.outputFile.path}${File.separator}"
 
     override fun output() {
         checkOutputFolderCanBeCreated()
@@ -22,14 +22,14 @@ open class CSVColocalizationOutput(private val transductionParameters: Parameter
         writeParametersCsv()
     }
 
-    protected fun checkOutputFolderCanBeCreated() {
+    fun checkOutputFolderCanBeCreated() {
         val outputFileSuccess = File(transductionParameters.outputFile.path).mkdir()
         if (!outputFileSuccess and !transductionParameters.outputFile.exists()) {
             throw IOException()
         }
     }
 
-    protected val documentationCsv = Table(arrayOf())
+    val documentationCsv = Table(arrayOf())
 
     private fun writeDocumentationCsv() {
         // Constant array of information
@@ -52,7 +52,7 @@ open class CSVColocalizationOutput(private val transductionParameters: Parameter
         documentationCsv.produceCSV(File("${outputPath}Documentation.csv"))
     }
 
-    protected fun writeSummaryCsv() {
+    fun writeSummaryCsv() {
         // TODO (#156): Add integrated density
         for ((fileName, result) in fileNameAndResultsList) {
             summaryData.addRow(SummaryRow(fileName = fileName, summary = result.getSummary()))
@@ -69,7 +69,7 @@ open class CSVColocalizationOutput(private val transductionParameters: Parameter
         transductionAnalysisData.produceCSV(File("${outputPath}Transduced Cell Analysis.csv"))
     }
 
-    protected fun writeParametersCsv() {
+    fun writeParametersCsv() {
         // TODO (#156): Add pixel size (micrometers) in next sprint.
         for ((fileName, _) in fileNameAndResultsList) {
             parametersData.addRow(
