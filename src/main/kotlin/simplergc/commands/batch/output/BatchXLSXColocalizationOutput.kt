@@ -3,6 +3,7 @@ package simplergc.commands.batch.output
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Parameters
+import simplergc.services.Table
 import simplergc.services.colocalizer.output.XLSXColocalizationOutput
 import java.io.File
 
@@ -32,11 +33,22 @@ class BatchXLSXColocalizationOutput(private val transductionParameters: Paramete
         workbook.close()
     }
 
-    private fun writeMetricSheet(metricName: String, workbook: XSSFWorkbook) {
-        TODO("Not yet implemented")
+    private fun writeDocSheet(workbook: XSSFWorkbook) {
+        val docXLSX = Table(arrayOf())
+        docXLSX.addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
+        docXLSX.addRow(DocumentationRow("", ""))
+        docXLSX.addRow(DocumentationRow("Abbreviation", "Description"))
+        docXLSX.addRow(DocumentationRow("Summary", "Key measurements per image"))
+        docXLSX.addRow(DocumentationRow("Mean Int: ", "Mean fluorescence intensity for each transduced cell"))
+        docXLSX.addRow(DocumentationRow("Median Int:", "Median fluorescence intensity for each transduced cell"))
+        docXLSX.addRow(DocumentationRow("Min Int: ", "Min fluorescence intensity for each transduced cell"))
+        docXLSX.addRow(DocumentationRow("Max Int: ", "Max fluorescence intensity for each transduced cell"))
+        docXLSX.addRow(DocumentationRow("Raw IntDen:", "Raw Integrated Density for each transduced cell"))
+        docXLSX.addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
+        docXLSX.produceXLSX(workbook, "Documentation")
     }
 
-    private fun writeDocSheet(workbook: XSSFWorkbook) {
-        TODO("Not yet implemented")
+    private fun writeMetricSheet(metricName: String, workbook: XSSFWorkbook) {
+        // TODO(Not implemented yet)
     }
 }
