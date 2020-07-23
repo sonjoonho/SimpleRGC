@@ -17,7 +17,7 @@ class BatchCSVColocalizationOutput(transductionParameters: Parameters.Transducti
         csvColocalizationOutput.checkOutputFolderCanBeCreated()
         csvColocalizationOutput.writeSummaryCsv()
         writeDocumentationCsv()
-        for (metricName in metricMappings.keys) {
+        for (metricName in getMetricMappings().keys) {
             writeMetricCSV(metricName)
         }
         csvColocalizationOutput.writeParametersCsv()
@@ -87,7 +87,7 @@ class BatchCSVColocalizationOutput(transductionParameters: Parameters.Transducti
         val maxRows =
             fileNameAndResultsList.maxBy { it.second.overlappingTwoChannelCells.size }?.second?.overlappingTwoChannelCells?.size
         for (rowIdx in 0..maxRows!!) {
-            val rowData = metricMappings.getOrDefault(metricName, emptyList()).map { it.second.getOrNull(rowIdx) }
+            val rowData = getMetricMappings().getOrDefault(metricName, emptyList()).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(metricRow(rowIdx, rowData))
         }
         metricData.produceCSV(File("${csvColocalizationOutput.outputPath}${metricName}.csv"))
