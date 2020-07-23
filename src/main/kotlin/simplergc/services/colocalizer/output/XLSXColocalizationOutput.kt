@@ -39,7 +39,7 @@ open class XLSXColocalizationOutput(private val transductionParameters: Paramete
         docXLSX.produceXLSX(workbook, "Documentation")
     }
 
-    private fun writeSummarySheet(workbook: XSSFWorkbook) {
+    internal fun writeSummarySheet(workbook: XSSFWorkbook) {
         // Add summary data
         for ((fileName, result) in fileNameAndResultsList) {
             summaryData.addRow(SummaryRow(fileName = fileName, summary = result.getSummary()))
@@ -56,7 +56,7 @@ open class XLSXColocalizationOutput(private val transductionParameters: Paramete
         transductionAnalysisData.produceXLSX(workbook, "Transduction Analysis")
     }
 
-    private fun writeParamsSheet(workbook: XSSFWorkbook) {
+    internal fun writeParamsSheet(workbook: XSSFWorkbook) {
         // Add parameters data
         for ((fileName, _) in fileNameAndResultsList) {
             parametersData.addRow(
