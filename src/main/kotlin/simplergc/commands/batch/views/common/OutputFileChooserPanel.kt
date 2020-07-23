@@ -26,10 +26,10 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
         val saveAsCSVButton = JRadioButton("Save as a CSV file(s)")
         saveAsCSVButton.isSelected = format == OutputFormat.CSV
         val bg = ButtonGroup()
-        bg.add(saveAsCSVButton)
         bg.add(saveAsXLSXButton)
-        resultsOutputPanel.add(saveAsCSVButton)
+        bg.add(saveAsCSVButton)
         resultsOutputPanel.add(saveAsXLSXButton)
+        resultsOutputPanel.add(saveAsCSVButton)
         resultsOutputPanel.add(JPanel())
         this.add(resultsOutputPanel)
 
