@@ -21,11 +21,15 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
         resultsOutputPanel.layout = GridLayout(0, 2)
         val resultsOutputLabel = ParameterLabel("Results output")
         resultsOutputPanel.add(resultsOutputLabel)
-        val saveAsCSVButton = JRadioButton("Save as a CSV file")
+        val saveAsXLSXButton = JRadioButton("Save as a XLSX file (Recommended)")
+        saveAsXLSXButton.isSelected = format == OutputFormat.XLSX
+        val saveAsCSVButton = JRadioButton("Save as a CSV file(s)")
         saveAsCSVButton.isSelected = format == OutputFormat.CSV
         val bg = ButtonGroup()
         bg.add(saveAsCSVButton)
+        bg.add(saveAsXLSXButton)
         resultsOutputPanel.add(saveAsCSVButton)
+        resultsOutputPanel.add(saveAsXLSXButton)
         resultsOutputPanel.add(JPanel())
         this.add(resultsOutputPanel)
 
