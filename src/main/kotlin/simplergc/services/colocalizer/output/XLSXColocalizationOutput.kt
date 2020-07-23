@@ -10,7 +10,8 @@ import simplergc.services.Table
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
-class XLSXColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) : ColocalizationOutput() {
+open class XLSXColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
+    ColocalizationOutput() {
 
     override fun output() {
         val workbook = XSSFWorkbook()
