@@ -25,7 +25,7 @@ abstract class ColocalizationOutput : SimpleOutput {
         const val PLUGIN_NAME = "RGC Transduction"
     }
 
-    fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
+    open fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))
     }
 
