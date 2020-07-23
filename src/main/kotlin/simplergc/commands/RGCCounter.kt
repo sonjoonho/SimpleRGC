@@ -237,8 +237,6 @@ class RGCCounter : Command, Previewable {
 
         try {
             output.output()
-        } catch (te: TransformerException) {
-            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
             displayOutputFileErrorDialog()
         }

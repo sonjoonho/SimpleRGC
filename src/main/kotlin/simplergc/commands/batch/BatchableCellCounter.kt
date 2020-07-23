@@ -54,8 +54,6 @@ class BatchableCellCounter(
         imageAndCount.forEach { output.addCountForFile(it.second, it.first.title) }
         try {
             output.output()
-        } catch (te: TransformerException) {
-            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
             displayOutputFileErrorDialog()
         }

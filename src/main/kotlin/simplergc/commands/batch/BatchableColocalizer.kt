@@ -16,7 +16,6 @@ import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
 import simplergc.services.colocalizer.output.ColocalizationOutput
-import javax.xml.transform.TransformerException
 
 class BatchableColocalizer(
     private val targetChannel: Int,
@@ -82,8 +81,6 @@ class BatchableColocalizer(
 
         try {
             output.output()
-        } catch (te: TransformerException) {
-            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
             displayOutputFileErrorDialog()
         }
