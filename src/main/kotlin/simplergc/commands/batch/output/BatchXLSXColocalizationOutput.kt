@@ -2,6 +2,7 @@ package simplergc.commands.batch.output
 
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import simplergc.commands.RGCTransduction
 import simplergc.services.Parameters
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.XLSXColocalizationOutput
@@ -15,6 +16,11 @@ class BatchXLSXColocalizationOutput(private val transductionParameters: Paramete
     BatchColocalizationOutput() {
 
     private val XLSXColocalizationOutput = XLSXColocalizationOutput(transductionParameters)
+
+    override fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
+        fileNameAndResultsList.add(Pair(file, transductionResult))
+        XLSXColocalizationOutput.addTransductionResultForFile(transductionResult, file)
+    }
 
     override fun output() {
         val workbook = XSSFWorkbook()
