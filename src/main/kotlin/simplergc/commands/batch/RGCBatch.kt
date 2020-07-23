@@ -1,11 +1,5 @@
 package simplergc.commands.batch
 
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.util.prefs.Preferences
-import javax.swing.BorderFactory
-import javax.swing.JFrame
-import javax.swing.JTabbedPane
 import net.imagej.ImageJ
 import org.scijava.Context
 import org.scijava.command.Command
@@ -19,6 +13,12 @@ import simplergc.commands.batch.models.RGCTransductionModel
 import simplergc.commands.batch.views.RGCCounterView
 import simplergc.commands.batch.views.RGCTransductionView
 import simplergc.services.CellSegmentationService
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.util.prefs.Preferences
+import javax.swing.BorderFactory
+import javax.swing.JFrame
+import javax.swing.JTabbedPane
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Batch")
 class RGCBatch : Command {
@@ -32,8 +32,8 @@ class RGCBatch : Command {
     private val prefs = Preferences.userRoot().node(this.javaClass.name)
 
     object OutputFormat {
-        const val XLSX = "Save as XLSX file (recommended)"
-        const val CSV = "Save as CSV file"
+        const val XLSX = "XLSX"
+        const val CSV = "CSV"
     }
 
     private fun gui() {
