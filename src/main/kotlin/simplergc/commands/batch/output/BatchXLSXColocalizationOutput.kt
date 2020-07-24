@@ -41,16 +41,9 @@ class BatchXLSXColocalizationOutput(private val transductionParameters: Paramete
 
     private fun writeDocSheet(workbook: XSSFWorkbook) {
         val docXLSX = Table(arrayOf())
-        docXLSX.addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
-        docXLSX.addRow(DocumentationRow("", ""))
-        docXLSX.addRow(DocumentationRow("Abbreviation", "Description"))
-        docXLSX.addRow(DocumentationRow("Summary", "Key measurements per image"))
-        docXLSX.addRow(DocumentationRow("Mean Int: ", "Mean fluorescence intensity for each transduced cell"))
-        docXLSX.addRow(DocumentationRow("Median Int:", "Median fluorescence intensity for each transduced cell"))
-        docXLSX.addRow(DocumentationRow("Min Int: ", "Min fluorescence intensity for each transduced cell"))
-        docXLSX.addRow(DocumentationRow("Max Int: ", "Max fluorescence intensity for each transduced cell"))
-        docXLSX.addRow(DocumentationRow("Raw IntDen:", "Raw Integrated Density for each transduced cell"))
-        docXLSX.addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
+        for (row in documentationRows) {
+            docXLSX.addRow(row)
+        }
         docXLSX.produceXLSX(workbook, "Documentation")
     }
 

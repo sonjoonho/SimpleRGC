@@ -9,6 +9,19 @@ import simplergc.services.colocalizer.output.ColocalizationOutput
 
 abstract class BatchColocalizationOutput : ColocalizationOutput() {
 
+    val documentationRows = listOf<DocumentationRow>(
+        DocumentationRow("The article: ", "TODO: Insert citation"),
+        DocumentationRow("", ""),
+        DocumentationRow("Abbreviation", "Description"),
+        DocumentationRow("Summary", "Key measurements per image"),
+        DocumentationRow("Mean Int: ", "Mean fluorescence intensity for each transduced cell"),
+        DocumentationRow("Median Int:", "Median fluorescence intensity for each transduced cell"),
+        DocumentationRow("Min Int: ", "Min fluorescence intensity for each transduced cell"),
+        DocumentationRow("Max Int: ", "Max fluorescence intensity for each transduced cell"),
+        DocumentationRow("Raw IntDen:", "Raw Integrated Density for each transduced cell"),
+        DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin")
+    )
+
     fun getMetricMappings(): Map<String, List<Pair<String, List<Int>>>> = mapOf(
         "Morphology Area" to fileNameAndResultsList.map {
             Pair(
