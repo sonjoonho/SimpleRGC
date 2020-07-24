@@ -30,62 +30,9 @@ class BatchCSVColocalizationOutput(transductionParameters: Parameters.Transducti
     }
 
     private fun writeDocumentationCsv() {
-        csvColocalizationOutput.documentationCsv.addRow(
-            DocumentationRow(
-                "The Article: ",
-                "TODO: insert full citation of manuscript when complete"
-            )
-        )
-        csvColocalizationOutput.documentationCsv.addRow(DocumentationRow("", ""))
-        csvColocalizationOutput.documentationCsv.addRow(DocumentationRow("Abbreviation: ", "Description"))
-        csvColocalizationOutput.documentationCsv.addRow(
-            DocumentationRow(
-                "Summary: ",
-                "Key overall measurements per image"
-            )
-        )
-        csvColocalizationOutput.documentationCsv.addRow(
-            DocumentationRow(
-                "Morphology Area: ",
-                "Average morphology area for each transduced cell"
-            )
-        )
-        csvColocalizationOutput.documentationCsv.addRow(
-            DocumentationRow(
-                "Mean Int: ",
-                "Mean fluorescence intensity for each transduced cell"
-            )
-        )
-        csvColocalizationOutput.documentationCsv.addRow(
-            DocumentationRow(
-                "Median Int:",
-                "Median fluorescence intensity for each transduced cell"
-            )
-        )
-        csvColocalizationOutput.documentationCsv.addRow(
-            DocumentationRow(
-                "Min Int: ",
-                "Min fluorescence intensity for each transduced cell"
-            )
-        )
-        csvColocalizationOutput.documentationCsv.addRow(
-            DocumentationRow(
-                "Max Int: ",
-                "Max fluorescence intensity for each transduced cell"
-            )
-        )
-        csvColocalizationOutput.documentationCsv.addRow(
-            DocumentationRow(
-                "Raw IntDen:",
-                "Raw Integrated Density for each transduced cell"
-            )
-        )
-        csvColocalizationOutput.documentationCsv.addRow(
-            DocumentationRow(
-                "Parameters: ",
-                "Parameters used for SimpleRGC plugin"
-            )
-        )
+        for (row in documentationRows) {
+            csvColocalizationOutput.documentationCsv.addRow(row)
+        }
         csvColocalizationOutput.documentationCsv.produceCSV(File("${csvColocalizationOutput.outputPath}Documentation.csv"))
     }
 
