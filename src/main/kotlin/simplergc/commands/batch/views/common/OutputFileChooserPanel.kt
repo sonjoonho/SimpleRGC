@@ -1,12 +1,12 @@
 package simplergc.commands.batch.views.common
 
-import simplergc.commands.batch.RGCBatch.OutputFormat
 import java.awt.GridLayout
 import java.io.File
 import javax.swing.ButtonGroup
 import javax.swing.JFileChooser
 import javax.swing.JPanel
 import javax.swing.JRadioButton
+import simplergc.commands.batch.RGCBatch.OutputFormat
 
 const val COLUMN_WIDTH = 30
 
