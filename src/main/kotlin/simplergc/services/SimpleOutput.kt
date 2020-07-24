@@ -89,7 +89,6 @@ class Table(private val schema: Array<String>?) {
             val currRow = currSheet.createRow(rowNum)
             for (i in row.indices) {
                 val currCell = currRow.createCell(i)
-                println("here")
                 when (row[i].type) {
                     FieldType.STRING -> currCell.setCellValue(row[i].toString())
                     // Cell value cannot be set to an Int so we convert to Double.

@@ -3,7 +3,6 @@ package simplergc.commands.batch.views.common
 import java.awt.Dimension
 import java.awt.GridLayout
 import javax.swing.BoxLayout
-import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JSpinner
 import javax.swing.SpinnerNumberModel
@@ -14,7 +13,7 @@ class RGCSpinner(labelName: String, model: SpinnerNumberModel) : JPanel() {
     var value: Int = 0
     init {
         this.layout = GridLayout(0, 2)
-        val label = JLabel(labelName)
+        val label = ParameterLabel(labelName)
         val spinnerPanel = JPanel()
         spinnerPanel.layout = BoxLayout(spinnerPanel, BoxLayout.X_AXIS)
         val spinner = JSpinner(model)

@@ -24,7 +24,7 @@ class RGCTransductionController(override val view: RGCTransductionView, private 
             view.shouldRemoveAxonsFromTargetChannelCheckbox.isSelected,
             view.transductionChannelSpinner.value,
             view.shouldRemoveAxonsFromTransductionChannelCheckbox.isSelected,
-            CellDiameterRange.parseFromText(view.cellDiameterChannelField.field.text),
+            CellDiameterRange.parseFromText(view.cellDiameterField.field.text),
             view.outputFileChooserPanel.format,
             view.outputFileChooserPanel.file,
             model.context
@@ -39,7 +39,7 @@ class RGCTransductionController(override val view: RGCTransductionView, private 
         model.targetChannel = p.targetChannel
         model.shouldRemoveAxonsFromTargetChannel = p.shouldRemoveAxonsFromTargetChannel
         model.transductionChannel = p.transductionChannel
-        model.cellDiameter = view.cellDiameterChannelField.field.text
+        model.cellDiameter = view.cellDiameterField.field.text
         model.shouldRemoveAxonsFromTransductionChannel = p.shouldRemoveAxonsFromTransductionChannel
         model.outputFormat = view.outputFileChooserPanel.format
         model.outputFile = view.outputFileChooserPanel.file.absolutePath
