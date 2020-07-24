@@ -3,7 +3,6 @@ package simplergc.commands.batch
 import ij.ImagePlus
 import java.io.File
 import java.io.IOException
-import javax.xml.transform.TransformerException
 import org.scijava.Context
 import simplergc.commands.RGCCounter
 import simplergc.commands.batch.RGCBatch.OutputFormat

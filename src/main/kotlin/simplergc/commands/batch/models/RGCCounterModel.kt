@@ -56,7 +56,7 @@ class RGCCounterModel(val context: Context, private val prefs: Preferences) {
 
     var outputFormat: String
         get() {
-            return prefs.getRGCCounterPref(PreferenceKeys.outputFormat, OutputFormat.CSV)
+            return prefs.getRGCCounterPref(PreferenceKeys.outputFormat, OutputFormat.XLSX)
         }
         set(value) {
             prefs.putRGCCounterPref(PreferenceKeys.outputFormat, value)

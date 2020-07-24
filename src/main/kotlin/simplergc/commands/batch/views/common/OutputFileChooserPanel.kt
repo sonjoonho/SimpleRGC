@@ -32,8 +32,8 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
         bg.add(saveAsCSVButton)
         val buttonPanel = JPanel()
         buttonPanel.layout = GridLayout(0, 1)
-        buttonPanel.add(saveAsCSVButton)
         buttonPanel.add(saveAsXLSXButton)
+        buttonPanel.add(saveAsCSVButton)
         resultsOutputPanel.add(buttonPanel)
         this.add(resultsOutputPanel)
 
