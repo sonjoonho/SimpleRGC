@@ -1,5 +1,6 @@
 package simplergc.commands.batch.output
 
+import simplergc.commands.RGCTransduction
 import simplergc.services.Parameters
 import simplergc.services.colocalizer.output.CSVColocalizationOutput
 import java.io.File
@@ -12,6 +13,11 @@ class BatchCSVColocalizationOutput(transductionParameters: Parameters.Transducti
     BatchColocalizationOutput() {
 
     private val csvColocalizationOutput = CSVColocalizationOutput(transductionParameters)
+
+    override fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
+        fileNameAndResultsList.add(Pair(file, transductionResult))
+        csvColocalizationOutput.addTransductionResultForFile(transductionResult, file)
+    }
 
     override fun output() {
         csvColocalizationOutput.checkOutputFolderCanBeCreated()
