@@ -1,9 +1,9 @@
 package simplergc.commands.batch.output
 
+import java.io.File
 import simplergc.commands.RGCTransduction
 import simplergc.services.Parameters
 import simplergc.services.colocalizer.output.CSVColocalizationOutput
-import java.io.File
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -43,6 +43,6 @@ class BatchCSVColocalizationOutput(transductionParameters: Parameters.Transducti
             val rowData = getMetricMappings().getOrDefault(metricName, emptyList()).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(metricRow(rowIdx, rowData))
         }
-        metricData.produceCSV(File("${csvColocalizationOutput.outputPath}${metricName}.csv"))
+        metricData.produceCSV(File("${csvColocalizationOutput.outputPath}$metricName.csv"))
     }
 }

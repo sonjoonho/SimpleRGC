@@ -1,12 +1,12 @@
 package simplergc.commands.batch.output
 
+import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.commands.RGCTransduction
 import simplergc.services.Parameters
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.XLSXColocalizationOutput
-import java.io.File
 
 /**
  * Displays a table for a transduction analysis with the result of
