@@ -15,7 +15,6 @@ import simplergc.commands.batch.output.BatchXLSXColocalizationOutput
 import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
-import simplergc.services.colocalizer.output.ColocalizationOutput
 
 class BatchableColocalizer(
     private val targetChannel: Int,
@@ -74,7 +73,7 @@ class BatchableColocalizer(
         val output = when (outputFormat) {
             OutputFormat.XLSX -> BatchXLSXColocalizationOutput(transductionParameters)
             OutputFormat.CSV -> BatchCSVColocalizationOutput(transductionParameters)
-            else -> throw IllegalArgumentException("Invalid output type provided")
+            else -> throw IllegalArgumentException("Invalid output type provided: $outputFormat")
         }
 
         fileNameAndAnalysis.forEach { output.addTransductionResultForFile(it.second, it.first) }
