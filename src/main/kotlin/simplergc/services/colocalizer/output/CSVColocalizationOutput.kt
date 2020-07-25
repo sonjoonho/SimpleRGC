@@ -1,9 +1,9 @@
 package simplergc.services.colocalizer.output
 
-import simplergc.services.Parameters
-import simplergc.services.Table
 import java.io.File
 import java.io.IOException
+import simplergc.services.Parameters
+import simplergc.services.Table
 
 /**
  * Displays a table for a transduction analysis with the result of
