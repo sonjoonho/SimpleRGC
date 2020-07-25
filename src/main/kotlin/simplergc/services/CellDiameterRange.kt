@@ -25,6 +25,8 @@ data class CellDiameterRange(val smallest: Double, val largest: Double) {
             return CellDiameterRange(smallest, largest)
         }
     }
+
+    override fun toString(): String = "$smallest - $largest"
 }
 
 class DiameterParseException(message: String) : Exception(message)
