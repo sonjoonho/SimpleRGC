@@ -78,8 +78,8 @@ abstract class BatchColocalizationOutput() : ColocalizationOutput() {
 // A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
 // of equal length so fields can be null.
 data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
-    override fun toList(): List<Field> {
-        val row = mutableListOf(IntField(rowIdx) as Field)
+    override fun toList(): List<Field<*>> {
+        val row = mutableListOf(IntField(rowIdx) as Field<*>)
         row.addAll(metrics.map { StringField(it?.toString() ?: "") })
         return row.toList()
     }

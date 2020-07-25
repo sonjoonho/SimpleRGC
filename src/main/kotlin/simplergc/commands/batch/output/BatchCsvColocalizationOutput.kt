@@ -6,7 +6,8 @@ import simplergc.services.colocalizer.output.CsvColocalizationOutput
 import java.io.File
 
 /**
- * Outputs the transduction analysis with the result of overlapping, transduced cells in CSV format.
+ * Displays a table for a transduction analysis with the result of
+ * overlapping, transduced cells.
  */
 class BatchCsvColocalizationOutput(transductionParameters: Parameters.TransductionParameters) :
     BatchColocalizationOutput() {
