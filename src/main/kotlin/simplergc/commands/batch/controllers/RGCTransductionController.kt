@@ -33,6 +33,7 @@ class RGCTransductionController(override val view: RGCTransductionView, private 
 
     override fun saveParameters(p: RGCParameters) {
         p as RGCTransductionParameters
+        model.inputDirectory = p.inputDirectory?.path ?: ""
         model.shouldProcessFilesInNestedFolders = p.shouldProcessFilesInNestedFolders
         model.thresholdRadius = p.thresholdRadius
         model.gaussianBlur = p.gaussianBlurSigma
