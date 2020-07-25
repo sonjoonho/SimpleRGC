@@ -2,6 +2,7 @@ package simplergc.commands.batch.output
 
 import simplergc.commands.RGCTransduction
 import simplergc.services.BaseRow
+import simplergc.services.CellColocalizationService.CellAnalysis
 import simplergc.services.Field
 import simplergc.services.IntField
 import simplergc.services.SimpleOutput
@@ -10,13 +11,13 @@ import simplergc.services.Table
 import simplergc.services.colocalizer.output.ColocalizationOutput
 import simplergc.services.colocalizer.output.DocumentationRow
 
-enum class Metrics(val value: String) {
-    Area("Morphology Area"),
-    Mean("Mean Int"),
-    Median("Median Int"),
-    Min("Min Int"),
-    Max("Max Int"),
-    IntDen("Raw IntDen"),
+enum class Metric(val value: String, val compute: (CellAnalysis) -> Int) {
+    Area("Morphology Area", CellAnalysis::area),
+    Mean("Mean Int", CellAnalysis::mean),
+    Median("Median Int", CellAnalysis::median),
+    Min("Min Int", CellAnalysis::min),
+    Max("Max Int", CellAnalysis::max),
+    IntDen("Raw IntDen", CellAnalysis::rawIntDen)
 }
 
 abstract class BatchColocalizationOutput(val colocalizatonOutput: ColocalizationOutput) : SimpleOutput {
@@ -36,54 +37,26 @@ abstract class BatchColocalizationOutput(val colocalizatonOutput: Colocalization
         DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin")
     )
 
-    abstract fun writeMetricSheet(metric: Metrics)
+    abstract fun writeMetricSheet(metric: Metric)
 
     fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))
         colocalizatonOutput.addTransductionResultForFile(transductionResult, file)
     }
 
-    // metricMappings returns a map from metric name to a list of [filenames and a list of values].
-    fun metricMappings(): Map<Metrics, MutableList<Pair<String, List<Int>>>> {
-        val areasWithFilenames = mutableListOf<Pair<String, List<Int>>>()
-        val meansWithFilenames = mutableListOf<Pair<String, List<Int>>>()
-        val mediansWithFilenames = mutableListOf<Pair<String, List<Int>>>()
-        val minsWithFilenames = mutableListOf<Pair<String, List<Int>>>()
-        // I am aware this is not an actual word don't @ me.
-        val maxsWithFilenames = mutableListOf<Pair<String, List<Int>>>()
-        val intDensWithFilenames = mutableListOf<Pair<String, List<Int>>>()
-
-        for ((filename, result) in fileNameAndResultsList) {
-            val areas = mutableListOf<Int>()
-            val means = mutableListOf<Int>()
-            val medians = mutableListOf<Int>()
-            val mins = mutableListOf<Int>()
-            val maxs = mutableListOf<Int>()
-            val intDens = mutableListOf<Int>()
-
-            for (cell in result.overlappingTransducedIntensityAnalysis) {
-                areas.add(cell.area)
-                means.add(cell.mean)
-                medians.add(cell.median)
-                mins.add(cell.min)
-                maxs.add(cell.max)
-                intDens.add(cell.rawIntDen)
+    // Returns a map from metric to a list of [filenames and a list of values].
+    fun metricMappings(): Map<Metric, MutableList<Pair<String, List<Int>>>> {
+        return Metric.values().toList().associateWith { metric: Metric ->
+            // Create [filenames and a list of values] to associate with metric
+            val fileValues = mutableListOf<Pair<String, List<Int>>>()
+            for ((fileName, result) in fileNameAndResultsList) {
+                val cellValues = result.overlappingTransducedIntensityAnalysis.map { cell ->
+                    metric.compute(cell)
+                }
+                fileValues.add(Pair(fileName, cellValues))
             }
-            areasWithFilenames.add(Pair(filename, areas))
-            meansWithFilenames.add(Pair(filename, means))
-            mediansWithFilenames.add(Pair(filename, medians))
-            minsWithFilenames.add(Pair(filename, mins))
-            maxsWithFilenames.add(Pair(filename, maxs))
-            intDensWithFilenames.add(Pair(filename, intDens))
+            fileValues
         }
-        return mapOf(
-            Metrics.Area to areasWithFilenames,
-            Metrics.Mean to meansWithFilenames,
-            Metrics.Median to mediansWithFilenames,
-            Metrics.Min to minsWithFilenames,
-            Metrics.Max to maxsWithFilenames,
-            Metrics.IntDen to intDensWithFilenames
-        )
     }
 
     fun maxRows(): Int {

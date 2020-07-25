@@ -19,7 +19,7 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
     override fun output() {
         writeDocSheet(workbook)
         colocalizatonOutput.writeSummary()
-        for (metric in Metrics.values()) {
+        for (metric in Metric.values()) {
             writeMetricSheet(metric)
         }
         colocalizatonOutput.writeParameters()
@@ -41,7 +41,7 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
         docXlsx.produceXlsx(workbook, "Documentation")
     }
 
-    override fun writeMetricSheet(metric: Metrics) {
+    override fun writeMetricSheet(metric: Metric) {
         val maxRows = maxRows()
         val metricData = metricData()
         for (rowIdx in 0..maxRows) {
