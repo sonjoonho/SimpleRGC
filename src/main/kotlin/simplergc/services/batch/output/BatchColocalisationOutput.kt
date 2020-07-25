@@ -75,9 +75,9 @@ abstract class BatchColocalizationOutput : Output {
 
     fun metricData(metric: Metric): Table {
         val t = Table(listOf("Transduced Cell") + fileNameAndResultsList.unzip().first)
-        for (rowIdx in 0..maxRows()) {
+        for (rowIdx in 0 until maxRows()) {
             val rowData = metricMappings().getValue(metric).map { it.second.getOrNull(rowIdx) }
-            t.addRow(MetricRow(rowIdx, rowData))
+            t.addRow(MetricRow(rowIdx + 1, rowData))
         }
         return t
     }
