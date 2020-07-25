@@ -1,8 +1,8 @@
 package simplergc.commands.batch.output
 
+import java.io.File
 import simplergc.services.Parameters
 import simplergc.services.colocalizer.output.CsvColocalizationOutput
-import java.io.File
 
 /**
  * Displays a table for a transduction analysis with the result of

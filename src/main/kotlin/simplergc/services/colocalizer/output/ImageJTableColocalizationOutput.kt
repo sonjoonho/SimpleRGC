@@ -1,12 +1,12 @@
 package simplergc.services.colocalizer.output
 
+import kotlin.math.roundToInt
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.BaseRow
 import simplergc.services.IntField
 import simplergc.services.StringField
 import simplergc.services.Table
-import kotlin.math.roundToInt
 
 /**
  * Displays a table for a transduction analysis with the result of
