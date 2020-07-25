@@ -73,11 +73,12 @@ abstract class ColocalizationOutput : SimpleOutput {
 
     data class TransductionAnalysisRow(
         val fileName: String,
+        val transducedCell: Int,
         val cellAnalysis: CellColocalizationService.CellAnalysis
     ) : BaseRow {
         override fun toList() = listOf(
             StringField(fileName),
-            IntField(1),
+            IntField(transducedCell),
             IntField(cellAnalysis.area),
             IntField(cellAnalysis.mean),
             IntField(cellAnalysis.median),
