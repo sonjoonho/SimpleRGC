@@ -5,7 +5,9 @@ import java.io.FileNotFoundException
 import simplergc.commands.batch.Batchable
 import simplergc.commands.batch.models.RGCParameters
 import simplergc.commands.batch.views.RGCView
+import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.comparators.AlphanumFileComparator
+import java.io.IOException
 
 abstract class RGCController {
     abstract val view: RGCView
@@ -43,6 +45,8 @@ abstract class RGCController {
                 view.dialog("Saved", "The batch processing results have successfully been saved to the specified file")
             } catch (e: FileNotFoundException) {
                 view.dialog("Error", e.message ?: "An error occurred")
+            } catch (ioe: IOException) {
+                displayOutputFileErrorDialog()
             }
         }
     } }

@@ -4,7 +4,6 @@ import ij.IJ
 import ij.ImagePlus
 import ij.gui.MessageDialog
 import java.io.File
-import java.io.IOException
 import org.scijava.Context
 import simplergc.commands.ChannelDoesNotExistException
 import simplergc.commands.RGCTransduction
@@ -12,7 +11,6 @@ import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.commands.batch.RGCBatch.OutputFormat
 import simplergc.commands.batch.output.BatchCsvColocalizationOutput
 import simplergc.commands.batch.output.BatchXlsxColocalizationOutput
-import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
 
@@ -78,10 +76,6 @@ class BatchableColocalizer(
 
         fileNameAndAnalysis.forEach { output.addTransductionResultForFile(it.second, it.first) }
 
-        try {
-            output.output()
-        } catch (ioe: IOException) {
-            displayOutputFileErrorDialog()
-        }
+        output.output()
     }
 }
