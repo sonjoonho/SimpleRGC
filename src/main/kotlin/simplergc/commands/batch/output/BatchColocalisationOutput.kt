@@ -4,7 +4,6 @@ import simplergc.commands.RGCTransduction
 import simplergc.services.BaseRow
 import simplergc.services.CellColocalizationService.CellAnalysis
 import simplergc.services.Field
-import simplergc.services.IntField
 import simplergc.services.SimpleOutput
 import simplergc.services.StringField
 import simplergc.services.Table

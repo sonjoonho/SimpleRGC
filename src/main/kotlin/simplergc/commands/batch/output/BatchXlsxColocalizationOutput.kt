@@ -28,7 +28,6 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
 
         // Write file and close streams
         val outputXlsxFile = File(FilenameUtils.removeExtension(transductionParameters.outputFile.path) + ".xlsx")
-        print(outputXlsxFile.absoluteFile)
         val xlsxFileOut = outputXlsxFile.outputStream()
         workbook.write(xlsxFileOut)
         xlsxFileOut.close()

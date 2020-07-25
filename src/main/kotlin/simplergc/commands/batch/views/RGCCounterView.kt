@@ -10,7 +10,6 @@ import simplergc.commands.batch.views.common.OutputFileChooserPanel
 import simplergc.commands.batch.views.common.RGCCheckbox
 import simplergc.commands.batch.views.common.RGCSpinner
 import simplergc.commands.batch.views.common.addLabel
-import simplergc.commands.batch.views.common.addMessage
 
 class RGCCounterView(model: RGCCounterModel) : RGCView() {
 
