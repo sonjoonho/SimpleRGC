@@ -24,7 +24,7 @@ class CellColocalizationService : AbstractService(), ImageJService {
      *
      *  Takes in [image], a greyscale image (representing the target channel).
      */
-    fun analyseCellIntensity(image: ImagePlus, cells: Array<Roi>): Array<CellAnalysis> {
+    fun analyseCellIntensity(image: ImagePlus, cells: List<Roi>): List<CellAnalysis> {
         return cells.map { cell ->
             var area = 0
             var sum = 0
@@ -39,7 +39,7 @@ class CellColocalizationService : AbstractService(), ImageJService {
             val min = sortedPixelintensities.first()
             val max = sortedPixelintensities.last()
             CellAnalysis(area, sum / area, median, min, max, rawIntDen = sum)
-        }.toTypedArray()
+        }
     }
 
     /** Counts the number of analysed cells that exceed the channel intensity threshold. */
