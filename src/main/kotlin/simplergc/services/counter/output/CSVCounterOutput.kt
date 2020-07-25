@@ -20,6 +20,6 @@ class CSVCounterOutput(private val counterParameters: Parameters.CounterParamete
                 ))
         }
 
-        parametersAndResultsData.produceCSV(counterParameters.outputFile)
+        parametersAndResultsData.produceCsv(counterParameters.outputFile)
     }
 }

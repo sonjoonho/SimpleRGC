@@ -15,24 +15,25 @@ import simplergc.services.colocalizer.output.XLSXColocalizationOutput
 class BatchXLSXColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
     BatchColocalizationOutput() {
 
-    private val XLSXColocalizationOutput = XLSXColocalizationOutput(transductionParameters)
+    private val xlsxColocalizationOutput = XLSXColocalizationOutput(transductionParameters)
 
     override fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))
-        XLSXColocalizationOutput.addTransductionResultForFile(transductionResult, file)
+        xlsxColocalizationOutput.addTransductionResultForFile(transductionResult, file)
     }
 
     override fun output() {
         val workbook = XSSFWorkbook()
         writeDocSheet(workbook)
-        XLSXColocalizationOutput.writeSummarySheet(workbook)
+        xlsxColocalizationOutput.writeSummarySheet(workbook)
         for (metricName in getMetricMappings().keys) {
             writeMetricSheet(metricName, workbook)
         }
-        XLSXColocalizationOutput.writeParamsSheet(workbook)
+        xlsxColocalizationOutput.writeParamsSheet(workbook)
 
         // Write file and close streams
         val outputXlsxFile = File(FilenameUtils.removeExtension(transductionParameters.outputFile.path) + ".xlsx")
+        print(outputXlsxFile.absoluteFile)
         val xlsxFileOut = outputXlsxFile.outputStream()
         workbook.write(xlsxFileOut)
         xlsxFileOut.close()
@@ -52,7 +53,7 @@ class BatchXLSXColocalizationOutput(private val transductionParameters: Paramete
         val metricData = getMetricData()
         for (rowIdx in 0..maxRows!!) {
             val rowData = getMetricMappings().getValue(metricName).map { it.second.getOrNull(rowIdx) }
-            metricData.addRow(metricRow(rowIdx, rowData))
+            metricData.addRow(MetricRow(rowIdx, rowData))
         }
         metricData.produceXLSX(workbook, metricName)
     }

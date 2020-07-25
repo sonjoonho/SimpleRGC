@@ -63,7 +63,7 @@ class Table(private val schema: Array<String>?) {
         uiService.show(table)
     }
 
-    fun produceCSV(file: File) {
+    fun produceCsv(file: File) {
         CsvWriter().write(file, StandardCharsets.UTF_8, data.map { it.map { it.toString() }.toTypedArray() })
     }
 
