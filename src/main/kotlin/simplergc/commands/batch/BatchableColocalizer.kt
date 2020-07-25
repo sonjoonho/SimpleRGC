@@ -3,6 +3,7 @@ package simplergc.commands.batch
 import ij.IJ
 import ij.ImagePlus
 import ij.gui.MessageDialog
+import java.io.File
 import org.scijava.Context
 import simplergc.commands.ChannelDoesNotExistException
 import simplergc.commands.RGCTransduction
@@ -12,7 +13,6 @@ import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
 import simplergc.services.batch.output.BatchCsvColocalizationOutput
 import simplergc.services.batch.output.BatchXlsxColocalizationOutput
-import java.io.File
 
 class BatchableColocalizer(
     private val targetChannel: Int,
