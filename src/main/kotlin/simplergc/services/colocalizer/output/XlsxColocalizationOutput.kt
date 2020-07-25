@@ -1,34 +1,38 @@
 package simplergc.services.colocalizer.output
 
-import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Parameters
 import simplergc.services.XlsxTableWriter
+import java.io.File
 
 /**
  * Outputs the analysis with the result of overlapping, transduced cells in XLSX format.
  */
 class XlsxColocalizationOutput(
     transductionParameters: Parameters.Transduction,
-    workbook: XSSFWorkbook = XSSFWorkbook()
+    private val workbook: XSSFWorkbook = XSSFWorkbook()
 ) :
     ColocalizationOutput(transductionParameters) {
 
-    private val workbook = XSSFWorkbook()
     override val tableWriter = XlsxTableWriter(workbook)
+
+    fun writeWorkbook() {
+        val filename = FilenameUtils.removeExtension(transductionParameters.outputFile.path) ?: "Untitled"
+        val file = File("$filename.xlsx")
+        val outputStream = file.outputStream()
+
+        workbook.write(outputStream)
+        outputStream.close()
+        workbook.close()
+    }
 
     override fun output() {
         writeDocumentation()
         writeSummary()
         writeAnalysis()
         writeParameters()
-
-        val outputXlsxFile = File(FilenameUtils.removeExtension(transductionParameters.outputFile.path) + ".xlsx")
-        val xlsxFileOut = outputXlsxFile.outputStream()
-        workbook.write(xlsxFileOut)
-        xlsxFileOut.close()
-        workbook.close()
+        writeWorkbook()
     }
 
     override fun writeDocumentation() {

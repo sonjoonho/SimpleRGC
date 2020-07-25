@@ -79,7 +79,7 @@ data class TransductionAnalysisRow(
  */
 abstract class ColocalizationOutput(val transductionParameters: Parameters.Transduction) : Output {
 
-    val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
+    private val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
     companion object {
         const val PLUGIN_NAME = "RGC Transduction"

@@ -1,12 +1,10 @@
 package simplergc.services.batch.output
 
-import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Parameters
 import simplergc.services.TableWriter
 import simplergc.services.XlsxTableWriter
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
-import java.io.File
 
 /**
  * Outputs single XLSX file with multiple sheets.
@@ -16,7 +14,7 @@ import java.io.File
  *
  * For some operations it delegates to colocalizationOutput.
  */
-class BatchXlsxColocalizationOutput(private val transductionParameters: Parameters.Transduction) :
+class BatchXlsxColocalizationOutput(transductionParameters: Parameters.Transduction) :
     BatchColocalizationOutput() {
 
     private val workbook = XSSFWorkbook()
@@ -26,13 +24,7 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
 
     override fun output() {
         writeSheets()
-        val filename = FilenameUtils.removeExtension(transductionParameters.outputFile.path) ?: "Untitled"
-        val file = File("$filename.xlsx")
-        val outputStream = file.outputStream()
-
-        workbook.write(outputStream)
-        workbook.close()
-        outputStream.close()
+        colocalizationOutput.writeWorkbook()
     }
 
     override fun writeDocumentation() {
