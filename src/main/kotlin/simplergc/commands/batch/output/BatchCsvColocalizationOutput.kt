@@ -1,9 +1,9 @@
 package simplergc.commands.batch.output
 
-import java.io.File
 import simplergc.commands.RGCTransduction
 import simplergc.services.Parameters
 import simplergc.services.colocalizer.output.CsvColocalizationOutput
+import java.io.File
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -23,7 +23,7 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
         csvColocalizationOutput.createOutputFolder()
         csvColocalizationOutput.writeSummaryCsv()
         writeDocumentationCsv()
-        for (metricName in getMetricMappings().keys) {
+        for (metricName in metricMappings().keys) {
             writeMetricCsv(metricName)
         }
         csvColocalizationOutput.writeParametersCsv()
@@ -37,10 +37,10 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
     }
 
     private fun writeMetricCsv(metricName: String) {
-        val maxRows = getMaxRows()
-        val metricData = getMetricData()
+        val maxRows = maxRows()
+        val metricData = metricData()
         for (rowIdx in 0..maxRows!!) {
-            val rowData = getMetricMappings().getOrDefault(metricName, emptyList()).map { it.second.getOrNull(rowIdx) }
+            val rowData = metricMappings().getOrDefault(metricName, emptyList()).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(MetricRow(rowIdx, rowData))
         }
         metricData.produceCsv(File("${csvColocalizationOutput.outputPath}$metricName.csv"))

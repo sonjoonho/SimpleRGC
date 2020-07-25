@@ -32,7 +32,7 @@ data class IntField(val value: Int) : Field()
 data class DoubleField(val value: Double) : Field()
 data class BooleanField(val value: Boolean) : Field()
 
-class Table(private val schema: Array<String>?) {
+class Table(private val schema: List<String>) {
     // data is a rows x columns representation of a table.
     val data: MutableList<List<Field>> =
         if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) })

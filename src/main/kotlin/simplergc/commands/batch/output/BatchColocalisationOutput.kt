@@ -22,44 +22,57 @@ abstract class BatchColocalizationOutput : ColocalizationOutput() {
         DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin")
     )
 
-    fun getMetricMappings(): Map<String, List<Pair<String, List<Int>>>> = mapOf(
-        "Morphology Area" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.area })
-        },
-        "Mean Int" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.mean })
-        },
-        "Median Int" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.median })
-        },
-        "Min Int" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.min })
-        },
-        "Max Int" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.max })
-        },
-        "Raw IntDen" to fileNameAndResultsList.map {
-            Pair(
-                it.first,
-                it.second.overlappingTransducedIntensityAnalysis.map { cell -> cell.rawIntDen })
+    // metricMappings returns a map from metric name to a list of [filenames and a list of values].
+    fun metricMappings(): Map<String, List<Pair<String, List<Int>>>> {
+        val areasWithFilenames = mutableListOf<Pair<String, List<Int>>>()
+        val meansWithFilenames = mutableListOf<Pair<String, List<Int>>>()
+        val mediansWithFilenames = mutableListOf<Pair<String, List<Int>>>()
+        val minsWithFilenames = mutableListOf<Pair<String, List<Int>>>()
+        // I am aware this is not an actual word don't @ me.
+        val maxsWithFilenames = mutableListOf<Pair<String, List<Int>>>()
+        val intDensWithFilenames = mutableListOf<Pair<String, List<Int>>>()
+
+        for ((filename, result) in fileNameAndResultsList) {
+            val areas = mutableListOf<Int>()
+            val means = mutableListOf<Int>()
+            val medians = mutableListOf<Int>()
+            val mins = mutableListOf<Int>()
+            val maxs = mutableListOf<Int>()
+            val intDens = mutableListOf<Int>()
+
+            for (cell in result.overlappingTransducedIntensityAnalysis) {
+                areas.add(cell.area)
+                means.add(cell.mean)
+                medians.add(cell.median)
+                mins.add(cell.min)
+                maxs.add(cell.max)
+                intDens.add(cell.rawIntDen)
+            }
+            areasWithFilenames.add(Pair(filename, areas))
+            meansWithFilenames.add(Pair(filename, means))
+            mediansWithFilenames.add(Pair(filename, medians))
+            minsWithFilenames.add(Pair(filename, mins))
+            maxsWithFilenames.add(Pair(filename, maxs))
+            intDensWithFilenames.add(Pair(filename, intDens))
         }
-    )
+        return mapOf(
+            "Morphology Area" to areasWithFilenames,
+            "Mean Int" to meansWithFilenames,
+            "Median Int" to mediansWithFilenames,
+            "Min Int" to minsWithFilenames,
+            "Max Int" to maxsWithFilenames,
+            "Raw IntDen" to intDensWithFilenames
+        )
+    }
 
-    fun getMaxRows() =
-        fileNameAndResultsList.maxBy { it.second.overlappingTwoChannelCells.size }?.second?.overlappingTwoChannelCells?.size
+    fun maxRows(): Int {
+        val results = fileNameAndResultsList.unzip().second
+        val sizes = results.map { it.overlappingTwoChannelCells.size }
+        return sizes.max() ?: 0
+    }
 
-    fun getMetricData() =
-        Table((listOf("Transduced Cell") + fileNameAndResultsList.map { it.first }.toList()).toTypedArray())
+    fun metricData() =
+        Table(listOf("Transduced Cell") + fileNameAndResultsList.map { it.first }.toList())
 }
 
 data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {

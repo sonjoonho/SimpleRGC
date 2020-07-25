@@ -29,17 +29,18 @@ abstract class ColocalizationOutput : SimpleOutput {
         fileNameAndResultsList.add(Pair(file, transductionResult))
     }
 
-    protected val summaryData = Table(arrayOf(
-        "File Name",
-        "Number of Cells",
-        "Number of Transduced Cells",
-        "Transduction Efficiency (%)",
-        "Average Morphology Area (pixel^2)",
-        "Mean Fluorescence Intensity (a.u.)",
-        "Median Fluorescence Intensity (a.u.)",
-        "Min Fluorescence Intensity (a.u.)",
-        "Max Fluorescence Intensity (a.u.)",
-        "RawIntDen"
+    protected val summaryData = Table(
+        listOf(
+            "File Name",
+            "Number of Cells",
+            "Number of Transduced Cells",
+            "Transduction Efficiency (%)",
+            "Average Morphology Area (pixel^2)",
+            "Mean Fluorescence Intensity (a.u.)",
+            "Median Fluorescence Intensity (a.u.)",
+            "Min Fluorescence Intensity (a.u.)",
+            "Max Fluorescence Intensity (a.u.)",
+            "RawIntDen"
     ))
 
     data class SummaryRow(
@@ -60,16 +61,18 @@ abstract class ColocalizationOutput : SimpleOutput {
         )
     }
 
-    protected val transductionAnalysisData = Table(arrayOf(
-        "File Name",
-        "Transduced Cell",
-        "Morphology Area (pixel^2)",
-        "Mean Fluorescence Intensity (a.u.)",
-        "Median Fluorescence Intensity (a.u.)",
-        "Min Fluorescence Intensity (a.u.)",
-        "Max Fluorescence Intensity (a.u.)",
-        "RawIntDen"
-    ))
+    protected val transductionAnalysisData = Table(
+        listOf(
+            "File Name",
+            "Transduced Cell",
+            "Morphology Area (pixel^2)",
+            "Mean Fluorescence Intensity (a.u.)",
+            "Median Fluorescence Intensity (a.u.)",
+            "Min Fluorescence Intensity (a.u.)",
+            "Max Fluorescence Intensity (a.u.)",
+            "RawIntDen"
+        )
+    )
 
     data class TransductionAnalysisRow(
         val fileName: String,
@@ -88,17 +91,18 @@ abstract class ColocalizationOutput : SimpleOutput {
         )
     }
 
-    protected val parametersData = Table(arrayOf(
-        "File Name",
-        "SimpleRGC Plugin",
-        "Plugin Version",
-        "Morphology channel",
-        "Exclude Axons from morphology channel?",
-        "Transduction channel",
-        "Exclude Axons from transduction channel?",
-        "Cell diameter range (px)",
-        "Local threshold radius",
-        "Gaussian blur sigma"
+    protected val parametersData = Table(
+        listOf(
+            "File Name",
+            "SimpleRGC Plugin",
+            "Plugin Version",
+            "Morphology channel",
+            "Exclude Axons from morphology channel?",
+            "Transduction channel",
+            "Exclude Axons from transduction channel?",
+            "Cell diameter range (px)",
+            "Local threshold radius",
+            "Gaussian blur sigma"
     ))
 
     data class ParametersRow(

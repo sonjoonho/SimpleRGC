@@ -1,12 +1,12 @@
 package simplergc.commands.batch.output
 
-import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.commands.RGCTransduction
 import simplergc.services.Parameters
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
+import java.io.File
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -26,7 +26,7 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
         val workbook = XSSFWorkbook()
         writeDocSheet(workbook)
         xlsxColocalizationOutput.writeSummarySheet(workbook)
-        for (metricName in getMetricMappings().keys) {
+        for (metricName in metricMappings().keys) {
             writeMetricSheet(metricName, workbook)
         }
         xlsxColocalizationOutput.writeParamsSheet(workbook)
@@ -41,7 +41,7 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
     }
 
     private fun writeDocSheet(workbook: XSSFWorkbook) {
-        val docXlsx = Table(arrayOf())
+        val docXlsx = Table(emptyList())
         for (row in documentationRows) {
             docXlsx.addRow(row)
         }
@@ -49,10 +49,10 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
     }
 
     private fun writeMetricSheet(metricName: String, workbook: XSSFWorkbook) {
-        val maxRows = getMaxRows()
-        val metricData = getMetricData()
-        for (rowIdx in 0..maxRows!!) {
-            val rowData = getMetricMappings().getValue(metricName).map { it.second.getOrNull(rowIdx) }
+        val maxRows = maxRows()
+        val metricData = metricData()
+        for (rowIdx in 0..maxRows) {
+            val rowData = metricMappings().getValue(metricName).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(MetricRow(rowIdx, rowData))
         }
         metricData.produceXlsx(workbook, metricName)
