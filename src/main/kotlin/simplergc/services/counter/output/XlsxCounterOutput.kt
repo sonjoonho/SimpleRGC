@@ -1,13 +1,13 @@
 package simplergc.services.counter.output
 
+import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.BaseRow
+import simplergc.services.Output.Companion.ARTICLE_CITATION
 import simplergc.services.Parameters
-import simplergc.services.SimpleOutput.Companion.ARTICLE_CITATION
 import simplergc.services.StringField
-import simplergc.services.XlsxTableProducer
-import java.io.File
+import simplergc.services.XlsxTableWriter
 
 data class Citation(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
     override fun toList() = listOf(StringField(article), StringField(citation))
@@ -17,7 +17,7 @@ class XlsxCounterOutput(private val counterParameters: Parameters.Counter) : Cou
 
     private val workbook = XSSFWorkbook()
 
-    override val tableProducer = XlsxTableProducer(workbook)
+    override val tableWriter = XlsxTableWriter(workbook)
 
     /**
      * Generate the 'Results' sheet, containing the cell counts for each filename.
@@ -30,7 +30,7 @@ class XlsxCounterOutput(private val counterParameters: Parameters.Counter) : Cou
             resultsData.addRow(ResultsRow(fileName.replace(",", ""), count))
         }
         resultsData.addRow(Citation())
-        tableProducer.produce(resultsData, "Results")
+        tableWriter.produce(resultsData, "Results")
     }
 
     /**
@@ -49,7 +49,7 @@ class XlsxCounterOutput(private val counterParameters: Parameters.Counter) : Cou
                 )
             )
         }
-        tableProducer.produce(parametersData, "Parameters")
+        tableWriter.produce(parametersData, "Parameters")
     }
 
     /**

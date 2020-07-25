@@ -4,7 +4,7 @@ import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Parameters
-import simplergc.services.XlsxTableProducer
+import simplergc.services.XlsxTableWriter
 
 /**
  * Outputs the analysis with the result of overlapping, transduced cells in XLSX format.
@@ -16,7 +16,7 @@ class XlsxColocalizationOutput(
     ColocalizationOutput(transductionParameters) {
 
     private val workbook = XSSFWorkbook()
-    override val tableProducer = XlsxTableProducer(workbook)
+    override val tableWriter = XlsxTableWriter(workbook)
 
     override fun output() {
         writeDocumentation()
@@ -32,18 +32,18 @@ class XlsxColocalizationOutput(
     }
 
     override fun writeDocumentation() {
-        tableProducer.produce(documentationData(), "Documentation")
+        tableWriter.produce(documentationData(), "Documentation")
     }
 
     override fun writeSummary() {
-        tableProducer.produce(summaryData(), "Summary")
+        tableWriter.produce(summaryData(), "Summary")
     }
 
     override fun writeAnalysis() {
-        tableProducer.produce(analysisData(), "Transudction Analysis")
+        tableWriter.produce(analysisData(), "Transudction Analysis")
     }
 
     override fun writeParameters() {
-        tableProducer.produce(parameterData(), "Parameters")
+        tableWriter.produce(parameterData(), "Parameters")
     }
 }

@@ -1,11 +1,11 @@
 package simplergc.services.counter.output
 
-import simplergc.services.CsvTableProducer
+import simplergc.services.CsvTableWriter
 import simplergc.services.Parameters
 
 class CsvCounterOutput(private val counterParameters: Parameters.Counter) : CounterOutput() {
 
-    override val tableProducer = CsvTableProducer()
+    override val tableWriter = CsvTableWriter()
 
     /**
      * Saves count results into csv file at specified output path.
@@ -23,6 +23,6 @@ class CsvCounterOutput(private val counterParameters: Parameters.Counter) : Coun
                 gaussianBlurSigma = counterParameters.gaussianBlurSigma
                 ))
         }
-        tableProducer.produce(parametersAndResultsData, counterParameters.outputFile.absolutePath)
+        tableWriter.produce(parametersAndResultsData, counterParameters.outputFile.absolutePath)
     }
 }

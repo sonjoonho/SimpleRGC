@@ -1,6 +1,6 @@
-package simplergc.commands.batch.output
+package simplergc.services.batch.output
 
-import simplergc.services.CsvTableProducer
+import simplergc.services.CsvTableWriter
 import simplergc.services.Parameters
 import simplergc.services.colocalizer.output.CsvColocalizationOutput
 
@@ -16,7 +16,7 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
     BatchColocalizationOutput() {
 
     override val colocalizationOutput = CsvColocalizationOutput(transductionParameters)
-    override val tableProducer = CsvTableProducer()
+    override val tableWriter = CsvTableWriter()
 
     override fun output() {
         colocalizationOutput.createOutputFolder()
@@ -30,10 +30,10 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
     }
 
     override fun writeDocumentation() {
-        tableProducer.produce(documentationData(), "${colocalizationOutput.outputPath}Documentation.csv")
+        tableWriter.produce(documentationData(), "${colocalizationOutput.outputPath}Documentation.csv")
     }
 
     override fun writeMetricSheet(metric: Metric) {
-        tableProducer.produce(metricData(metric), "${colocalizationOutput.outputPath}${metric.value}.csv")
+        tableWriter.produce(metricData(metric), "${colocalizationOutput.outputPath}${metric.value}.csv")
     }
 }

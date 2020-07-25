@@ -6,8 +6,8 @@ import simplergc.services.BooleanField
 import simplergc.services.CellColocalizationService
 import simplergc.services.DoubleField
 import simplergc.services.IntField
+import simplergc.services.Output
 import simplergc.services.Parameters
-import simplergc.services.SimpleOutput
 import simplergc.services.StringField
 import simplergc.services.Table
 
@@ -28,7 +28,7 @@ data class ParametersRow(
     override fun toList() = listOf(
         StringField(fileName),
         StringField(ColocalizationOutput.PLUGIN_NAME),
-        StringField(SimpleOutput.PLUGIN_VERSION),
+        StringField(Output.PLUGIN_VERSION),
         IntField(morphologyChannel),
         BooleanField(excludeAxonsFromMorphologyChannel),
         IntField(transductionChannel),
@@ -77,7 +77,7 @@ data class TransductionAnalysisRow(
 /**
  * Outputs the result of cell counting.
  */
-abstract class ColocalizationOutput(val transductionParameters: Parameters.Transduction) : SimpleOutput {
+abstract class ColocalizationOutput(val transductionParameters: Parameters.Transduction) : Output {
 
     val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
@@ -94,15 +94,13 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     abstract fun writeParameters()
     abstract fun writeDocumentation()
 
-    fun documentationData(): Table {
-        val t = Table(listOf())
-        t.addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
-        t.addRow(DocumentationRow("", ""))
-        t.addRow(DocumentationRow("Abbreviation", "Description"))
-        t.addRow(DocumentationRow("Summary", "Key measurements per image"))
-        t.addRow(DocumentationRow("Transduced cells analysis", "Per-cell metrics of transduced cells"))
-        t.addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
-        return t
+    fun documentationData(): Table = Table(listOf()).apply {
+        addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
+        addRow(DocumentationRow("", ""))
+        addRow(DocumentationRow("Abbreviation", "Description"))
+        addRow(DocumentationRow("Summary", "Key measurements per image"))
+        addRow(DocumentationRow("Transduced cells analysis", "Per-cell metrics of transduced cells"))
+        addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
     }
 
     fun summaryData(): Table {
@@ -145,7 +143,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
                 t.addRow(
                     TransductionAnalysisRow(
                         fileName = fileName,
-                        transducedCell = i,
+                        transducedCell = i + 1,
                         cellAnalysis = cellAnalysis
                     )
                 )

@@ -1,11 +1,11 @@
-package simplergc.commands.batch.output
+package simplergc.services.batch.output
 
 import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Parameters
-import simplergc.services.TableProducer
-import simplergc.services.XlsxTableProducer
+import simplergc.services.TableWriter
+import simplergc.services.XlsxTableWriter
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
 
 /**
@@ -20,7 +20,7 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
     private val workbook = XSSFWorkbook()
 
     override val colocalizationOutput = XlsxColocalizationOutput(transductionParameters, workbook)
-    override val tableProducer: TableProducer = XlsxTableProducer(workbook)
+    override val tableWriter: TableWriter = XlsxTableWriter(workbook)
 
     override fun output() {
         writeDocumentation()
@@ -40,10 +40,10 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
     }
 
     override fun writeDocumentation() {
-        tableProducer.produce(documentationData(), "Documentation")
+        tableWriter.produce(documentationData(), "Documentation")
     }
 
     override fun writeMetricSheet(metric: Metric) {
-        tableProducer.produce(metricData(metric), metric.value)
+        tableWriter.produce(metricData(metric), metric.value)
     }
 }

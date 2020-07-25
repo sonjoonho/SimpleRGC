@@ -3,16 +3,16 @@ package simplergc.commands.batch
 import ij.IJ
 import ij.ImagePlus
 import ij.gui.MessageDialog
+import java.io.File
 import org.scijava.Context
 import simplergc.commands.ChannelDoesNotExistException
 import simplergc.commands.RGCTransduction
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.commands.batch.RGCBatch.OutputFormat
-import simplergc.commands.batch.output.BatchCsvColocalizationOutput
-import simplergc.commands.batch.output.BatchXlsxColocalizationOutput
 import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
-import java.io.File
+import simplergc.services.batch.output.BatchCsvColocalizationOutput
+import simplergc.services.batch.output.BatchXlsxColocalizationOutput
 
 class BatchableColocalizer(
     private val targetChannel: Int,

@@ -3,14 +3,14 @@ package simplergc.services.counter.output
 import simplergc.services.BaseRow
 import simplergc.services.DoubleField
 import simplergc.services.IntField
-import simplergc.services.SimpleOutput
+import simplergc.services.Output
 import simplergc.services.StringField
 import simplergc.services.Table
 
 /**
  * Outputs the result of cell counting.
  */
-abstract class CounterOutput : SimpleOutput {
+abstract class CounterOutput : Output {
 
     protected val fileNameAndCountList = mutableListOf<Pair<String, Int>>()
 
@@ -42,7 +42,7 @@ abstract class CounterOutput : SimpleOutput {
     data class ParametersRow(
         val fileName: String,
         val pluginName: String = PLUGIN_NAME,
-        val pluginVersion: String = SimpleOutput.PLUGIN_VERSION,
+        val pluginVersion: String = Output.PLUGIN_VERSION,
         val targetChannel: Int,
         val smallestCellDiameter: Double,
         val largestCellDiameter: Double,
@@ -79,7 +79,7 @@ abstract class CounterOutput : SimpleOutput {
         val fileName: String,
         val cellCount: Int,
         val pluginName: String = PLUGIN_NAME,
-        val pluginVersion: String = SimpleOutput.PLUGIN_VERSION,
+        val pluginVersion: String = Output.PLUGIN_VERSION,
         val morphologyChannel: Int,
         val smallestCellDiameter: Double,
         val largestCellDiameter: Double,

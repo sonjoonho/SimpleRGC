@@ -10,25 +10,29 @@ import org.scijava.table.DefaultGenericTable
 import org.scijava.ui.UIService
 
 /**
- * Outputs the result of the plugin.
+ * Table represents data in terms of rows and columns.
  */
-interface SimpleOutput {
+class Table(val schema: List<String>) {
+    // data is a rows x columns representation of a table.
+    val data: MutableList<List<Field<*>>> =
+        if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) })
 
-    val tableProducer: TableProducer
-
-    companion object {
-        const val ARTICLE_CITATION = "[insert full citation]"
-        const val PLUGIN_VERSION = "1.0.0"
+    fun addRow(row: BaseRow) {
+        data.add(row.toList())
     }
-
-    fun output()
 }
 
-interface TableProducer {
+/**
+ * TableWriter defines an object that can write a Table.
+ */
+interface TableWriter {
     fun produce(table: Table, to: String)
 }
 
-class XlsxTableProducer(private val workbook: XSSFWorkbook) : TableProducer {
+/**
+ * XlsxTableWriter writes a Table as a sheet in a XSSFWorkbook.
+ */
+class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
     override fun produce(table: Table, to: String) {
         val currSheet = workbook.createSheet(to)
         val data = table.data
@@ -75,7 +79,10 @@ class XlsxTableProducer(private val workbook: XSSFWorkbook) : TableProducer {
     }
 }
 
-class CsvTableProducer : TableProducer {
+/**
+ * CsvTableWriter writes a Table as a CSV file.
+ */
+class CsvTableWriter : TableWriter {
     override fun produce(table: Table, to: String) {
         val data = table.data
         CsvWriter().write(
@@ -85,7 +92,10 @@ class CsvTableProducer : TableProducer {
     }
 }
 
-class ImageJTableProducer(private val uiService: UIService) : TableProducer {
+/**
+ * ImageJTableWriter writes a Table as an ImageJ table.
+ */
+class ImageJTableWriter(private val uiService: UIService) : TableWriter {
 
     // The to parameter is not used.
     override fun produce(table: Table, to: String) {
@@ -114,39 +124,16 @@ interface BaseRow {
     fun toList(): List<Field<*>>
 }
 
+// A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
+// of equal length so fields can be null.
+data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
+    override fun toList(): List<Field<*>> {
+        return metrics.map { StringField(it?.toString() ?: "") }
+    }
+}
+
 sealed class Field<V>(val value: V)
 class StringField(value: String) : Field<String>(value)
 class IntField(value: Int) : Field<Int>(value)
 class DoubleField(value: Double) : Field<Double>(value)
 class BooleanField(value: Boolean) : Field<Boolean>(value)
-
-class Table(val schema: List<String>) {
-    // data is a rows x columns representation of a table.
-    val data: MutableList<List<Field<*>>> =
-        if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) })
-
-    fun addRow(row: BaseRow) {
-        data.add(row.toList())
-    }
-}
-
-sealed class Parameters {
-    data class Counter(
-        val outputFile: File,
-        val targetChannel: Int,
-        val cellDiameterRange: CellDiameterRange,
-        val localThresholdRadius: Int,
-        val gaussianBlurSigma: Double
-    ) : Parameters()
-
-    data class Transduction(
-        val outputFile: File,
-        val shouldRemoveAxonsFromTargetChannel: Boolean,
-        val transducedChannel: Int,
-        val shouldRemoveAxonsFromTransductionChannel: Boolean,
-        val cellDiameterText: String,
-        val localThresholdRadius: Int,
-        val gaussianBlurSigma: Double,
-        val targetChannel: Int
-    ) : Parameters()
-}

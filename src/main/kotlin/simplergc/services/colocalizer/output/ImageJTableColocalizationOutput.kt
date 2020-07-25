@@ -4,7 +4,7 @@ import kotlin.math.roundToInt
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.BaseRow
-import simplergc.services.ImageJTableProducer
+import simplergc.services.ImageJTableWriter
 import simplergc.services.IntField
 import simplergc.services.Parameters
 import simplergc.services.StringField
@@ -20,7 +20,7 @@ class ImageJTableColocalizationOutput(
     uiService: UIService
 ) : ColocalizationOutput(transductionParameters) {
 
-    override val tableProducer = ImageJTableProducer(uiService)
+    override val tableWriter = ImageJTableWriter(uiService)
 
     private val table = Table(
         listOf(
@@ -105,6 +105,6 @@ class ImageJTableColocalizationOutput(
         writeSummary()
         table.addRow(Row(label = "----------------------------------------------"))
         writeAnalysis()
-        tableProducer.produce(table, "")
+        tableWriter.produce(table, "")
     }
 }
