@@ -7,7 +7,7 @@ import simplergc.services.StringField
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.ColocalizationOutput
 
-abstract class BatchColocalizationOutput : ColocalizationOutput() {
+abstract class BatchColocalizationOutput() : ColocalizationOutput() {
 
     val documentationRows = listOf<DocumentationRow>(
         DocumentationRow("The article: ", "TODO: Insert citation"),
@@ -72,9 +72,11 @@ abstract class BatchColocalizationOutput : ColocalizationOutput() {
     }
 
     fun metricData() =
-        Table(listOf("Transduced Cell") + fileNameAndResultsList.map { it.first }.toList())
+        Table(listOf("Transduced Cell") + fileNameAndResultsList.map { (filename, _) -> filename })
 }
 
+// A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
+// of equal length so fields can be null.
 data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
     override fun toList(): List<Field> {
         val row = mutableListOf(IntField(rowIdx) as Field)

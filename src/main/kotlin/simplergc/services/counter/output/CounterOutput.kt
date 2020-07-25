@@ -22,21 +22,23 @@ abstract class CounterOutput : SimpleOutput {
         fileNameAndCountList.add(Pair(file, count))
     }
 
-    protected val resultsData = Table(arrayOf("File Name", "Cell Count"))
+    protected val resultsData = Table(listOf("File Name", "Cell Count"))
     data class ResultsRow(val fileName: String, val count: Int) : BaseRow {
         override fun toList() = listOf(StringField(fileName), IntField(count))
     }
 
-    protected val parametersData = Table(arrayOf(
-        "File Name",
-        "Simple RGC Plugin",
-        "Version",
-        "Morphology Channel",
-        "Smallest Cell Diameter (px)",
-        "Largest Cell Diameter (px)",
-        "Local Threshold Radius",
-        "Gaussian Blur Sigma"
-    ))
+    protected val parametersData = Table(
+        listOf(
+            "File Name",
+            "Simple RGC Plugin",
+            "Version",
+            "Morphology Channel",
+            "Smallest Cell Diameter (px)",
+            "Largest Cell Diameter (px)",
+            "Local Threshold Radius",
+            "Gaussian Blur Sigma"
+        )
+    )
     data class ParametersRow(
         val fileName: String,
         val pluginName: String = PLUGIN_NAME,
@@ -59,17 +61,19 @@ abstract class CounterOutput : SimpleOutput {
         )
     }
 
-    protected val parametersAndResultsData = Table(arrayOf(
-        "File Name",
-        "Cell Count",
-        "Simple RGC Plugin",
-        "Version",
-        "Morphology Channel",
-        "Smallest Cell Diameter (px)",
-        "Largest Cell Diameter (px)",
-        "Local Threshold Radius",
-        "Gaussian Blur Sigma"
-    ))
+    protected val parametersAndResultsData = Table(
+        listOf(
+            "File Name",
+            "Cell Count",
+            "Simple RGC Plugin",
+            "Version",
+            "Morphology Channel",
+            "Smallest Cell Diameter (px)",
+            "Largest Cell Diameter (px)",
+            "Local Threshold Radius",
+            "Gaussian Blur Sigma"
+        )
+    )
 
     data class ParametersResultsRow(
         val fileName: String,

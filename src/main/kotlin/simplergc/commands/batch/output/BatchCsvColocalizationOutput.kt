@@ -6,8 +6,7 @@ import simplergc.services.colocalizer.output.CsvColocalizationOutput
 import java.io.File
 
 /**
- * Displays a table for a transduction analysis with the result of
- * overlapping, transduced cells.
+ * Outputs the transduction analysis with the result of overlapping, transduced cells in CSV format.
  */
 class BatchCsvColocalizationOutput(transductionParameters: Parameters.TransductionParameters) :
     BatchColocalizationOutput() {
@@ -39,7 +38,7 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
     private fun writeMetricCsv(metricName: String) {
         val maxRows = maxRows()
         val metricData = metricData()
-        for (rowIdx in 0..maxRows!!) {
+        for (rowIdx in 0..maxRows) {
             val rowData = metricMappings().getOrDefault(metricName, emptyList()).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(MetricRow(rowIdx, rowData))
         }
