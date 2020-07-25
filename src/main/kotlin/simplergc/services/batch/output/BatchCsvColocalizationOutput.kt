@@ -11,6 +11,8 @@ import simplergc.services.colocalizer.output.CsvColocalizationOutput
  *     - Summary.csv
  *     - [metric].csv for each metric
  *     - Parameters.csv
+ *
+ * For some operations it delegates to colocalizationOutput.
  */
 class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
     BatchColocalizationOutput() {
@@ -21,11 +23,8 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
     override fun output() {
         colocalizationOutput.createOutputFolder()
 
-        writeDocumentation()
-        colocalizationOutput.writeSummary()
-        for (metric in Metric.values()) {
-            writeMetricSheet(metric)
-        }
+        writeSheets()
+
         colocalizationOutput.writeParameters()
     }
 
@@ -33,7 +32,7 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
         tableWriter.produce(documentationData(), "${colocalizationOutput.outputPath}Documentation.csv")
     }
 
-    override fun writeMetricSheet(metric: Metric) {
+    override fun writeMetrics(metric: Metric) {
         tableWriter.produce(metricData(metric), "${colocalizationOutput.outputPath}${metric.value}.csv")
     }
 }

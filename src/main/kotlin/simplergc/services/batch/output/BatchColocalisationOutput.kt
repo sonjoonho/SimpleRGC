@@ -23,11 +23,20 @@ abstract class BatchColocalizationOutput : Output {
 
     abstract val colocalizationOutput: ColocalizationOutput
     abstract fun writeDocumentation()
-    abstract fun writeMetricSheet(metric: Metric)
+    abstract fun writeMetrics(metric: Metric)
 
     fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))
         colocalizationOutput.addTransductionResultForFile(transductionResult, file)
+    }
+
+    fun writeSheets() {
+        writeDocumentation()
+        colocalizationOutput.writeSummary()
+
+        for (metric in Metric.values()) {
+            writeMetrics(metric)
+        }
     }
 
     fun documentationData(): Table = Table(listOf()).apply {
@@ -65,7 +74,7 @@ abstract class BatchColocalizationOutput : Output {
     }
 
     fun metricData(metric: Metric): Table {
-        val t = Table(listOf("Transduced Cell") + fileNameAndResultsList.map { (filename, _) -> filename })
+        val t = Table(listOf("Transduced Cell") + fileNameAndResultsList.unzip().first)
         for (rowIdx in 0..maxRows()) {
             val rowData = metricMappings().getValue(metric).map { it.second.getOrNull(rowIdx) }
             t.addRow(MetricRow(rowIdx, rowData))
