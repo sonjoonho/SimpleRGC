@@ -4,12 +4,9 @@ import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.GenericDialog
-import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.frame.RoiManager
-import ij.process.FloatProcessor
-import ij.process.StackStatistics
 import java.io.File
 import java.io.IOException
 import kotlin.math.max
@@ -290,7 +287,6 @@ class RGCTransduction : Command, Previewable {
 
         image.show()
         addToRoiManager(result.overlappingTwoChannelCells)
-        // showHistogram(result.overlappingTransducedIntensityAnalysis)
     }
 
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
@@ -425,23 +421,6 @@ class RGCTransduction : Command, Previewable {
             }
         }
         return thresholdedCells
-    }
-
-    /**
-     * Displays the resulting colocalization results as a histogram.
-     */
-    private fun showHistogram(analysis: Array<CellColocalizationService.CellAnalysis>) {
-        val data = analysis.map { it.median.toFloat() }.toFloatArray()
-        val ip = FloatProcessor(analysis.size, 1, data, null)
-        val imp = ImagePlus("", ip)
-        val stats = StackStatistics(imp, 256, 0.0, 256.0)
-        var maxCount = 0
-        for (i in stats.histogram.indices) {
-            if (stats.histogram[i] > maxCount)
-                maxCount = stats.histogram[i]
-        }
-        stats.histYMax = maxCount
-        HistogramWindow("Median intensity distribution of transduced cells overlapping target cells", imp, stats)
     }
 
     companion object {
