@@ -1,18 +1,20 @@
 package simplergc.services
 
 import de.siegmar.fastcsv.writer.CsvWriter
+import java.io.File
+import java.nio.charset.StandardCharsets
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.ui.UIService
-import java.io.File
-import java.nio.charset.StandardCharsets
 
 /**
  * Outputs the result of the plugin.
  */
 interface SimpleOutput {
+
+    val tableProducer: TableProducer
 
     companion object {
         const val ARTICLE_CITATION = "[insert full citation]"
@@ -85,6 +87,7 @@ class CsvTableProducer : TableProducer {
 
 class ImageJTableProducer(private val uiService: UIService) : TableProducer {
 
+    // The to parameter is not used.
     override fun produce(table: Table, to: String) {
         val imageJTable = DefaultGenericTable()
         val data = table.data

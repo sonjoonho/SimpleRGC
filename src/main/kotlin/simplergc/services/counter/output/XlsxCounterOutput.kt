@@ -6,18 +6,23 @@ import simplergc.services.BaseRow
 import simplergc.services.Parameters
 import simplergc.services.SimpleOutput.Companion.ARTICLE_CITATION
 import simplergc.services.StringField
+import simplergc.services.XlsxTableProducer
 import java.io.File
+
+data class Citation(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
+    override fun toList() = listOf(StringField(article), StringField(citation))
+}
 
 class XlsxCounterOutput(private val counterParameters: Parameters.Counter) : CounterOutput() {
 
-    data class Citation(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
-        override fun toList() = listOf(StringField(article), StringField(citation))
-    }
+    private val workbook = XSSFWorkbook()
+
+    override val tableProducer = XlsxTableProducer(workbook)
 
     /**
      * Generate the 'Results' sheet, containing the cell counts for each filename.
      */
-    private fun generateResultsSheet(workbook: XSSFWorkbook) {
+    private fun writeResults() {
         val createHelper = workbook.creationHelper
         val numberCellStyle = workbook.createCellStyle()
         numberCellStyle.dataFormat = createHelper.createDataFormat().getFormat("#")
@@ -25,34 +30,34 @@ class XlsxCounterOutput(private val counterParameters: Parameters.Counter) : Cou
             resultsData.addRow(ResultsRow(fileName.replace(",", ""), count))
         }
         resultsData.addRow(Citation())
-        resultsData.produceXlsx(workbook, "Results")
+        tableProducer.produce(resultsData, "Results")
     }
 
     /**
      * Generate the 'Parameters' sheet, containing the parameters used for each filename.
      */
-    private fun generateParametersSheet(workbook: XSSFWorkbook) {
+    private fun writeParameters() {
         for ((fileName, _) in fileNameAndCountList) {
-            parametersData.addRow(ParametersRow(
-                fileName = fileName.replace(",", ""),
-                targetChannel = counterParameters.targetChannel,
-                smallestCellDiameter = counterParameters.cellDiameterRange.smallest,
-                largestCellDiameter = counterParameters.cellDiameterRange.largest,
-                localThresholdRadius = counterParameters.localThresholdRadius,
-                gaussianBlurSigma = counterParameters.gaussianBlurSigma
-            ))
+            parametersData.addRow(
+                ParametersRow(
+                    fileName = fileName.replace(",", ""),
+                    targetChannel = counterParameters.targetChannel,
+                    smallestCellDiameter = counterParameters.cellDiameterRange.smallest,
+                    largestCellDiameter = counterParameters.cellDiameterRange.largest,
+                    localThresholdRadius = counterParameters.localThresholdRadius,
+                    gaussianBlurSigma = counterParameters.gaussianBlurSigma
+                )
+            )
         }
-        parametersData.produceXlsx(workbook, "Parameters")
+        tableProducer.produce(parametersData, "Parameters")
     }
 
     /**
      * Saves count results into excel file at specified output path.
      */
     override fun output() {
-        val workbook = XSSFWorkbook()
-
-        generateResultsSheet(workbook)
-        generateParametersSheet(workbook)
+        writeResults()
+        writeParameters()
 
         val outputXlsxFile = File(FilenameUtils.removeExtension(counterParameters.outputFile.path) + ".xlsx")
         val xlsxFileOut = outputXlsxFile.outputStream()

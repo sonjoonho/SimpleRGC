@@ -1,54 +1,47 @@
 package simplergc.commands.batch.output
 
+import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Parameters
-import simplergc.services.Table
+import simplergc.services.TableProducer
+import simplergc.services.XlsxTableProducer
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
-import java.io.File
 
 /**
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
 class BatchXlsxColocalizationOutput(private val transductionParameters: Parameters.Transduction) :
-    BatchColocalizationOutput(XlsxColocalizationOutput(transductionParameters)) {
+    BatchColocalizationOutput() {
 
     private val workbook = XSSFWorkbook()
 
+    override val colocalizationOutput = XlsxColocalizationOutput(transductionParameters, workbook)
+    override val tableProducer: TableProducer = XlsxTableProducer(workbook)
+
     override fun output() {
-        writeDocSheet(workbook)
-        colocalizatonOutput.writeSummary()
+        writeDocumentation()
+        colocalizationOutput.writeSummary()
+
         for (metric in Metric.values()) {
             writeMetricSheet(metric)
         }
-        colocalizatonOutput.writeParameters()
 
-        // Write file and close streams
+        colocalizationOutput.writeParameters()
+
         val outputXlsxFile = File(FilenameUtils.removeExtension(transductionParameters.outputFile.path) + ".xlsx")
-        print(outputXlsxFile.absoluteFile)
         val xlsxFileOut = outputXlsxFile.outputStream()
         workbook.write(xlsxFileOut)
         xlsxFileOut.close()
         workbook.close()
     }
 
-    private fun writeDocSheet(workbook: XSSFWorkbook) {
-        val docXlsx = Table(emptyList())
-        for (row in documentationRows) {
-            docXlsx.addRow(row)
-        }
-
-        docXlsx.produceXlsx(workbook, "Documentation")
+    override fun writeDocumentation() {
+        tableProducer.produce(documentationData(), "Documentation")
     }
 
     override fun writeMetricSheet(metric: Metric) {
-        val maxRows = maxRows()
-        val metricData = metricData()
-        for (rowIdx in 0..maxRows) {
-            val rowData = metricMappings().getValue(metric).map { it.second.getOrNull(rowIdx) }
-            metricData.addRow(MetricRow(rowIdx, rowData))
-        }
-        metricData.produceXlsx(workbook, metric.value)
+        tableProducer.produce(metricData(metric), metric.value)
     }
 }

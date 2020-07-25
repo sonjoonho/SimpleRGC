@@ -20,28 +20,33 @@ enum class Metric(val value: String, val compute: (CellAnalysis) -> Int) {
     IntDen("Raw IntDen", CellAnalysis::rawIntDen)
 }
 
-abstract class BatchColocalizationOutput(val colocalizatonOutput: ColocalizationOutput) : SimpleOutput {
+abstract class BatchColocalizationOutput() : SimpleOutput {
 
     val fileNameAndResultsList = mutableListOf<Pair<String, RGCTransduction.TransductionResult>>()
 
-    val documentationRows = listOf(
-        DocumentationRow("The article: ", "TODO: Insert citation"),
-        DocumentationRow("", ""),
-        DocumentationRow("Abbreviation", "Description"),
-        DocumentationRow("Summary", "Key measurements per image"),
-        DocumentationRow("Mean Int: ", "Mean fluorescence intensity for each transduced cell"),
-        DocumentationRow("Median Int:", "Median fluorescence intensity for each transduced cell"),
-        DocumentationRow("Min Int: ", "Min fluorescence intensity for each transduced cell"),
-        DocumentationRow("Max Int: ", "Max fluorescence intensity for each transduced cell"),
-        DocumentationRow("Raw IntDen:", "Raw Integrated Density for each transduced cell"),
-        DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin")
-    )
+    abstract val colocalizationOutput: ColocalizationOutput
+    abstract fun writeDocumentation()
+
+    fun documentationData(): Table {
+        val t = Table(listOf())
+        t.addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
+        t.addRow(DocumentationRow("", ""))
+        t.addRow(DocumentationRow("Abbreviation", "Description"))
+        t.addRow(DocumentationRow("Summary", "Key measurements per image"))
+        t.addRow(DocumentationRow("Mean Int: ", "Mean fluorescence intensity for each transduced cell"))
+        t.addRow(DocumentationRow("Median Int:", "Median fluorescence intensity for each transduced cell"))
+        t.addRow(DocumentationRow("Min Int: ", "Min fluorescence intensity for each transduced cell"))
+        t.addRow(DocumentationRow("Max Int: ", "Max fluorescence intensity for each transduced cell"))
+        t.addRow(DocumentationRow("Raw IntDen:", "Raw Integrated Density for each transduced cell"))
+        t.addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
+        return t
+    }
 
     abstract fun writeMetricSheet(metric: Metric)
 
     fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))
-        colocalizatonOutput.addTransductionResultForFile(transductionResult, file)
+        colocalizationOutput.addTransductionResultForFile(transductionResult, file)
     }
 
     // Returns a map from metric to a list of [filenames and a list of values].
@@ -65,8 +70,14 @@ abstract class BatchColocalizationOutput(val colocalizatonOutput: Colocalization
         return sizes.max() ?: 0
     }
 
-    fun metricData() =
-        Table(listOf("Transduced Cell") + fileNameAndResultsList.map { (filename, _) -> filename })
+    fun metricData(metric: Metric): Table {
+        val t = Table(listOf("Transduced Cell") + fileNameAndResultsList.map { (filename, _) -> filename })
+        for (rowIdx in 0..maxRows()) {
+            val rowData = metricMappings().getValue(metric).map { it.second.getOrNull(rowIdx) }
+            t.addRow(MetricRow(rowIdx, rowData))
+        }
+        return t
+    }
 }
 
 // A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are

@@ -1,16 +1,17 @@
 package simplergc.services.colocalizer.output
 
+import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Parameters
 import simplergc.services.XlsxTableProducer
-import java.io.File
 
 /**
  * Outputs the analysis with the result of overlapping, transduced cells in XLSX format.
  */
 class XlsxColocalizationOutput(
-    transductionParameters: Parameters.Transduction
+    transductionParameters: Parameters.Transduction,
+    workbook: XSSFWorkbook = XSSFWorkbook()
 ) :
     ColocalizationOutput(transductionParameters) {
 

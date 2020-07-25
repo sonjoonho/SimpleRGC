@@ -1,42 +1,35 @@
 package simplergc.commands.batch.output
 
+import simplergc.services.CsvTableProducer
 import simplergc.services.Parameters
 import simplergc.services.colocalizer.output.CsvColocalizationOutput
-import java.io.File
 
 /**
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
 class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
-    BatchColocalizationOutput(CsvColocalizationOutput(transductionParameters)) {
+    BatchColocalizationOutput() {
 
-    private val csvColocalizationOutput = CsvColocalizationOutput(transductionParameters)
+    override val colocalizationOutput = CsvColocalizationOutput(transductionParameters)
+    override val tableProducer = CsvTableProducer()
 
     override fun output() {
-        csvColocalizationOutput.createOutputFolder()
-        csvColocalizationOutput.writeSummary()
-        writeDocumentationCsv()
+        colocalizationOutput.createOutputFolder()
+
+        writeDocumentation()
+        colocalizationOutput.writeSummary()
         for (metric in Metric.values()) {
             writeMetricSheet(metric)
         }
-        csvColocalizationOutput.writeParameters()
+        colocalizationOutput.writeParameters()
     }
 
-    private fun writeDocumentationCsv() {
-        for (row in documentationRows) {
-            csvColocalizationOutput.documentationCsv.addRow(row)
-        }
-        csvColocalizationOutput.documentationCsv.produceCsv(File("${csvColocalizationOutput.outputPath}Documentation.csv"))
+    override fun writeDocumentation() {
+        tableProducer.produce(documentationData(), "${colocalizationOutput.outputPath}Documentation.csv")
     }
 
     override fun writeMetricSheet(metric: Metric) {
-        val maxRows = maxRows()
-        val metricData = metricData()
-        for (rowIdx in 0..maxRows) {
-            val rowData = metricMappings().getValue(metric).map { it.second.getOrNull(rowIdx) }
-            metricData.addRow(MetricRow(rowIdx, rowData))
-        }
-        metricData.produceCsv(File("${csvColocalizationOutput.outputPath}${metric.value}.csv"))
+        tableProducer.produce(metricData(metric), "${colocalizationOutput.outputPath}${metric.value}.csv")
     }
 }

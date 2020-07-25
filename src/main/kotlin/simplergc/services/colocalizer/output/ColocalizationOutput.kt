@@ -10,7 +10,6 @@ import simplergc.services.Parameters
 import simplergc.services.SimpleOutput
 import simplergc.services.StringField
 import simplergc.services.Table
-import simplergc.services.TableProducer
 
 data class DocumentationRow(val key: String, val description: String) : BaseRow {
     override fun toList() = listOf(StringField(key), StringField(description))
@@ -90,7 +89,6 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         fileNameAndResultsList.add(Pair(file, transductionResult))
     }
 
-    abstract val tableProducer: TableProducer
     abstract fun writeSummary()
     abstract fun writeAnalysis()
     abstract fun writeParameters()
