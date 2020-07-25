@@ -1,5 +1,6 @@
 package simplergc.commands.batch.controllers
 
+import org.scijava.app.StatusService
 import simplergc.commands.batch.Batchable
 import simplergc.commands.batch.BatchableColocalizer
 import simplergc.commands.batch.models.RGCParameters
@@ -8,8 +9,8 @@ import simplergc.commands.batch.models.RGCTransductionParameters
 import simplergc.commands.batch.views.RGCTransductionView
 import simplergc.services.CellDiameterRange
 
-class RGCTransductionController(override val view: RGCTransductionView, private val model: RGCTransductionModel) :
-    RGCController() {
+class RGCTransductionController(override val view: RGCTransductionView, private val model: RGCTransductionModel, statusService: StatusService) :
+    RGCController(statusService) {
     init {
         view.addListeners(this)
     }

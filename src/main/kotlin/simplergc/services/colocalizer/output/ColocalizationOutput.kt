@@ -120,7 +120,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         )
         // Add summary data.
         for ((fileName, result) in fileNameAndResultsList) {
-            t.addRow(SummaryRow(fileName = fileName, summary = result.getSummary()))
+            t.addRow(SummaryRow(fileName = fileName, summary = result.summary()))
         }
         return t
     }

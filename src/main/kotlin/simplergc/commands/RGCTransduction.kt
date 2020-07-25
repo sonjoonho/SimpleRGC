@@ -219,6 +219,7 @@ class RGCTransduction : Command, Previewable {
         val overlappingTransducedIntensityAnalysis: List<CellColocalizationService.CellAnalysis>,
         val overlappingTwoChannelCells: List<PositionedCell>
     ) {
+
         data class Summary(
             val targetCellCount: Int,
             val transducedCellCount: Int,
@@ -230,19 +231,18 @@ class RGCTransduction : Command, Previewable {
             val maxFluorescenceIntenstity: Int,
             val rawIntDen: Int
         )
-        fun getSummary(): Summary {
-            return Summary(
-                targetCellCount,
-                overlappingTwoChannelCells.size,
-                ((overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.area } / overlappingTransducedIntensityAnalysis.size),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.mean } / overlappingTransducedIntensityAnalysis.size),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.median } / overlappingTransducedIntensityAnalysis.size),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.min } / overlappingTransducedIntensityAnalysis.size),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.max } / overlappingTransducedIntensityAnalysis.size),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.rawIntDen } / overlappingTransducedIntensityAnalysis.size)
-            )
-        }
+
+        fun summary() = Summary(
+            targetCellCount,
+            overlappingTwoChannelCells.size,
+            ((overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.area } / overlappingTransducedIntensityAnalysis.size),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.mean } / overlappingTransducedIntensityAnalysis.size),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.median } / overlappingTransducedIntensityAnalysis.size),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.min } / overlappingTransducedIntensityAnalysis.size),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.max } / overlappingTransducedIntensityAnalysis.size),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.rawIntDen } / overlappingTransducedIntensityAnalysis.size)
+        )
     }
 
     override fun run() {

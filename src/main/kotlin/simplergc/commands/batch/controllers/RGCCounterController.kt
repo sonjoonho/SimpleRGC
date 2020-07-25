@@ -1,5 +1,6 @@
 package simplergc.commands.batch.controllers
 
+import org.scijava.app.StatusService
 import simplergc.commands.batch.Batchable
 import simplergc.commands.batch.BatchableCellCounter
 import simplergc.commands.batch.models.RGCCounterModel
@@ -8,7 +9,7 @@ import simplergc.commands.batch.models.RGCParameters
 import simplergc.commands.batch.views.RGCCounterView
 import simplergc.services.CellDiameterRange
 
-class RGCCounterController(override val view: RGCCounterView, private val model: RGCCounterModel) : RGCController() {
+class RGCCounterController(override val view: RGCCounterView, private val model: RGCCounterModel, statusService: StatusService) : RGCController(statusService) {
     init {
         view.addListeners(this)
     }

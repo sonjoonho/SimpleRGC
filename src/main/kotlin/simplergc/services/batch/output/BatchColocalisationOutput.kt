@@ -69,7 +69,7 @@ abstract class BatchColocalizationOutput : Output {
 
     fun maxRows(): Int {
         val results = fileNameAndResultsList.unzip().second
-        val sizes = results.map { it.overlappingTwoChannelCells.size }
+        val sizes = results.map { it.overlappingTransducedIntensityAnalysis.size }
         return sizes.max() ?: 0
     }
 
