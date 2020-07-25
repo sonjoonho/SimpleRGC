@@ -1,12 +1,12 @@
 package simplergc.services.colocalizer.output
 
-import kotlin.math.roundToInt
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.BaseRow
 import simplergc.services.IntField
 import simplergc.services.StringField
 import simplergc.services.Table
+import kotlin.math.roundToInt
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -19,15 +19,17 @@ class ImageJTableColocalizationOutput(
 
     // TODO (131): Use fileNameAndResultsList in output
 
-    private val table = Table(arrayOf(
-        "Label",
-        "Count",
-        "Area",
-        "Median",
-        "Mean",
-        "Integrated Density",
-        "Raw Integrated Density"
-    ))
+    private val table = Table(
+        listOf(
+            "Label",
+            "Count",
+            "Area",
+            "Median",
+            "Mean",
+            "Integrated Density",
+            "Raw Integrated Density"
+        )
+    )
 
     data class Row(
         val label: String,
