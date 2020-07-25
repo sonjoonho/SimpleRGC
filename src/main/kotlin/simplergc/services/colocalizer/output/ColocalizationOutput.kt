@@ -10,16 +10,16 @@ import simplergc.services.SimpleOutput
 import simplergc.services.StringField
 import simplergc.services.Table
 
+data class DocumentationRow(val key: String, val description: String) : BaseRow {
+    override fun toList() = listOf(StringField(key), StringField(description))
+}
+
 /**
  * Outputs the result of cell counting.
  */
 abstract class ColocalizationOutput : SimpleOutput {
 
     val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
-
-    data class DocumentationRow(val key: String, val description: String) : BaseRow {
-        override fun toList() = listOf(StringField(key), StringField(description))
-    }
 
     companion object {
         const val PLUGIN_NAME = "RGC Transduction"
@@ -29,7 +29,12 @@ abstract class ColocalizationOutput : SimpleOutput {
         fileNameAndResultsList.add(Pair(file, transductionResult))
     }
 
-    protected val summaryData = Table(
+    abstract fun writeSummary()
+    abstract fun writeAnalysis()
+    abstract fun writeParameters()
+    abstract fun writeDocumentation()
+
+    val summaryData = Table(
         listOf(
             "File Name",
             "Number of Cells",
@@ -41,7 +46,8 @@ abstract class ColocalizationOutput : SimpleOutput {
             "Min Fluorescence Intensity (a.u.)",
             "Max Fluorescence Intensity (a.u.)",
             "RawIntDen"
-    ))
+        )
+    )
 
     data class SummaryRow(
         val fileName: String,
@@ -103,7 +109,8 @@ abstract class ColocalizationOutput : SimpleOutput {
             "Cell diameter range (px)",
             "Local threshold radius",
             "Gaussian blur sigma"
-    ))
+        )
+    )
 
     data class ParametersRow(
         val fileName: String,

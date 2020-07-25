@@ -1,6 +1,5 @@
 package simplergc.commands.batch.output
 
-import simplergc.commands.RGCTransduction
 import simplergc.services.Parameters
 import simplergc.services.colocalizer.output.CsvColocalizationOutput
 import java.io.File
@@ -10,23 +9,18 @@ import java.io.File
  * overlapping, transduced cells.
  */
 class BatchCsvColocalizationOutput(transductionParameters: Parameters.TransductionParameters) :
-    BatchColocalizationOutput() {
+    BatchColocalizationOutput(CsvColocalizationOutput(transductionParameters)) {
 
     private val csvColocalizationOutput = CsvColocalizationOutput(transductionParameters)
 
-    override fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
-        fileNameAndResultsList.add(Pair(file, transductionResult))
-        csvColocalizationOutput.addTransductionResultForFile(transductionResult, file)
-    }
-
     override fun output() {
         csvColocalizationOutput.createOutputFolder()
-        csvColocalizationOutput.writeSummaryCsv()
+        csvColocalizationOutput.writeSummary()
         writeDocumentationCsv()
         for (metric in Metrics.values()) {
-            writeMetricCsv(metric)
+            writeMetricSheet(metric)
         }
-        csvColocalizationOutput.writeParametersCsv()
+        csvColocalizationOutput.writeParameters()
     }
 
     private fun writeDocumentationCsv() {
@@ -36,7 +30,7 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
         csvColocalizationOutput.documentationCsv.produceCsv(File("${csvColocalizationOutput.outputPath}Documentation.csv"))
     }
 
-    private fun writeMetricCsv(metric: Metrics) {
+    override fun writeMetricSheet(metric: Metrics) {
         val maxRows = maxRows()
         val metricData = metricData()
         for (rowIdx in 0..maxRows) {

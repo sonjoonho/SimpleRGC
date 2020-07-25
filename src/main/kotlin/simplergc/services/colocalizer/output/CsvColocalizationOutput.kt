@@ -13,13 +13,14 @@ class CsvColocalizationOutput(private val transductionParameters: Parameters.Tra
     ColocalizationOutput() {
 
     val outputPath: String = "${transductionParameters.outputFile.path}${File.separator}"
+    val documentationCsv = Table(listOf())
 
     override fun output() {
         createOutputFolder()
-        writeDocumentationCsv()
-        writeSummaryCsv()
-        writeTransductionAnalysisCsv()
-        writeParametersCsv()
+        writeDocumentation()
+        writeSummary()
+        writeAnalysis()
+        writeParameters()
     }
 
     fun createOutputFolder() {
@@ -30,9 +31,7 @@ class CsvColocalizationOutput(private val transductionParameters: Parameters.Tra
         }
     }
 
-    val documentationCsv = Table(listOf())
-
-    private fun writeDocumentationCsv() {
+    override fun writeDocumentation() {
         // Constant array of information
         documentationCsv.addRow(
             DocumentationRow(
@@ -53,7 +52,7 @@ class CsvColocalizationOutput(private val transductionParameters: Parameters.Tra
         documentationCsv.produceCsv(File("${outputPath}Documentation.csv"))
     }
 
-    fun writeSummaryCsv() {
+    override fun writeSummary() {
         // TODO (#156): Add integrated density
         for ((fileName, result) in fileNameAndResultsList) {
             summaryData.addRow(SummaryRow(fileName = fileName, summary = result.getSummary()))
@@ -61,7 +60,7 @@ class CsvColocalizationOutput(private val transductionParameters: Parameters.Tra
         summaryData.produceCsv(File("${outputPath}Summary.csv"))
     }
 
-    private fun writeTransductionAnalysisCsv() {
+    override fun writeAnalysis() {
         for ((fileName, result) in fileNameAndResultsList) {
             result.overlappingTransducedIntensityAnalysis.forEachIndexed { i, cellAnalysis ->
                 // We index the cell number from 1.
@@ -77,7 +76,7 @@ class CsvColocalizationOutput(private val transductionParameters: Parameters.Tra
         transductionAnalysisData.produceCsv(File("${outputPath}Transduced Cell Analysis.csv"))
     }
 
-    fun writeParametersCsv() {
+    override fun writeParameters() {
         // TODO (#156): Add pixel size (micrometers) in next sprint.
         for ((fileName, _) in fileNameAndResultsList) {
             parametersData.addRow(

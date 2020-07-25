@@ -47,20 +47,31 @@ class ImageJTableColocalizationOutput(
             IntField(median),
             IntField(mean),
             IntField(integratedDensity),
-            IntField(rawIntegratedDensity))
+            IntField(rawIntegratedDensity)
+        )
     }
 
-    override fun output() {
+    override fun writeSummary() {
         table.addRow(Row(label = "--- Summary ---", count = result.targetCellCount))
+    }
 
+    override fun writeAnalysis() {
         table.addRow(Row(label = "Total number of cells in cell morphology channel 1", count = result.targetCellCount))
 
         table.addRow(Row(label = "Transduced cells in channel 1", count = result.overlappingTwoChannelCells.size))
 
         val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
-        table.addRow(Row(label = "Transduction Efficiency (rounded to nearest integer) %", count = transductionEfficiency.roundToInt()))
+        table.addRow(
+            Row(
+                label = "Transduction Efficiency (rounded to nearest integer) %",
+                count = transductionEfficiency.roundToInt()
+            )
+        )
 
-        table.addRow(Row(label = "Mean intensity of colocalized cells", count = result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size))
+        table.addRow(
+            Row(
+                label = "Mean intensity of colocalized cells",
+                count = result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size))
 
         table.addRow(Row(label = "----------------------------------------------"))
 
@@ -68,8 +79,32 @@ class ImageJTableColocalizationOutput(
 
         // Construct column values using the channel analysis values.
         result.overlappingTransducedIntensityAnalysis.forEachIndexed { i, cell ->
-            table.addRow(Row("Cell ${i + 1}", 1, cell.area, cell.median, cell.mean, cell.area * cell.mean, cell.rawIntDen))
+            table.addRow(
+                Row(
+                    "Cell ${i + 1}",
+                    1,
+                    cell.area,
+                    cell.median,
+                    cell.mean,
+                    cell.area * cell.mean,
+                    cell.rawIntDen
+                )
+            )
         }
+    }
+
+    override fun writeParameters() {
+        // no-op
+    }
+
+    override fun writeDocumentation() {
+        // no-op
+    }
+
+    override fun output() {
+        writeSummary()
+        writeAnalysis()
+
 
         table.produceImageJTable(uiService)
     }

@@ -1,11 +1,14 @@
 package simplergc.commands.batch.output
 
+import simplergc.commands.RGCTransduction
 import simplergc.services.BaseRow
 import simplergc.services.Field
 import simplergc.services.IntField
+import simplergc.services.SimpleOutput
 import simplergc.services.StringField
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.ColocalizationOutput
+import simplergc.services.colocalizer.output.DocumentationRow
 
 enum class Metrics(val value: String) {
     Area("Morphology Area"),
@@ -16,7 +19,9 @@ enum class Metrics(val value: String) {
     IntDen("Raw IntDen"),
 }
 
-abstract class BatchColocalizationOutput() : ColocalizationOutput() {
+abstract class BatchColocalizationOutput(val colocalizatonOutput: ColocalizationOutput) : SimpleOutput {
+
+    val fileNameAndResultsList = mutableListOf<Pair<String, RGCTransduction.TransductionResult>>()
 
     val documentationRows = listOf(
         DocumentationRow("The article: ", "TODO: Insert citation"),
@@ -30,6 +35,13 @@ abstract class BatchColocalizationOutput() : ColocalizationOutput() {
         DocumentationRow("Raw IntDen:", "Raw Integrated Density for each transduced cell"),
         DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin")
     )
+
+    abstract fun writeMetricSheet(metric: Metrics)
+
+    fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
+        fileNameAndResultsList.add(Pair(file, transductionResult))
+        colocalizatonOutput.addTransductionResultForFile(transductionResult, file)
+    }
 
     // metricMappings returns a map from metric name to a list of [filenames and a list of values].
     fun metricMappings(): Map<Metrics, MutableList<Pair<String, List<Int>>>> {

@@ -2,7 +2,6 @@ package simplergc.commands.batch.output
 
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import simplergc.commands.RGCTransduction
 import simplergc.services.Parameters
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
@@ -13,23 +12,17 @@ import java.io.File
  * overlapping, transduced cells.
  */
 class BatchXlsxColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
-    BatchColocalizationOutput() {
+    BatchColocalizationOutput(XlsxColocalizationOutput(transductionParameters)) {
 
-    private val xlsxColocalizationOutput = XlsxColocalizationOutput(transductionParameters)
-
-    override fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
-        fileNameAndResultsList.add(Pair(file, transductionResult))
-        xlsxColocalizationOutput.addTransductionResultForFile(transductionResult, file)
-    }
+    private val workbook = XSSFWorkbook()
 
     override fun output() {
-        val workbook = XSSFWorkbook()
         writeDocSheet(workbook)
-        xlsxColocalizationOutput.writeSummarySheet(workbook)
+        colocalizatonOutput.writeSummary()
         for (metric in Metrics.values()) {
-            writeMetricSheet(metric, workbook)
+            writeMetricSheet(metric)
         }
-        xlsxColocalizationOutput.writeParamsSheet(workbook)
+        colocalizatonOutput.writeParameters()
 
         // Write file and close streams
         val outputXlsxFile = File(FilenameUtils.removeExtension(transductionParameters.outputFile.path) + ".xlsx")
@@ -48,7 +41,7 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
         docXlsx.produceXlsx(workbook, "Documentation")
     }
 
-    private fun writeMetricSheet(metric: Metrics, workbook: XSSFWorkbook) {
+    override fun writeMetricSheet(metric: Metrics) {
         val maxRows = maxRows()
         val metricData = metricData()
         for (rowIdx in 0..maxRows) {

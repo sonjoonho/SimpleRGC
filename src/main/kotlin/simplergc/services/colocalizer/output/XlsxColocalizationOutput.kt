@@ -9,15 +9,17 @@ import java.io.File
 /**
  * Outputs the analysis with the result of overlapping, transduced cells in XLSX format.
  */
-class XlsxColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
+class XlsxColocalizationOutput(
+    private val transductionParameters: Parameters.TransductionParameters,
+    val workbook: XSSFWorkbook = XSSFWorkbook()
+) :
     ColocalizationOutput() {
 
     override fun output() {
-        val workbook = XSSFWorkbook()
-        writeDocSheet(workbook)
-        writeSummarySheet(workbook)
-        writeTransductionAnalysisSheet(workbook)
-        writeParamsSheet(workbook)
+        writeDocumentation()
+        writeSummary()
+        writeAnalysis()
+        writeParameters()
 
         val outputXlsxFile = File(FilenameUtils.removeExtension(transductionParameters.outputFile.path) + ".xlsx")
         val xlsxFileOut = outputXlsxFile.outputStream()
@@ -26,7 +28,7 @@ class XlsxColocalizationOutput(private val transductionParameters: Parameters.Tr
         workbook.close()
     }
 
-    private fun writeDocSheet(workbook: XSSFWorkbook) {
+    override fun writeDocumentation() {
         val docXlsx = Table(listOf())
         docXlsx.addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
         docXlsx.addRow(DocumentationRow("", ""))
@@ -37,7 +39,7 @@ class XlsxColocalizationOutput(private val transductionParameters: Parameters.Tr
         docXlsx.produceXlsx(workbook, "Documentation")
     }
 
-    fun writeSummarySheet(workbook: XSSFWorkbook) {
+    override fun writeSummary() {
         // Add summary data.
         for ((fileName, result) in fileNameAndResultsList) {
             summaryData.addRow(SummaryRow(fileName = fileName, summary = result.getSummary()))
@@ -45,7 +47,7 @@ class XlsxColocalizationOutput(private val transductionParameters: Parameters.Tr
         summaryData.produceXlsx(workbook, "Summary")
     }
 
-    private fun writeTransductionAnalysisSheet(workbook: XSSFWorkbook) {
+    override fun writeAnalysis() {
         for ((fileName, result) in fileNameAndResultsList) {
             result.overlappingTransducedIntensityAnalysis.forEachIndexed { i, cellAnalysis ->
                 transductionAnalysisData.addRow(
@@ -60,7 +62,7 @@ class XlsxColocalizationOutput(private val transductionParameters: Parameters.Tr
         transductionAnalysisData.produceXlsx(workbook, "Transduction Analysis")
     }
 
-    fun writeParamsSheet(workbook: XSSFWorkbook) {
+    override fun writeParameters() {
         // Add parameter data.
         for ((fileName, _) in fileNameAndResultsList) {
             parametersData.addRow(
