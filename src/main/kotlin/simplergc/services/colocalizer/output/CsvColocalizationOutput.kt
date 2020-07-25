@@ -9,7 +9,7 @@ import simplergc.services.Table
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
-class CSVColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
+class CsvColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
     ColocalizationOutput() {
 
     val outputPath: String = "${transductionParameters.outputFile.path}${File.separator}"

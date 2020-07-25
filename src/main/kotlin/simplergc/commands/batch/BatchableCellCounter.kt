@@ -9,8 +9,8 @@ import simplergc.commands.batch.RGCBatch.OutputFormat
 import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
-import simplergc.services.counter.output.CSVCounterOutput
-import simplergc.services.counter.output.XLSXCounterOutput
+import simplergc.services.counter.output.CsvCounterOutput
+import simplergc.services.counter.output.XlsxCounterOutput
 
 class BatchableCellCounter(
     private val targetChannel: Int,
@@ -45,8 +45,8 @@ class BatchableCellCounter(
         )
 
         val output = when (outputFormat) {
-            OutputFormat.CSV -> CSVCounterOutput(counterParameters)
-            OutputFormat.XLSX -> XLSXCounterOutput(counterParameters)
+            OutputFormat.CSV -> CsvCounterOutput(counterParameters)
+            OutputFormat.XLSX -> XlsxCounterOutput(counterParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 

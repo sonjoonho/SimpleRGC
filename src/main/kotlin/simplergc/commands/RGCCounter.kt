@@ -29,9 +29,9 @@ import simplergc.services.colocalizer.PositionedCell
 import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
 import simplergc.services.colocalizer.resetRoiManager
-import simplergc.services.counter.output.CSVCounterOutput
+import simplergc.services.counter.output.CsvCounterOutput
 import simplergc.services.counter.output.ImageJTableCounterOutput
-import simplergc.services.counter.output.XLSXCounterOutput
+import simplergc.services.counter.output.XlsxCounterOutput
 import simplergc.widgets.AlignedTextWidget
 
 /**
@@ -227,8 +227,8 @@ class RGCCounter : Command, Previewable {
         )
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableCounterOutput(uiService)
-            OutputFormat.XLSX -> XLSXCounterOutput(counterParameters)
-            OutputFormat.CSV -> CSVCounterOutput(counterParameters)
+            OutputFormat.XLSX -> XlsxCounterOutput(counterParameters)
+            OutputFormat.CSV -> CsvCounterOutput(counterParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 

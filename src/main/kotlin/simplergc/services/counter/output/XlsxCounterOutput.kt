@@ -8,7 +8,7 @@ import simplergc.services.Parameters
 import simplergc.services.SimpleOutput.Companion.ARTICLE_CITATION
 import simplergc.services.StringField
 
-class XLSXCounterOutput(private val counterParameters: Parameters.CounterParameters) : CounterOutput() {
+class XlsxCounterOutput(private val counterParameters: Parameters.CounterParameters) : CounterOutput() {
 
     data class Citation(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
         override fun toList() = listOf(StringField(article), StringField(citation))
@@ -25,7 +25,7 @@ class XLSXCounterOutput(private val counterParameters: Parameters.CounterParamet
             resultsData.addRow(ResultsRow(fileName.replace(",", ""), count))
         }
         resultsData.addRow(Citation())
-        resultsData.produceXLSX(workbook, "Results")
+        resultsData.produceXlsx(workbook, "Results")
     }
 
     /**
@@ -42,7 +42,7 @@ class XLSXCounterOutput(private val counterParameters: Parameters.CounterParamet
                 gaussianBlurSigma = counterParameters.gaussianBlurSigma
             ))
         }
-        parametersData.produceXLSX(workbook, "Parameters")
+        parametersData.produceXlsx(workbook, "Parameters")
     }
 
     /**

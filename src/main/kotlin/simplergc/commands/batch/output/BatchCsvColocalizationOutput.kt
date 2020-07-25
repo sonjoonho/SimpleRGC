@@ -3,16 +3,16 @@ package simplergc.commands.batch.output
 import java.io.File
 import simplergc.commands.RGCTransduction
 import simplergc.services.Parameters
-import simplergc.services.colocalizer.output.CSVColocalizationOutput
+import simplergc.services.colocalizer.output.CsvColocalizationOutput
 
 /**
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
-class BatchCSVColocalizationOutput(transductionParameters: Parameters.TransductionParameters) :
+class BatchCsvColocalizationOutput(transductionParameters: Parameters.TransductionParameters) :
     BatchColocalizationOutput() {
 
-    private val csvColocalizationOutput = CSVColocalizationOutput(transductionParameters)
+    private val csvColocalizationOutput = CsvColocalizationOutput(transductionParameters)
 
     override fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))

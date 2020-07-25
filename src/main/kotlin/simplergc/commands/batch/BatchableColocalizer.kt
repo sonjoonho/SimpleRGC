@@ -10,8 +10,8 @@ import simplergc.commands.ChannelDoesNotExistException
 import simplergc.commands.RGCTransduction
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.commands.batch.RGCBatch.OutputFormat
-import simplergc.commands.batch.output.BatchCSVColocalizationOutput
-import simplergc.commands.batch.output.BatchXLSXColocalizationOutput
+import simplergc.commands.batch.output.BatchCsvColocalizationOutput
+import simplergc.commands.batch.output.BatchXlsxColocalizationOutput
 import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
@@ -71,8 +71,8 @@ class BatchableColocalizer(
         outputFormat: String
     ) {
         val output = when (outputFormat) {
-            OutputFormat.XLSX -> BatchXLSXColocalizationOutput(transductionParameters)
-            OutputFormat.CSV -> BatchCSVColocalizationOutput(transductionParameters)
+            OutputFormat.XLSX -> BatchXlsxColocalizationOutput(transductionParameters)
+            OutputFormat.CSV -> BatchCsvColocalizationOutput(transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided: $outputFormat")
         }
 
