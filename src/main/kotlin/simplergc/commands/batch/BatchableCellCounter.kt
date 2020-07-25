@@ -51,10 +51,7 @@ class BatchableCellCounter(
         }
 
         imageAndCount.forEach { output.addCountForFile(it.second, it.first.title) }
-        try {
-            output.output()
-        } catch (ioe: IOException) {
-            displayOutputFileErrorDialog()
-        }
+
+        output.output()
     }
 }
