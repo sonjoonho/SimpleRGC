@@ -3,7 +3,9 @@ package simplergc.services.colocalizer.output
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.BaseRow
+import simplergc.services.ImageJTableProducer
 import simplergc.services.IntField
+import simplergc.services.Parameters
 import simplergc.services.StringField
 import simplergc.services.Table
 import kotlin.math.roundToInt
@@ -13,11 +15,12 @@ import kotlin.math.roundToInt
  * overlapping, transduced cells.
  */
 class ImageJTableColocalizationOutput(
+    transductionParameters: Parameters.Transduction,
     val result: TransductionResult,
-    private val uiService: UIService
-) : ColocalizationOutput() {
+    uiService: UIService
+) : ColocalizationOutput(transductionParameters) {
 
-    // TODO (131): Use fileNameAndResultsList in output
+    override val tableProducer = ImageJTableProducer(uiService)
 
     private val table = Table(
         listOf(
@@ -102,7 +105,6 @@ class ImageJTableColocalizationOutput(
         writeSummary()
         table.addRow(Row(label = "----------------------------------------------"))
         writeAnalysis()
-
-        table.produceImageJTable(uiService)
+        tableProducer.produce(table, "")
     }
 }

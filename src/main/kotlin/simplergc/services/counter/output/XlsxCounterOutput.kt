@@ -1,14 +1,14 @@
 package simplergc.services.counter.output
 
-import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.BaseRow
 import simplergc.services.Parameters
 import simplergc.services.SimpleOutput.Companion.ARTICLE_CITATION
 import simplergc.services.StringField
+import java.io.File
 
-class XlsxCounterOutput(private val counterParameters: Parameters.CounterParameters) : CounterOutput() {
+class XlsxCounterOutput(private val counterParameters: Parameters.Counter) : CounterOutput() {
 
     data class Citation(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
         override fun toList() = listOf(StringField(article), StringField(citation))

@@ -3,7 +3,6 @@ package simplergc.commands.batch
 import ij.IJ
 import ij.ImagePlus
 import ij.gui.MessageDialog
-import java.io.File
 import org.scijava.Context
 import simplergc.commands.ChannelDoesNotExistException
 import simplergc.commands.RGCTransduction
@@ -13,6 +12,7 @@ import simplergc.commands.batch.output.BatchCsvColocalizationOutput
 import simplergc.commands.batch.output.BatchXlsxColocalizationOutput
 import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
+import java.io.File
 
 class BatchableColocalizer(
     private val targetChannel: Int,
@@ -49,7 +49,7 @@ class BatchableColocalizer(
 
         val fileNameAndAnalysis = inputImages.map { it.title }.zip(analyses)
 
-        val transductionParameters = Parameters.TransductionParameters(
+        val transductionParameters = Parameters.Transduction(
             outputFile,
             shouldRemoveAxonsFromTargetChannel,
             transducedChannel,
@@ -65,7 +65,7 @@ class BatchableColocalizer(
 
     private fun writeOutput(
         fileNameAndAnalysis: List<Pair<String, TransductionResult>>,
-        transductionParameters: Parameters.TransductionParameters,
+        transductionParameters: Parameters.Transduction,
         outputFormat: String
     ) {
         val output = when (outputFormat) {

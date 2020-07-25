@@ -11,7 +11,7 @@ import java.io.File
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
-class BatchXlsxColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
+class BatchXlsxColocalizationOutput(private val transductionParameters: Parameters.Transduction) :
     BatchColocalizationOutput(XlsxColocalizationOutput(transductionParameters)) {
 
     private val workbook = XSSFWorkbook()
@@ -38,6 +38,7 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
         for (row in documentationRows) {
             docXlsx.addRow(row)
         }
+
         docXlsx.produceXlsx(workbook, "Documentation")
     }
 

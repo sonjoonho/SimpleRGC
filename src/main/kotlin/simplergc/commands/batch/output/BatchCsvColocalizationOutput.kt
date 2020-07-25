@@ -8,7 +8,7 @@ import java.io.File
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
-class BatchCsvColocalizationOutput(transductionParameters: Parameters.TransductionParameters) :
+class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
     BatchColocalizationOutput(CsvColocalizationOutput(transductionParameters)) {
 
     private val csvColocalizationOutput = CsvColocalizationOutput(transductionParameters)

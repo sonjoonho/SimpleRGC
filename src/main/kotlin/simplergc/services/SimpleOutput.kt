@@ -22,57 +22,19 @@ interface SimpleOutput {
     fun output()
 }
 
-interface BaseRow {
-    fun toList(): List<Field<*>>
+interface TableProducer {
+    fun produce(table: Table, to: String)
 }
 
-sealed class Field<V>(val value: V)
-class StringField(value: String) : Field<String>(value)
-class IntField(value: Int) : Field<Int>(value)
-class DoubleField(value: Double) : Field<Double>(value)
-class BooleanField(value: Boolean) : Field<Boolean>(value)
-
-class Table(private val schema: List<String>) {
-    // data is a rows x columns representation of a table.
-    val data: MutableList<List<Field<*>>> =
-        if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) })
-
-    fun addRow(row: BaseRow) {
-        data.add(row.toList())
-    }
-
-    fun produceImageJTable(uiService: UIService) {
-        val table = DefaultGenericTable()
-        var columns: List<DefaultColumn<String>> = listOf()
+class XlsxTableProducer(private val workbook: XSSFWorkbook) : TableProducer {
+    override fun produce(table: Table, to: String) {
+        val currSheet = workbook.createSheet(to)
+        val data = table.data
         val header = data[0]
-        val body = data.drop(1)
 
-        if (!schema.isNullOrEmpty()) {
-            columns = header.map { DefaultColumn(String::class.java, it.toString()) }
-        }
-
-        for (row in body) {
-            for (colIdx in row.indices) {
-                columns[colIdx].add(row[colIdx].toString())
-            }
-        }
-
-        table.addAll(columns)
-        uiService.show(table)
-    }
-
-    fun produceCsv(file: File) {
-        CsvWriter().write(file, StandardCharsets.UTF_8, data.map { row -> row.map { it.value.toString() }.toTypedArray() })
-    }
-
-    fun produceXlsx(workbook: XSSFWorkbook, sheetName: String) {
-        val currSheet = workbook.createSheet(sheetName)
         var rowNum = 0
-
-        val header = data[0]
-
         // Set the header.
-        if (!schema.isNullOrEmpty()) {
+        if (!table.schema.isNullOrEmpty()) {
             val headerFont = workbook.createFont()
             headerFont.bold = true
             headerFont.color = IndexedColors.BLUE.index
@@ -111,8 +73,62 @@ class Table(private val schema: List<String>) {
     }
 }
 
+class CsvTableProducer : TableProducer {
+    override fun produce(table: Table, to: String) {
+        val data = table.data
+        CsvWriter().write(
+            File(to),
+            StandardCharsets.UTF_8,
+            data.map { row -> row.map { it.value.toString() }.toTypedArray() })
+    }
+}
+
+class ImageJTableProducer(private val uiService: UIService) : TableProducer {
+
+    override fun produce(table: Table, to: String) {
+        val imageJTable = DefaultGenericTable()
+        val data = table.data
+        val header = data[0]
+        val body = data.drop(1)
+
+        var columns: List<DefaultColumn<String>> = listOf()
+        if (!table.schema.isNullOrEmpty()) {
+            columns = header.map { DefaultColumn(String::class.java, it.toString()) }
+        }
+
+        for (row in body) {
+            for (colIdx in row.indices) {
+                columns[colIdx].add(row[colIdx].toString())
+            }
+        }
+
+        imageJTable.addAll(columns)
+        uiService.show(imageJTable)
+    }
+}
+
+interface BaseRow {
+    fun toList(): List<Field<*>>
+}
+
+sealed class Field<V>(val value: V)
+class StringField(value: String) : Field<String>(value)
+class IntField(value: Int) : Field<Int>(value)
+class DoubleField(value: Double) : Field<Double>(value)
+class BooleanField(value: Boolean) : Field<Boolean>(value)
+
+class Table(val schema: List<String>) {
+    // data is a rows x columns representation of a table.
+    val data: MutableList<List<Field<*>>> =
+        if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) })
+
+    fun addRow(row: BaseRow) {
+        data.add(row.toList())
+    }
+}
+
 sealed class Parameters {
-    data class CounterParameters(
+    data class Counter(
         val outputFile: File,
         val targetChannel: Int,
         val cellDiameterRange: CellDiameterRange,
@@ -120,7 +136,7 @@ sealed class Parameters {
         val gaussianBlurSigma: Double
     ) : Parameters()
 
-    data class TransductionParameters(
+    data class Transduction(
         val outputFile: File,
         val shouldRemoveAxonsFromTargetChannel: Boolean,
         val transducedChannel: Int,
