@@ -26,23 +26,15 @@ interface BaseRow {
     fun toList(): List<Field>
 }
 
-enum class FieldType {
-    STRING, INT, DOUBLE, BOOLEAN
-}
-
-open class Field(val type: FieldType, private val value: Any) {
-    override fun toString(): String {
-        return value.toString()
-    }
-}
-
-class StringField(val value: String) : Field(FieldType.STRING, value)
-class IntField(val value: Int) : Field(FieldType.INT, value)
-class DoubleField(val value: Double) : Field(FieldType.DOUBLE, value)
-class BooleanField(val value: Boolean) : Field(FieldType.BOOLEAN, value)
+sealed class Field
+data class StringField(val value: String) : Field()
+data class IntField(val value: Int) : Field()
+data class DoubleField(val value: Double) : Field()
+data class BooleanField(val value: Boolean) : Field()
 
 class Table(private val schema: Array<String>?) {
-    val data: MutableList<List<Field>> = if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) as Field })
+    val data: MutableList<List<Field>> =
+        if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) })
 
     fun addRow(row: BaseRow) {
         data.add(row.toList())
@@ -88,11 +80,11 @@ class Table(private val schema: Array<String>?) {
             val currRow = currSheet.createRow(rowNum)
             for (i in row.indices) {
                 val currCell = currRow.createCell(i)
-                when (row[i].type) {
-                    FieldType.STRING -> currCell.setCellValue(row[i].toString())
-                    FieldType.INT -> currCell.setCellValue(row[i].toString().toDouble())
-                    FieldType.DOUBLE -> currCell.setCellValue(row[i].toString().toDouble())
-                    FieldType.BOOLEAN -> currCell.setCellValue(row[i].toString().toBoolean())
+                when (val f = row[i]) {
+                    is StringField -> currCell.setCellValue(f.value)
+                    is IntField -> currCell.setCellValue(f.value.toDouble()) // Does not support Ints.
+                    is DoubleField -> currCell.setCellValue(f.value)
+                    is BooleanField -> currCell.setCellValue(f.value)
                 }
             }
             rowNum++
