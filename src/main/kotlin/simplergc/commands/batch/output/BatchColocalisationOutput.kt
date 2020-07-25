@@ -4,7 +4,6 @@ import simplergc.commands.RGCTransduction
 import simplergc.services.BaseRow
 import simplergc.services.CellColocalizationService.CellAnalysis
 import simplergc.services.Field
-import simplergc.services.IntField
 import simplergc.services.SimpleOutput
 import simplergc.services.StringField
 import simplergc.services.Table
@@ -84,8 +83,6 @@ abstract class BatchColocalizationOutput() : SimpleOutput {
 // of equal length so fields can be null.
 data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
     override fun toList(): List<Field<*>> {
-        val row = mutableListOf(IntField(rowIdx) as Field<*>)
-        row.addAll(metrics.map { StringField(it?.toString() ?: "") })
-        return row.toList()
+        return metrics.map { StringField(it?.toString() ?: "") }
     }
 }

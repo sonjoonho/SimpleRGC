@@ -9,8 +9,10 @@ import simplergc.services.XlsxTableProducer
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
 
 /**
- * Displays a table for a transduction analysis with the result of
- * overlapping, transduced cells.
+ * Outputs single XLSX file with multiple sheets.
+ * Sheets generated are:
+ *     - Documentation
+ *     - [metric].csv for each metric
  */
 class BatchXlsxColocalizationOutput(private val transductionParameters: Parameters.Transduction) :
     BatchColocalizationOutput() {

@@ -5,8 +5,12 @@ import simplergc.services.Parameters
 import simplergc.services.colocalizer.output.CsvColocalizationOutput
 
 /**
- * Displays a table for a transduction analysis with the result of
- * overlapping, transduced cells.
+ * Outputs multiple CSVs into an output folder.
+ * CSVs generated are:
+ *     - Documentation.csv
+ *     - Summary.csv
+ *     - [metric].csv for each metric
+ *     - Parameters.csv
  */
 class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
     BatchColocalizationOutput() {

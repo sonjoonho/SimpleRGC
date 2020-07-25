@@ -1,13 +1,17 @@
 package simplergc.services.colocalizer.output
 
+import java.io.File
 import simplergc.services.CsvTableProducer
 import simplergc.services.Parameters
-import java.io.File
 import java.io.IOException
 
 /**
- * Displays a table for a transduction analysis with the result of
- * overlapping, transduced cells.
+ * Outputs multiple CSVs into an output folder.
+ * CSVs generated are:
+ *     - Documentation.csv
+ *     - Summary.csv
+ *     - Transduced Cell Analysis.csv
+ *     - Parameters.csv
  */
 class CsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
     ColocalizationOutput(transductionParameters) {
