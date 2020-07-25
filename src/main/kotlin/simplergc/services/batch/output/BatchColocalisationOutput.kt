@@ -37,6 +37,8 @@ abstract class BatchColocalizationOutput : Output {
         for (metric in Metric.values()) {
             writeMetrics(metric)
         }
+
+        colocalizationOutput.writeParameters()
     }
 
     fun documentationData(): Table = Table(listOf()).apply {
