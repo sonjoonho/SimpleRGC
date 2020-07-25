@@ -49,7 +49,7 @@ class CSVColocalizationOutput(private val transductionParameters: Parameters.Tra
             )
         )
         documentationCsv.addRow(DocumentationRow("Parameters: ", "Parameters used for SimpleRGC plugin"))
-        documentationCsv.produceCSV(File("${outputPath}Documentation.csv"))
+        documentationCsv.produceCsv(File("${outputPath}Documentation.csv"))
     }
 
     fun writeSummaryCsv() {
@@ -57,7 +57,7 @@ class CSVColocalizationOutput(private val transductionParameters: Parameters.Tra
         for ((fileName, result) in fileNameAndResultsList) {
             summaryData.addRow(SummaryRow(fileName = fileName, summary = result.getSummary()))
         }
-        summaryData.produceCSV(File("${outputPath}Summary.csv"))
+        summaryData.produceCsv(File("${outputPath}Summary.csv"))
     }
 
     private fun writeTransductionAnalysisCsv() {
@@ -66,7 +66,7 @@ class CSVColocalizationOutput(private val transductionParameters: Parameters.Tra
                 transductionAnalysisData.addRow(TransductionAnalysisRow(fileName, cellAnalysis))
             }
         }
-        transductionAnalysisData.produceCSV(File("${outputPath}Transduced Cell Analysis.csv"))
+        transductionAnalysisData.produceCsv(File("${outputPath}Transduced Cell Analysis.csv"))
     }
 
     fun writeParametersCsv() {
@@ -85,6 +85,6 @@ class CSVColocalizationOutput(private val transductionParameters: Parameters.Tra
                 )
             )
         }
-        parametersData.produceCSV(File("${outputPath}Parameters.csv"))
+        parametersData.produceCsv(File("${outputPath}Parameters.csv"))
     }
 }

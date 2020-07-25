@@ -62,7 +62,7 @@ abstract class BatchColocalizationOutput : ColocalizationOutput() {
         Table((listOf("Transduced Cell") + fileNameAndResultsList.map { it.first }.toList()).toTypedArray())
 }
 
-data class metricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
+data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
     override fun toList(): List<Field> {
         val row = mutableListOf(IntField(rowIdx) as Field)
         row.addAll(metrics.map { StringField(it?.toString() ?: "") })

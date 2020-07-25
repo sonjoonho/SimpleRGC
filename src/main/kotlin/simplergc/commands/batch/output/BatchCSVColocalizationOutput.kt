@@ -24,7 +24,7 @@ class BatchCSVColocalizationOutput(transductionParameters: Parameters.Transducti
         csvColocalizationOutput.writeSummaryCsv()
         writeDocumentationCsv()
         for (metricName in getMetricMappings().keys) {
-            writeMetricCSV(metricName)
+            writeMetricCsv(metricName)
         }
         csvColocalizationOutput.writeParametersCsv()
     }
@@ -33,16 +33,16 @@ class BatchCSVColocalizationOutput(transductionParameters: Parameters.Transducti
         for (row in documentationRows) {
             csvColocalizationOutput.documentationCsv.addRow(row)
         }
-        csvColocalizationOutput.documentationCsv.produceCSV(File("${csvColocalizationOutput.outputPath}Documentation.csv"))
+        csvColocalizationOutput.documentationCsv.produceCsv(File("${csvColocalizationOutput.outputPath}Documentation.csv"))
     }
 
-    private fun writeMetricCSV(metricName: String) {
+    private fun writeMetricCsv(metricName: String) {
         val maxRows = getMaxRows()
         val metricData = getMetricData()
         for (rowIdx in 0..maxRows!!) {
             val rowData = getMetricMappings().getOrDefault(metricName, emptyList()).map { it.second.getOrNull(rowIdx) }
-            metricData.addRow(metricRow(rowIdx, rowData))
+            metricData.addRow(MetricRow(rowIdx, rowData))
         }
-        metricData.produceCSV(File("${csvColocalizationOutput.outputPath}$metricName.csv"))
+        metricData.produceCsv(File("${csvColocalizationOutput.outputPath}$metricName.csv"))
     }
 }
