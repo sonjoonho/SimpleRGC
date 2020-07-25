@@ -1,13 +1,13 @@
 package simplergc.services
 
 import de.siegmar.fastcsv.writer.CsvWriter
-import java.io.File
-import java.nio.charset.StandardCharsets
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.ui.UIService
+import java.io.File
+import java.nio.charset.StandardCharsets
 
 /**
  * Outputs the result of the plugin.
@@ -83,7 +83,7 @@ class Table(private val schema: List<String>) {
             for (i in header.indices) {
                 val cell = headerRow.createCell(i)
                 cell.cellStyle = headerCellStyle
-                cell.setCellValue(header[i].toString())
+                cell.setCellValue(header[i].value.toString())
             }
             rowNum = 1
         }

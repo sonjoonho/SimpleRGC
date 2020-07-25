@@ -53,9 +53,6 @@ class ImageJTableColocalizationOutput(
 
     override fun writeSummary() {
         table.addRow(Row(label = "--- Summary ---", count = result.targetCellCount))
-    }
-
-    override fun writeAnalysis() {
         table.addRow(Row(label = "Total number of cells in cell morphology channel 1", count = result.targetCellCount))
 
         table.addRow(Row(label = "Transduced cells in channel 1", count = result.overlappingTwoChannelCells.size))
@@ -72,9 +69,9 @@ class ImageJTableColocalizationOutput(
             Row(
                 label = "Mean intensity of colocalized cells",
                 count = result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size))
+    }
 
-        table.addRow(Row(label = "----------------------------------------------"))
-
+    override fun writeAnalysis() {
         table.addRow(Row(label = "--- Transduced Channel Analysis, Colocalized Cells ---"))
 
         // Construct column values using the channel analysis values.
@@ -103,8 +100,8 @@ class ImageJTableColocalizationOutput(
 
     override fun output() {
         writeSummary()
+        table.addRow(Row(label = "----------------------------------------------"))
         writeAnalysis()
-
 
         table.produceImageJTable(uiService)
     }
