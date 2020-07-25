@@ -2,12 +2,12 @@ package simplergc.commands.batch.controllers
 
 import java.awt.event.ActionListener
 import java.io.FileNotFoundException
+import java.io.IOException
 import simplergc.commands.batch.Batchable
 import simplergc.commands.batch.models.RGCParameters
 import simplergc.commands.batch.views.RGCView
-import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.comparators.AlphanumFileComparator
-import java.io.IOException
+import simplergc.services.DiameterParseException
 
 abstract class RGCController {
     abstract val view: RGCView
@@ -37,16 +37,23 @@ abstract class RGCController {
         )
     } fun okButton(): ActionListener {
         return ActionListener {
-            val p = harvestParameters()
+            val p: RGCParameters
+            try {
+                p = harvestParameters()
+            } catch (dpe: DiameterParseException) {
+                view.dialog("Error", dpe.message ?: "Could not parse cell diameter")
+                return@ActionListener
+            }
+
             saveParameters(p)
 
             try {
                 process(p)
                 view.dialog("Saved", "The batch processing results have successfully been saved to the specified file")
             } catch (e: FileNotFoundException) {
-                view.dialog("Error", e.message ?: "An error occurred")
+                view.dialog("Error", e.message ?: "File not found.")
             } catch (ioe: IOException) {
-                displayOutputFileErrorDialog()
+                view.dialog("Error", ioe.message ?: "File could not be opened/saved.")
             }
         }
     } }

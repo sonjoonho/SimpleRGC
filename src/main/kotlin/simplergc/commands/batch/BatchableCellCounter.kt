@@ -2,11 +2,9 @@ package simplergc.commands.batch
 
 import ij.ImagePlus
 import java.io.File
-import java.io.IOException
 import org.scijava.Context
 import simplergc.commands.RGCCounter
 import simplergc.commands.batch.RGCBatch.OutputFormat
-import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
 import simplergc.services.counter.output.CsvCounterOutput

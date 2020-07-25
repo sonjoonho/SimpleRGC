@@ -312,7 +312,7 @@ class RGCTransduction : Command, Previewable {
         try {
             output.output()
         } catch (ioe: IOException) {
-            displayOutputFileErrorDialog()
+            displayErrorDialog(ioe.message)
         }
 
         // The colocalization results are clearly displayed if the output

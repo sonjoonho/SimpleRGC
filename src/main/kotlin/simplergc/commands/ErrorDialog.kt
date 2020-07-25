@@ -2,9 +2,9 @@ package simplergc.commands
 
 import ij.gui.GenericDialog
 
-fun displayOutputFileErrorDialog(filetype: String = "") {
+fun displayErrorDialog(message: String?) {
     GenericDialog("Error").apply {
-        addMessage("Unable to save results to $filetype file")
+        addMessage(message ?: "An error occurred. Please try again.")
         hideCancelButton()
         showDialog()
     }

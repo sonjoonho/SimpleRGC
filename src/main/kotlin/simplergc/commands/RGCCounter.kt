@@ -237,7 +237,7 @@ class RGCCounter : Command, Previewable {
         try {
             output.output()
         } catch (ioe: IOException) {
-            displayOutputFileErrorDialog()
+            displayErrorDialog(ioe.message)
         }
 
         // The cell counting results are clearly displayed if the output

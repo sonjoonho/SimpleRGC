@@ -26,7 +26,7 @@ class CsvColocalizationOutput(private val transductionParameters: Parameters.Tra
         val outputFileSuccess = File(transductionParameters.outputFile.path).mkdir()
         // If the output file cannot be created, an IOException should be caught
         if (!outputFileSuccess and !transductionParameters.outputFile.exists()) {
-            throw IOException()
+            throw IOException("Unable to create folder for CSV files.")
         }
     }
 
