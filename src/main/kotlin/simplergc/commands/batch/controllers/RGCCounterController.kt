@@ -30,11 +30,13 @@ class RGCCounterController(override val view: RGCCounterView, private val model:
 
     override fun saveParameters(p: RGCParameters) {
         p as RGCCounterParameters
+        model.inputDirectory = p.inputDirectory?.path ?: ""
         model.shouldProcessFilesInNestedFolders = p.shouldProcessFilesInNestedFolders
         model.channelToUse = p.channel
         model.thresholdRadius = p.thresholdRadius
         model.gaussianBlur = p.gaussianBlurSigma
         model.cellDiameter = view.cellDiameterChannelField.field.text
+        model.shouldRemoveAxons = p.shouldRemoveAxons
         model.outputFormat = view.outputFileChooserPanel.format
         model.outputFile = view.outputFileChooserPanel.file.absolutePath
     }

@@ -68,3 +68,24 @@ fun Preferences.putRGCTransductionPref(prefKey: String, def: Double) {
 fun Preferences.putRGCTransductionPref(prefKey: String, def: Boolean) {
     this.putBoolean(RGCTransductionPrefix + prefKey, def)
 }
+
+object PreferenceKeys {
+    // Counter parameters
+    const val channelToUse = "channelToUse"
+    const val shouldRemoveAxons = "shouldRemoveAxons"
+
+    // Transduction parameters
+    const val inputDirectory = "inputDirectory"
+    const val targetChannel = "targetChannel"
+    const val transductionChannel = "transductionChannel"
+    const val shouldRemoveAxonsFromTargetChannel = "shouldRemoveAxonsFromTargetChannel"
+    const val shouldRemoveAxonsFromTransductionChannel = "shouldRemoveAxonsTransductionChannel"
+
+    // Common
+    const val shouldProcessFilesInNestedFolders = "shouldProcessFilesInNestedFolders"
+    const val cellDiameter = "cellDiameter"
+    const val thresholdRadius = "thresholdRadius"
+    const val gaussianBlur = "gaussianBlur"
+    const val outputFormat = "outputFormat"
+    const val outputFile = "outputFile"
+}
