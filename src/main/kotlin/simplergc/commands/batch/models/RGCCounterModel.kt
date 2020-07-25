@@ -8,73 +8,73 @@ import simplergc.commands.batch.RGCBatch.OutputFormat
 class RGCCounterModel(val context: Context, private val prefs: Preferences) {
     var inputDirectory: String
         get() {
-            return prefs.getRGCCounterPref(Param.inputDirectory, "")
+            return prefs.getRGCCounterPref(PreferenceKeys.inputDirectory, "")
         }
         set(value) {
-            prefs.getRGCCounterPref(Param.inputDirectory, value)
+            prefs.putRGCCounterPref(PreferenceKeys.inputDirectory, value)
         }
 
     var shouldProcessFilesInNestedFolders: Boolean
         get() {
-            return prefs.getRGCCounterPref(Param.shouldProcessFilesInNestedFolders, false)
+            return prefs.getRGCCounterPref(PreferenceKeys.shouldProcessFilesInNestedFolders, false)
         }
         set(value) {
-            prefs.putRGCCounterPref(Param.shouldProcessFilesInNestedFolders, value)
+            prefs.putRGCCounterPref(PreferenceKeys.shouldProcessFilesInNestedFolders, value)
         }
 
     var channelToUse: Int
         get() {
-            return prefs.getRGCCounterPref(Param.channelToUse, 1)
+            return prefs.getRGCCounterPref(PreferenceKeys.channelToUse, 1)
         }
         set(value) {
-            prefs.putRGCCounterPref(Param.channelToUse, value)
+            prefs.putRGCCounterPref(PreferenceKeys.channelToUse, value)
         }
 
     var cellDiameter: String
         get() {
-            return prefs.getRGCCounterPref(Param.cellDiameter, "0.00-30.0")
+            return prefs.getRGCCounterPref(PreferenceKeys.cellDiameter, "0.00-30.0")
         }
         set(value) {
-            prefs.putRGCCounterPref(Param.cellDiameter, value)
+            prefs.putRGCCounterPref(PreferenceKeys.cellDiameter, value)
         }
 
     var thresholdRadius: Int
         get() {
-            return prefs.getRGCCounterPref(Param.thresholdRadius, 20)
+            return prefs.getRGCCounterPref(PreferenceKeys.thresholdRadius, 20)
         }
         set(value) {
-            prefs.putRGCCounterPref(Param.thresholdRadius, value)
+            prefs.putRGCCounterPref(PreferenceKeys.thresholdRadius, value)
         }
 
     var gaussianBlur: Double
         get() {
-            return prefs.getRGCCounterPref(Param.gaussianBlur, 3.0)
+            return prefs.getRGCCounterPref(PreferenceKeys.gaussianBlur, 3.0)
         }
         set(value) {
-            prefs.putRGCCounterPref(Param.gaussianBlur, value)
+            prefs.putRGCCounterPref(PreferenceKeys.gaussianBlur, value)
         }
 
     var outputFormat: String
         get() {
-            return prefs.getRGCCounterPref(Param.outputFormat, OutputFormat.XLSX)
+            return prefs.getRGCCounterPref(PreferenceKeys.outputFormat, OutputFormat.XLSX)
         }
         set(value) {
-            prefs.putRGCCounterPref(Param.outputFormat, value)
+            prefs.putRGCCounterPref(PreferenceKeys.outputFormat, value)
         }
 
     var shouldRemoveAxons: Boolean
         get() {
-            return prefs.getRGCCounterPref(Param.shouldRemoveAxons, false)
+            return prefs.getRGCCounterPref(PreferenceKeys.shouldRemoveAxons, false)
         }
         set(value) {
-            prefs.putRGCCounterPref(Param.shouldRemoveAxons, value)
+            prefs.putRGCCounterPref(PreferenceKeys.shouldRemoveAxons, value)
         }
 
     var outputFile: String
         get() {
-            return prefs.getRGCCounterPref(Param.outputFile, "")
+            return prefs.getRGCCounterPref(PreferenceKeys.outputFile, "")
         }
         set(value) {
-            prefs.putRGCCounterPref(Param.outputFile, value)
+            prefs.putRGCCounterPref(PreferenceKeys.outputFile, value)
         }
 }

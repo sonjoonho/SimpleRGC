@@ -63,8 +63,15 @@ class CsvColocalizationOutput(private val transductionParameters: Parameters.Tra
 
     private fun writeTransductionAnalysisCsv() {
         for ((fileName, result) in fileNameAndResultsList) {
-            result.overlappingTransducedIntensityAnalysis.forEach { cellAnalysis ->
-                transductionAnalysisData.addRow(TransductionAnalysisRow(fileName, cellAnalysis))
+            result.overlappingTransducedIntensityAnalysis.forEachIndexed { i, cellAnalysis ->
+                // We index the cell number from 1.
+                transductionAnalysisData.addRow(
+                    TransductionAnalysisRow(
+                        fileName = fileName,
+                        transducedCell = i + 1,
+                        cellAnalysis = cellAnalysis
+                    )
+                )
             }
         }
         transductionAnalysisData.produceCsv(File("${outputPath}Transduced Cell Analysis.csv"))

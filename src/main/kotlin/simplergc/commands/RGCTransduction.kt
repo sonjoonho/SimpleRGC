@@ -216,7 +216,7 @@ class RGCTransduction : Command, Previewable {
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
-        val overlappingTransducedIntensityAnalysis: Array<CellColocalizationService.CellAnalysis>,
+        val overlappingTransducedIntensityAnalysis: List<CellColocalizationService.CellAnalysis>,
         val overlappingTwoChannelCells: List<PositionedCell>
     ) {
         data class Summary(
@@ -388,7 +388,7 @@ class RGCTransduction : Command, Previewable {
 
         val transductionIntensityAnalysis = cellColocalizationService.analyseCellIntensity(
             transducedChannel,
-            targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }.toTypedArray()
+            targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }
         )
 
         // We return the overlapping target channel instead of transduced channel as we want to mark the target layer,
