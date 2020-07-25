@@ -21,19 +21,19 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
         resultsOutputPanel.layout = GridLayout(0, 2)
         val resultsOutputLabel = ParameterLabel("Results output")
         resultsOutputPanel.add(resultsOutputLabel)
-        val saveAsXLSXButton = JRadioButton("Save as a XLSX file (Recommended)")
-        saveAsXLSXButton.isSelected = format == OutputFormat.XLSX
-        addButtonActionListener(saveAsXLSXButton, OutputFormat.XLSX)
-        val saveAsCSVButton = JRadioButton("Save as a CSV file(s)")
-        saveAsCSVButton.isSelected = format == OutputFormat.CSV
-        addButtonActionListener(saveAsCSVButton, OutputFormat.CSV)
+        val saveAsXlsxButton = JRadioButton("Save as a XLSX file (Recommended)")
+        saveAsXlsxButton.isSelected = format == OutputFormat.XLSX
+        addButtonActionListener(saveAsXlsxButton, OutputFormat.XLSX)
+        val saveAsCsvButton = JRadioButton("Save as a CSV file(s)")
+        saveAsCsvButton.isSelected = format == OutputFormat.CSV
+        addButtonActionListener(saveAsCsvButton, OutputFormat.CSV)
         val bg = ButtonGroup()
-        bg.add(saveAsXLSXButton)
-        bg.add(saveAsCSVButton)
+        bg.add(saveAsXlsxButton)
+        bg.add(saveAsCsvButton)
         val buttonPanel = JPanel()
         buttonPanel.layout = GridLayout(0, 1)
-        buttonPanel.add(saveAsXLSXButton)
-        buttonPanel.add(saveAsCSVButton)
+        buttonPanel.add(saveAsXlsxButton)
+        buttonPanel.add(saveAsCsvButton)
         resultsOutputPanel.add(buttonPanel)
         this.add(resultsOutputPanel)
 

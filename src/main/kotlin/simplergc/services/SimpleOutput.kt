@@ -67,7 +67,7 @@ class Table(private val schema: Array<String>?) {
         CsvWriter().write(file, StandardCharsets.UTF_8, data.map { it.map { it.toString() }.toTypedArray() })
     }
 
-    fun produceXLSX(workbook: XSSFWorkbook, sheetName: String) {
+    fun produceXlsx(workbook: XSSFWorkbook, sheetName: String) {
         val currSheet = workbook.createSheet(sheetName)
         var rowNum = 0
         if (!schema.isNullOrEmpty()) {

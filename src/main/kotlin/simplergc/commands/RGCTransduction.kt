@@ -37,9 +37,9 @@ import simplergc.services.colocalizer.BucketedNaiveColocalizer
 import simplergc.services.colocalizer.PositionedCell
 import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
-import simplergc.services.colocalizer.output.CSVColocalizationOutput
+import simplergc.services.colocalizer.output.CsvColocalizationOutput
 import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
-import simplergc.services.colocalizer.output.XLSXColocalizationOutput
+import simplergc.services.colocalizer.output.XlsxColocalizationOutput
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.widgets.AlignedTextWidget
 
@@ -306,8 +306,8 @@ class RGCTransduction : Command, Previewable {
         )
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputFormat.XLSX -> XLSXColocalizationOutput(transductionParameters)
-            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters)
+            OutputFormat.XLSX -> XlsxColocalizationOutput(transductionParameters)
+            OutputFormat.CSV -> CsvColocalizationOutput(transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 

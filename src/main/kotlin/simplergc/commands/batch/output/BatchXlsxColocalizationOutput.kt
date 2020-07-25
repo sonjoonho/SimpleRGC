@@ -6,16 +6,16 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.commands.RGCTransduction
 import simplergc.services.Parameters
 import simplergc.services.Table
-import simplergc.services.colocalizer.output.XLSXColocalizationOutput
+import simplergc.services.colocalizer.output.XlsxColocalizationOutput
 
 /**
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
-class BatchXLSXColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
+class BatchXlsxColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
     BatchColocalizationOutput() {
 
-    private val xlsxColocalizationOutput = XLSXColocalizationOutput(transductionParameters)
+    private val xlsxColocalizationOutput = XlsxColocalizationOutput(transductionParameters)
 
     override fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))
@@ -41,11 +41,11 @@ class BatchXLSXColocalizationOutput(private val transductionParameters: Paramete
     }
 
     private fun writeDocSheet(workbook: XSSFWorkbook) {
-        val docXLSX = Table(arrayOf())
+        val docXlsx = Table(arrayOf())
         for (row in documentationRows) {
-            docXLSX.addRow(row)
+            docXlsx.addRow(row)
         }
-        docXLSX.produceXLSX(workbook, "Documentation")
+        docXlsx.produceXlsx(workbook, "Documentation")
     }
 
     private fun writeMetricSheet(metricName: String, workbook: XSSFWorkbook) {
@@ -55,6 +55,6 @@ class BatchXLSXColocalizationOutput(private val transductionParameters: Paramete
             val rowData = getMetricMappings().getValue(metricName).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(MetricRow(rowIdx, rowData))
         }
-        metricData.produceXLSX(workbook, metricName)
+        metricData.produceXlsx(workbook, metricName)
     }
 }

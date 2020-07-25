@@ -10,7 +10,7 @@ import simplergc.services.Table
  * Displays a table for a transduction analysis with the result of
  * overlapping, transduced cells.
  */
-open class XLSXColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
+open class XlsxColocalizationOutput(private val transductionParameters: Parameters.TransductionParameters) :
     ColocalizationOutput() {
 
     override fun output() {
@@ -29,14 +29,14 @@ open class XLSXColocalizationOutput(private val transductionParameters: Paramete
     }
 
     private fun writeDocSheet(workbook: XSSFWorkbook) {
-        val docXLSX = Table(arrayOf())
-        docXLSX.addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
-        docXLSX.addRow(DocumentationRow("", ""))
-        docXLSX.addRow(DocumentationRow("Abbreviation", "Description"))
-        docXLSX.addRow(DocumentationRow("Summary", "Key measurements per image"))
-        docXLSX.addRow(DocumentationRow("Transduced cells analysis", "Per-cell metrics of transduced cells"))
-        docXLSX.addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
-        docXLSX.produceXLSX(workbook, "Documentation")
+        val docXlsx = Table(arrayOf())
+        docXlsx.addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
+        docXlsx.addRow(DocumentationRow("", ""))
+        docXlsx.addRow(DocumentationRow("Abbreviation", "Description"))
+        docXlsx.addRow(DocumentationRow("Summary", "Key measurements per image"))
+        docXlsx.addRow(DocumentationRow("Transduced cells analysis", "Per-cell metrics of transduced cells"))
+        docXlsx.addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
+        docXlsx.produceXlsx(workbook, "Documentation")
     }
 
     internal fun writeSummarySheet(workbook: XSSFWorkbook) {
@@ -44,7 +44,7 @@ open class XLSXColocalizationOutput(private val transductionParameters: Paramete
         for ((fileName, result) in fileNameAndResultsList) {
             summaryData.addRow(SummaryRow(fileName, result.getSummary()))
         }
-        summaryData.produceXLSX(workbook, "Summary")
+        summaryData.produceXlsx(workbook, "Summary")
     }
 
     private fun writeTransductionAnalysisSheet(workbook: XSSFWorkbook) {
@@ -53,7 +53,7 @@ open class XLSXColocalizationOutput(private val transductionParameters: Paramete
                 transductionAnalysisData.addRow(TransductionAnalysisRow(fileName, cellAnalysis))
             }
         }
-        transductionAnalysisData.produceXLSX(workbook, "Transduction Analysis")
+        transductionAnalysisData.produceXlsx(workbook, "Transduction Analysis")
     }
 
     internal fun writeParamsSheet(workbook: XSSFWorkbook) {
@@ -72,6 +72,6 @@ open class XLSXColocalizationOutput(private val transductionParameters: Paramete
                 )
             )
         }
-        parametersData.produceXLSX(workbook, "Parameters")
+        parametersData.produceXlsx(workbook, "Parameters")
     }
 }
