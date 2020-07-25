@@ -9,7 +9,7 @@ import simplergc.commands.batch.views.common.InputDirectoryChooserPanel
 import simplergc.commands.batch.views.common.OutputFileChooserPanel
 import simplergc.commands.batch.views.common.RGCCheckbox
 import simplergc.commands.batch.views.common.RGCSpinner
-import simplergc.commands.batch.views.common.addMessage
+import simplergc.commands.batch.views.common.addLabel
 
 class RGCCounterView(model: RGCCounterModel) : RGCView() {
 
@@ -45,7 +45,7 @@ class RGCCounterView(model: RGCCounterModel) : RGCView() {
 
         this.add(channelSpinner)
 
-        addMessage(this, "Image processing parameters")
+        addLabel(this, "Image processing parameters")
         this.add(cellDiameterChannelField)
 
         this.add(thresholdRadiusSpinner)
@@ -57,7 +57,7 @@ class RGCCounterView(model: RGCCounterModel) : RGCView() {
 
         this.add(shouldRemoveAxonsCheckbox)
 
-        addMessage(this, "Output parameters")
+        addLabel(this, "Output parameters")
         this.add(outputFileChooserPanel)
 
         this.add(okButton)

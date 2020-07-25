@@ -4,15 +4,11 @@ import ij.IJ
 import ij.ImagePlus
 import ij.WindowManager
 import ij.gui.GenericDialog
-import ij.gui.HistogramWindow
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.frame.RoiManager
-import ij.process.FloatProcessor
-import ij.process.StackStatistics
 import java.io.File
 import java.io.IOException
-import javax.xml.transform.TransformerException
 import kotlin.math.max
 import kotlin.math.min
 import net.imagej.ImageJ
@@ -38,9 +34,9 @@ import simplergc.services.colocalizer.BucketedNaiveColocalizer
 import simplergc.services.colocalizer.PositionedCell
 import simplergc.services.colocalizer.addToRoiManager
 import simplergc.services.colocalizer.drawCells
-import simplergc.services.colocalizer.output.CSVColocalizationOutput
+import simplergc.services.colocalizer.output.CsvColocalizationOutput
 import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
-import simplergc.services.colocalizer.output.XLSXColocalizationOutput
+import simplergc.services.colocalizer.output.XlsxColocalizationOutput
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.widgets.AlignedTextWidget
 
@@ -76,7 +72,7 @@ class RGCTransduction : Command, Previewable {
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var TargetCellHeader: String
+    private lateinit var targetCellHeader: String
 
     /**
      * Used during the cell identification stage to filter out cells that are too small
@@ -116,7 +112,7 @@ class RGCTransduction : Command, Previewable {
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var TransducedCellHeader: String
+    private lateinit var transducedCellHeader: String
 
     /**
      * Specify the channel for the transduced cells.
@@ -223,6 +219,7 @@ class RGCTransduction : Command, Previewable {
         val overlappingTransducedIntensityAnalysis: List<CellColocalizationService.CellAnalysis>,
         val overlappingTwoChannelCells: List<PositionedCell>
     ) {
+
         data class Summary(
             val targetCellCount: Int,
             val transducedCellCount: Int,
@@ -234,19 +231,18 @@ class RGCTransduction : Command, Previewable {
             val maxFluorescenceIntenstity: Int,
             val rawIntDen: Int
         )
-        fun getSummary(): Summary {
-            return Summary(
-                targetCellCount,
-                overlappingTwoChannelCells.size,
-                ((overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.area } / overlappingTransducedIntensityAnalysis.size),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.mean } / overlappingTransducedIntensityAnalysis.size),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.median } / overlappingTransducedIntensityAnalysis.size),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.min } / overlappingTransducedIntensityAnalysis.size),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.max } / overlappingTransducedIntensityAnalysis.size),
-                (overlappingTransducedIntensityAnalysis.sumBy { it.rawIntDen } / overlappingTransducedIntensityAnalysis.size)
-            )
-        }
+
+        fun summary() = Summary(
+            targetCellCount,
+            overlappingTwoChannelCells.size,
+            ((overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.area } / overlappingTransducedIntensityAnalysis.size),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.mean } / overlappingTransducedIntensityAnalysis.size),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.median } / overlappingTransducedIntensityAnalysis.size),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.min } / overlappingTransducedIntensityAnalysis.size),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.max } / overlappingTransducedIntensityAnalysis.size),
+            (overlappingTransducedIntensityAnalysis.sumBy { it.rawIntDen } / overlappingTransducedIntensityAnalysis.size)
+        )
     }
 
     override fun run() {
@@ -291,11 +287,10 @@ class RGCTransduction : Command, Previewable {
 
         image.show()
         addToRoiManager(result.overlappingTwoChannelCells)
-        // showHistogram(result.overlappingTransducedIntensityAnalysis)
     }
 
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
-        val transductionParameters = Parameters.TransductionParameters(
+        val transductionParameters = Parameters.Transduction(
             outputFile!!,
             shouldRemoveAxonsFromTargetChannel,
             transducedChannel,
@@ -306,9 +301,9 @@ class RGCTransduction : Command, Previewable {
             targetChannel
         )
         val output = when (outputFormat) {
-            OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(result, uiService)
-            OutputFormat.XLSX -> XLSXColocalizationOutput(transductionParameters)
-            OutputFormat.CSV -> CSVColocalizationOutput(transductionParameters)
+            OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(transductionParameters, result, uiService)
+            OutputFormat.XLSX -> XlsxColocalizationOutput(transductionParameters)
+            OutputFormat.CSV -> CsvColocalizationOutput(transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
@@ -316,10 +311,8 @@ class RGCTransduction : Command, Previewable {
 
         try {
             output.output()
-        } catch (te: TransformerException) {
-            displayOutputFileErrorDialog(filetype = "XML")
         } catch (ioe: IOException) {
-            displayOutputFileErrorDialog()
+            displayErrorDialog(ioe.message)
         }
 
         // The colocalization results are clearly displayed if the output
@@ -428,23 +421,6 @@ class RGCTransduction : Command, Previewable {
             }
         }
         return thresholdedCells
-    }
-
-    /**
-     * Displays the resulting colocalization results as a histogram.
-     */
-    private fun showHistogram(analysis: Array<CellColocalizationService.CellAnalysis>) {
-        val data = analysis.map { it.median.toFloat() }.toFloatArray()
-        val ip = FloatProcessor(analysis.size, 1, data, null)
-        val imp = ImagePlus("", ip)
-        val stats = StackStatistics(imp, 256, 0.0, 256.0)
-        var maxCount = 0
-        for (i in stats.histogram.indices) {
-            if (stats.histogram[i] > maxCount)
-                maxCount = stats.histogram[i]
-        }
-        stats.histYMax = maxCount
-        HistogramWindow("Median intensity distribution of transduced cells overlapping target cells", imp, stats)
     }
 
     companion object {

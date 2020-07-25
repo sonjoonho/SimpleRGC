@@ -80,7 +80,7 @@ class RGCTransductionModel(val context: Context, private val prefs: Preferences)
 
     var outputFormat: String
         get() {
-            return prefs.getRGCTransductionPref(PreferenceKeys.outputFormat, OutputFormat.CSV)
+            return prefs.getRGCTransductionPref(PreferenceKeys.outputFormat, OutputFormat.XLSX)
         }
         set(value) {
             prefs.putRGCTransductionPref(PreferenceKeys.outputFormat, value)

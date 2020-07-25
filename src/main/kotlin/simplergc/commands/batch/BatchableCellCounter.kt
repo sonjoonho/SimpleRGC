@@ -2,16 +2,13 @@ package simplergc.commands.batch
 
 import ij.ImagePlus
 import java.io.File
-import java.io.IOException
-import javax.xml.transform.TransformerException
 import org.scijava.Context
 import simplergc.commands.RGCCounter
 import simplergc.commands.batch.RGCBatch.OutputFormat
-import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
-import simplergc.services.counter.output.CSVCounterOutput
-import simplergc.services.counter.output.XLSXCounterOutput
+import simplergc.services.counter.output.CsvCounterOutput
+import simplergc.services.counter.output.XlsxCounterOutput
 
 class BatchableCellCounter(
     private val targetChannel: Int,
@@ -37,7 +34,7 @@ class BatchableCellCounter(
         val numCellsList = inputImages.map { simpleCellCounter.process(it, cellDiameterRange).count }
         val imageAndCount = inputImages.zip(numCellsList)
 
-        val counterParameters = Parameters.CounterParameters(
+        val counterParameters = Parameters.Counter(
             outputFile,
             targetChannel,
             cellDiameterRange,
@@ -46,18 +43,13 @@ class BatchableCellCounter(
         )
 
         val output = when (outputFormat) {
-            OutputFormat.CSV -> CSVCounterOutput(counterParameters)
-            OutputFormat.XLSX -> XLSXCounterOutput(counterParameters)
+            OutputFormat.CSV -> CsvCounterOutput(counterParameters)
+            OutputFormat.XLSX -> XlsxCounterOutput(counterParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
-        imageAndCount.forEach { output.addCountForFile(it.second, it.first.title) }
-        try {
-            output.output()
-        } catch (te: TransformerException) {
-            displayOutputFileErrorDialog(filetype = "XML")
-        } catch (ioe: IOException) {
-            displayOutputFileErrorDialog()
-        }
+        imageAndCount.forEach { (image, count) -> output.addCountForFile(count, image.title) }
+
+        output.output()
     }
 }

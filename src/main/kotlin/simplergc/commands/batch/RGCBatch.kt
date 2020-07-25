@@ -8,6 +8,7 @@ import javax.swing.JFrame
 import javax.swing.JTabbedPane
 import net.imagej.ImageJ
 import org.scijava.Context
+import org.scijava.app.StatusService
 import org.scijava.command.Command
 import org.scijava.log.LogService
 import org.scijava.plugin.Parameter
@@ -29,11 +30,14 @@ class RGCBatch : Command {
     @Parameter
     private lateinit var context: Context
 
+    @Parameter
+    private lateinit var statusService: StatusService
+
     private val prefs = Preferences.userRoot().node(this.javaClass.name)
 
     object OutputFormat {
-        const val XLSX = "Save as XLSX file (recommended)"
-        const val CSV = "Save as CSV file"
+        const val XLSX = "XLSX"
+        const val CSV = "CSV"
     }
 
     private fun gui() {
@@ -41,11 +45,11 @@ class RGCBatch : Command {
 
         val counterModel = RGCCounterModel(context, prefs)
         val counterView = RGCCounterView(counterModel)
-        RGCCounterController(counterView, counterModel)
+        RGCCounterController(counterView, counterModel, statusService)
 
         val transductionModel = RGCTransductionModel(context, prefs)
         val transductionView = RGCTransductionView(transductionModel)
-        RGCTransductionController(transductionView, transductionModel)
+        RGCTransductionController(transductionView, transductionModel, statusService)
 
         val tp = JTabbedPane()
         tp.add("RGCCounter", counterView)

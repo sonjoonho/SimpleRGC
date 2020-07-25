@@ -1,26 +1,24 @@
 package simplergc.commands.batch
 
-import de.siegmar.fastcsv.writer.CsvWriter
 import ij.IJ
 import ij.ImagePlus
 import ij.gui.MessageDialog
 import java.io.File
-import java.io.IOException
-import java.nio.charset.StandardCharsets
 import org.scijava.Context
 import simplergc.commands.ChannelDoesNotExistException
 import simplergc.commands.RGCTransduction
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.commands.batch.RGCBatch.OutputFormat
-import simplergc.commands.displayOutputFileErrorDialog
 import simplergc.services.CellDiameterRange
+import simplergc.services.Parameters
+import simplergc.services.batch.output.BatchCsvColocalizationOutput
+import simplergc.services.batch.output.BatchXlsxColocalizationOutput
 
 class BatchableColocalizer(
     private val targetChannel: Int,
     private val shouldRemoveAxonsFromTargetChannel: Boolean,
     private val transducedChannel: Int,
     private val shouldRemoveAxonsFromTransductionChannel: Boolean,
-
     private val context: Context
 ) : Batchable {
     override fun process(
@@ -33,7 +31,6 @@ class BatchableColocalizer(
     ) {
         val rgcTransduction = RGCTransduction()
 
-        // TODO: Update branch to use exclude axons feature in colocaliser.
         rgcTransduction.localThresholdRadius = localThresholdRadius
         rgcTransduction.targetChannel = targetChannel
         rgcTransduction.shouldRemoveAxonsFromTargetChannel = shouldRemoveAxonsFromTargetChannel
@@ -41,45 +38,43 @@ class BatchableColocalizer(
         rgcTransduction.shouldRemoveAxonsFromTransductionChannel = shouldRemoveAxonsFromTransductionChannel
         context.inject(rgcTransduction)
 
-        val analyses = inputImages.mapNotNull {
+        val fileNameAndAnalysis = mutableListOf<Pair<String, TransductionResult>>()
+        for (image in inputImages) {
             try {
-                rgcTransduction.process(it, cellDiameterRange)
+                val analysis = rgcTransduction.process(image, cellDiameterRange)
+                fileNameAndAnalysis.add(Pair(image.title, analysis))
             } catch (e: ChannelDoesNotExistException) {
                 MessageDialog(IJ.getInstance(), "Error", e.message)
-                null
             }
         }
 
-        val fileNameAndAnalysis = inputImages.map { it.title }.zip(analyses)
+        val transductionParameters = Parameters.Transduction(
+            outputFile,
+            shouldRemoveAxonsFromTargetChannel,
+            transducedChannel,
+            shouldRemoveAxonsFromTransductionChannel,
+            cellDiameterRange.toString(),
+            localThresholdRadius,
+            gaussianBlurSigma,
+            targetChannel
+        )
 
-        try {
-            when (outputFormat) {
-                OutputFormat.CSV -> outputToCSV(fileNameAndAnalysis, outputFile)
-                else -> throw IllegalArgumentException("Invalid output type provided")
-            }
-        } catch (ioe: IOException) {
-            displayOutputFileErrorDialog()
-        }
+        writeOutput(fileNameAndAnalysis, transductionParameters, outputFormat)
     }
 
-    private fun outputToCSV(
+    private fun writeOutput(
         fileNameAndAnalysis: List<Pair<String, TransductionResult>>,
-        outputFile: File
+        transductionParameters: Parameters.Transduction,
+        outputFormat: String
     ) {
-        val csvWriter = CsvWriter()
-        val outputData = mutableListOf(
-            arrayOf(
-                "File Name",
-                "Total number of cells in cell morphology channel 1",
-                "Transduced cells in channel 1",
-                "Transduced cells in both morphology channels"
-            )
-        )
-        outputData.addAll(fileNameAndAnalysis.map {
-            val totalTargetCells = it.second.targetCellCount.toString()
-            val totalTransducedTargetCells = it.second.overlappingTwoChannelCells.size.toString()
-            arrayOf(it.first.replace(",", ""), totalTargetCells, totalTransducedTargetCells)
-        })
-        csvWriter.write(outputFile, StandardCharsets.UTF_8, outputData)
+        val output = when (outputFormat) {
+            OutputFormat.XLSX -> BatchXlsxColocalizationOutput(transductionParameters)
+            OutputFormat.CSV -> BatchCsvColocalizationOutput(transductionParameters)
+            else -> throw IllegalArgumentException("Invalid output type provided: $outputFormat")
+        }
+
+        fileNameAndAnalysis.forEach { output.addTransductionResultForFile(it.second, it.first) }
+
+        output.output()
     }
 }
