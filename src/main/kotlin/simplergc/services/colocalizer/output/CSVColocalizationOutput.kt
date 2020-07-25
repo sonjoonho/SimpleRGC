@@ -15,15 +15,16 @@ class CSVColocalizationOutput(private val transductionParameters: Parameters.Tra
     val outputPath: String = "${transductionParameters.outputFile.path}${File.separator}"
 
     override fun output() {
-        checkOutputFolderCanBeCreated()
+        createOutputFolder()
         writeDocumentationCsv()
         writeSummaryCsv()
         writeTransductionAnalysisCsv()
         writeParametersCsv()
     }
 
-    fun checkOutputFolderCanBeCreated() {
+    fun createOutputFolder() {
         val outputFileSuccess = File(transductionParameters.outputFile.path).mkdir()
+        // If the output file cannot be created, an IOException should be caught
         if (!outputFileSuccess and !transductionParameters.outputFile.exists()) {
             throw IOException()
         }

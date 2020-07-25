@@ -20,7 +20,7 @@ class BatchCSVColocalizationOutput(transductionParameters: Parameters.Transducti
     }
 
     override fun output() {
-        csvColocalizationOutput.checkOutputFolderCanBeCreated()
+        csvColocalizationOutput.createOutputFolder()
         csvColocalizationOutput.writeSummaryCsv()
         writeDocumentationCsv()
         for (metricName in getMetricMappings().keys) {
