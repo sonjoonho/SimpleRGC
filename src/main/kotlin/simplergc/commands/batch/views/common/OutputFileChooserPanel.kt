@@ -13,6 +13,7 @@ const val COLUMN_WIDTH = 30
 class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
 
     var file = File(initial)
+    private val outputLabel: ParameterLabel
 
     init {
         this.layout = GridLayout(0, 1)
@@ -27,6 +28,7 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
         val saveAsCsvButton = JRadioButton("Save as a CSV file(s)")
         saveAsCsvButton.isSelected = format == OutputFormat.CSV
         addButtonActionListener(saveAsCsvButton, OutputFormat.CSV)
+
         val bg = ButtonGroup()
         bg.add(saveAsXlsxButton)
         bg.add(saveAsCsvButton)
@@ -39,8 +41,10 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
 
         val outputFilePanel = JPanel()
         outputFilePanel.layout = GridLayout(0, 2)
-        val label = ParameterLabel("Output file (if saving)")
-        outputFilePanel.add(label)
+
+        outputLabel = ParameterLabel("")
+        setOutputLabelText()
+        outputFilePanel.add(outputLabel)
 
         val chooserPanel = FileChooserPanel(file)
 
@@ -48,12 +52,26 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
         this.add(outputFilePanel)
 
         chooserPanel.browseButton.addActionListener {
-            val fileChooser = JFileChooser()
-            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-            if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            val fileChooser = JFileChooser(file)
+            fileChooser.dialogType = JFileChooser.SAVE_DIALOG
+            // CSV output requires a directory.
+            if (format == OutputFormat.CSV) {
+                fileChooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY
+            } else {
+                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+            }
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 file = fileChooser.selectedFile
                 chooserPanel.path.text = file.absolutePath
             }
+        }
+    }
+
+    private fun setOutputLabelText() {
+        if (format == OutputFormat.CSV) {
+            outputLabel.text = "Output folder"
+        } else {
+            outputLabel.text = "Output file"
         }
     }
 
@@ -62,6 +80,7 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
             if (button.isSelected) {
                 format = value
             }
+            setOutputLabelText()
         }
     }
 }
