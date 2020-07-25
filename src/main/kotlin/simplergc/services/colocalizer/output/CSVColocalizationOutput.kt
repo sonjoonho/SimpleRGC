@@ -1,9 +1,9 @@
 package simplergc.services.colocalizer.output
 
-import java.io.File
-import java.io.IOException
 import simplergc.services.Parameters
 import simplergc.services.Table
+import java.io.File
+import java.io.IOException
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -49,7 +49,14 @@ class CSVColocalizationOutput(private val transductionParameters: Parameters.Tra
     private fun writeTransductionAnalysisCsv() {
         for ((fileName, result) in fileNameAndResultsList) {
             result.overlappingTransducedIntensityAnalysis.forEachIndexed { i, cellAnalysis ->
-                transductionAnalysisData.addRow(TransductionAnalysisRow(fileName = fileName, transducedCell = i, cellAnalysis = cellAnalysis))
+                // We index the cell number from 1.
+                transductionAnalysisData.addRow(
+                    TransductionAnalysisRow(
+                        fileName = fileName,
+                        transducedCell = i + 1,
+                        cellAnalysis = cellAnalysis
+                    )
+                )
             }
         }
         transductionAnalysisData.produceCSV(File("${outputPath}Transduced Cell Analysis.csv"))

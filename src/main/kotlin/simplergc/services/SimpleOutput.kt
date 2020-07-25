@@ -1,13 +1,13 @@
 package simplergc.services
 
 import de.siegmar.fastcsv.writer.CsvWriter
-import java.io.File
-import java.nio.charset.StandardCharsets
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.ui.UIService
+import java.io.File
+import java.nio.charset.StandardCharsets
 
 /**
  * Outputs the result of the plugin.
@@ -30,11 +30,10 @@ enum class FieldType {
     STRING, INT, DOUBLE, BOOLEAN
 }
 
-abstract class Field(val type: FieldType, private val value: Any) {
-    override fun toString() = value as String
-    fun toInt() = value as Int
-    fun toDouble() = value as Double
-    fun toBoolean() = value as Boolean
+open class Field(val type: FieldType, private val value: Any) {
+    override fun toString(): String {
+        return value.toString()
+    }
 }
 
 class StringField(val value: String) : Field(FieldType.STRING, value)
@@ -91,10 +90,9 @@ class Table(private val schema: Array<String>?) {
                 val currCell = currRow.createCell(i)
                 when (row[i].type) {
                     FieldType.STRING -> currCell.setCellValue(row[i].toString())
-                    // Cell value cannot be set to an Int so we convert to Double.
-                    FieldType.INT -> currCell.setCellValue(row[i].toInt().toDouble())
-                    FieldType.DOUBLE -> currCell.setCellValue(row[i].toDouble())
-                    FieldType.BOOLEAN -> currCell.setCellValue(row[i].toBoolean())
+                    FieldType.INT -> currCell.setCellValue(row[i].toString().toDouble())
+                    FieldType.DOUBLE -> currCell.setCellValue(row[i].toString().toDouble())
+                    FieldType.BOOLEAN -> currCell.setCellValue(row[i].toString().toBoolean())
                 }
             }
             rowNum++
