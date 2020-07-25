@@ -72,7 +72,7 @@ class RGCTransduction : Command, Previewable {
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var TargetCellHeader: String
+    private lateinit var targetCellHeader: String
 
     /**
      * Used during the cell identification stage to filter out cells that are too small
@@ -112,7 +112,7 @@ class RGCTransduction : Command, Previewable {
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var TransducedCellHeader: String
+    private lateinit var transducedCellHeader: String
 
     /**
      * Specify the channel for the transduced cells.
