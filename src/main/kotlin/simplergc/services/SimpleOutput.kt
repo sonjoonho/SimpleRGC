@@ -1,13 +1,13 @@
 package simplergc.services
 
 import de.siegmar.fastcsv.writer.CsvWriter
-import java.io.File
-import java.nio.charset.StandardCharsets
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.ui.UIService
+import java.io.File
+import java.nio.charset.StandardCharsets
 
 /**
  * Outputs the result of the plugin.
@@ -33,6 +33,7 @@ data class DoubleField(val value: Double) : Field()
 data class BooleanField(val value: Boolean) : Field()
 
 class Table(private val schema: Array<String>?) {
+    // data is a rows x columns representation of a table.
     val data: MutableList<List<Field>> =
         if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) })
 
@@ -43,25 +44,34 @@ class Table(private val schema: Array<String>?) {
     fun produceImageJTable(uiService: UIService) {
         val table = DefaultGenericTable()
         var columns: List<DefaultColumn<String>> = listOf()
+        val header = data[0]
+        val body = data.drop(1)
+
         if (!schema.isNullOrEmpty()) {
-            columns = data[0].map { DefaultColumn(String::class.java, it.toString()) }
+            columns = header.map { DefaultColumn(String::class.java, it.toString()) }
         }
-        data.drop(1).forEach {
-            for (i in it.indices) {
-                columns[i].add(it[i].toString())
+
+        for (row in body) {
+            for (colIdx in row.indices) {
+                columns[colIdx].add(row[colIdx].toString())
             }
         }
+
         table.addAll(columns)
         uiService.show(table)
     }
 
     fun produceCsv(file: File) {
-        CsvWriter().write(file, StandardCharsets.UTF_8, data.map { it.map { it.toString() }.toTypedArray() })
+        CsvWriter().write(file, StandardCharsets.UTF_8, data.map { row -> row.map { it.toString() }.toTypedArray() })
     }
 
     fun produceXlsx(workbook: XSSFWorkbook, sheetName: String) {
         val currSheet = workbook.createSheet(sheetName)
         var rowNum = 0
+
+        val header = data[0]
+
+        // Set the header.
         if (!schema.isNullOrEmpty()) {
             val headerFont = workbook.createFont()
             headerFont.bold = true
@@ -69,14 +79,18 @@ class Table(private val schema: Array<String>?) {
             val headerCellStyle = workbook.createCellStyle()
             headerCellStyle.setFont(headerFont)
             val headerRow = currSheet.createRow(rowNum)
-            for (i in data[0].indices) {
+
+            for (i in header.indices) {
                 val cell = headerRow.createCell(i)
                 cell.cellStyle = headerCellStyle
-                cell.setCellValue(data[0][i].toString())
+                cell.setCellValue(header[i].toString())
             }
             rowNum = 1
         }
-        for (row in data.drop(rowNum)) {
+
+        val body = data.drop(rowNum)
+
+        for (row in body) {
             val currRow = currSheet.createRow(rowNum)
             for (i in row.indices) {
                 val currCell = currRow.createCell(i)
@@ -90,7 +104,7 @@ class Table(private val schema: Array<String>?) {
             rowNum++
         }
         if (data.isNotEmpty()) {
-            for (i in data[0].indices) {
+            for (i in header.indices) {
                 currSheet.autoSizeColumn(i)
             }
         }
