@@ -26,8 +26,8 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
         val workbook = XSSFWorkbook()
         writeDocSheet(workbook)
         xlsxColocalizationOutput.writeSummarySheet(workbook)
-        for (metricName in metricMappings().keys) {
-            writeMetricSheet(metricName, workbook)
+        for (metric in Metrics.values()) {
+            writeMetricSheet(metric, workbook)
         }
         xlsxColocalizationOutput.writeParamsSheet(workbook)
 
@@ -48,13 +48,13 @@ class BatchXlsxColocalizationOutput(private val transductionParameters: Paramete
         docXlsx.produceXlsx(workbook, "Documentation")
     }
 
-    private fun writeMetricSheet(metricName: String, workbook: XSSFWorkbook) {
+    private fun writeMetricSheet(metric: Metrics, workbook: XSSFWorkbook) {
         val maxRows = maxRows()
         val metricData = metricData()
         for (rowIdx in 0..maxRows) {
-            val rowData = metricMappings().getValue(metricName).map { it.second.getOrNull(rowIdx) }
+            val rowData = metricMappings().getValue(metric).map { it.second.getOrNull(rowIdx) }
             metricData.addRow(MetricRow(rowIdx, rowData))
         }
-        metricData.produceXlsx(workbook, metricName)
+        metricData.produceXlsx(workbook, metric.value)
     }
 }

@@ -7,9 +7,18 @@ import simplergc.services.StringField
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.ColocalizationOutput
 
+enum class Metrics(val value: String) {
+    Area("Morphology Area"),
+    Mean("Mean Int"),
+    Median("Median Int"),
+    Min("Min Int"),
+    Max("Max Int"),
+    IntDen("Raw IntDen"),
+}
+
 abstract class BatchColocalizationOutput() : ColocalizationOutput() {
 
-    val documentationRows = listOf<DocumentationRow>(
+    val documentationRows = listOf(
         DocumentationRow("The article: ", "TODO: Insert citation"),
         DocumentationRow("", ""),
         DocumentationRow("Abbreviation", "Description"),
@@ -23,7 +32,7 @@ abstract class BatchColocalizationOutput() : ColocalizationOutput() {
     )
 
     // metricMappings returns a map from metric name to a list of [filenames and a list of values].
-    fun metricMappings(): Map<String, List<Pair<String, List<Int>>>> {
+    fun metricMappings(): Map<Metrics, MutableList<Pair<String, List<Int>>>> {
         val areasWithFilenames = mutableListOf<Pair<String, List<Int>>>()
         val meansWithFilenames = mutableListOf<Pair<String, List<Int>>>()
         val mediansWithFilenames = mutableListOf<Pair<String, List<Int>>>()
@@ -56,12 +65,12 @@ abstract class BatchColocalizationOutput() : ColocalizationOutput() {
             intDensWithFilenames.add(Pair(filename, intDens))
         }
         return mapOf(
-            "Morphology Area" to areasWithFilenames,
-            "Mean Int" to meansWithFilenames,
-            "Median Int" to mediansWithFilenames,
-            "Min Int" to minsWithFilenames,
-            "Max Int" to maxsWithFilenames,
-            "Raw IntDen" to intDensWithFilenames
+            Metrics.Area to areasWithFilenames,
+            Metrics.Mean to meansWithFilenames,
+            Metrics.Median to mediansWithFilenames,
+            Metrics.Min to minsWithFilenames,
+            Metrics.Max to maxsWithFilenames,
+            Metrics.IntDen to intDensWithFilenames
         )
     }
 

@@ -1,9 +1,9 @@
 package simplergc.services.colocalizer.output
 
-import java.io.File
-import java.io.IOException
 import simplergc.services.Parameters
 import simplergc.services.Table
+import java.io.File
+import java.io.IOException
 
 /**
  * Displays a table for a transduction analysis with the result of
@@ -30,7 +30,7 @@ class CsvColocalizationOutput(private val transductionParameters: Parameters.Tra
         }
     }
 
-    val documentationCsv = Table(arrayOf())
+    val documentationCsv = Table(listOf())
 
     private fun writeDocumentationCsv() {
         // Constant array of information
