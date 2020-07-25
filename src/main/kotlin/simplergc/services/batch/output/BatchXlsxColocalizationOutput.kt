@@ -24,6 +24,7 @@ class BatchXlsxColocalizationOutput(transductionParameters: Parameters.Transduct
 
     override fun output() {
         writeSheets()
+
         colocalizationOutput.writeWorkbook()
     }
 

@@ -24,8 +24,6 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
         colocalizationOutput.createOutputFolder()
 
         writeSheets()
-
-        colocalizationOutput.writeParameters()
     }
 
     override fun writeDocumentation() {
