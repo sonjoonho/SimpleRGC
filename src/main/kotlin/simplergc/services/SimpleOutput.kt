@@ -23,18 +23,18 @@ interface SimpleOutput {
 }
 
 interface BaseRow {
-    fun toList(): List<Field>
+    fun toList(): List<Field<*>>
 }
 
-sealed class Field
-data class StringField(val value: String) : Field()
-data class IntField(val value: Int) : Field()
-data class DoubleField(val value: Double) : Field()
-data class BooleanField(val value: Boolean) : Field()
+sealed class Field<V>(val value: V)
+class StringField(value: String) : Field<String>(value)
+class IntField(value: Int) : Field<Int>(value)
+class DoubleField(value: Double) : Field<Double>(value)
+class BooleanField(value: Boolean) : Field<Boolean>(value)
 
 class Table(private val schema: Array<String>?) {
     // data is a rows x columns representation of a table.
-    val data: MutableList<List<Field>> =
+    val data: MutableList<List<Field<*>>> =
         if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) })
 
     fun addRow(row: BaseRow) {
@@ -62,7 +62,7 @@ class Table(private val schema: Array<String>?) {
     }
 
     fun produceCsv(file: File) {
-        CsvWriter().write(file, StandardCharsets.UTF_8, data.map { row -> row.map { it.toString() }.toTypedArray() })
+        CsvWriter().write(file, StandardCharsets.UTF_8, data.map { row -> row.map { it.value.toString() }.toTypedArray() })
     }
 
     fun produceXlsx(workbook: XSSFWorkbook, sheetName: String) {
