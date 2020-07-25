@@ -23,7 +23,7 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
         csvColocalizationOutput.createOutputFolder()
         csvColocalizationOutput.writeSummaryCsv()
         writeDocumentationCsv()
-        for (metric in Metrics.values()) {
+        for (metric in Metric.values()) {
             writeMetricCsv(metric)
         }
         csvColocalizationOutput.writeParametersCsv()
@@ -36,7 +36,7 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
         csvColocalizationOutput.documentationCsv.produceCsv(File("${csvColocalizationOutput.outputPath}Documentation.csv"))
     }
 
-    private fun writeMetricCsv(metric: Metrics) {
+    private fun writeMetricCsv(metric: Metric) {
         val maxRows = maxRows()
         val metricData = metricData()
         for (rowIdx in 0..maxRows) {
