@@ -3,6 +3,8 @@ package simplergc.services.colocalizer.output
 import kotlin.math.roundToInt
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
+import simplergc.services.Aggregate
+import simplergc.services.AggregateRow
 import simplergc.services.BaseRow
 import simplergc.services.ImageJTableWriter
 import simplergc.services.IntField
@@ -56,9 +58,9 @@ class ImageJTableColocalizationOutput(
 
     override fun writeSummary() {
         table.addRow(Row(label = "--- Summary ---", count = result.targetCellCount))
-        table.addRow(Row(label = "Total number of cells in cell morphology channel 1", count = result.targetCellCount))
+        table.addRow(Row(label = "Total number of cells in cell morphology channel", count = result.targetCellCount))
 
-        table.addRow(Row(label = "Transduced cells in channel 1", count = result.overlappingTwoChannelCells.size))
+        table.addRow(Row(label = "Transduced cells", count = result.overlappingTwoChannelCells.size))
 
         val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
         table.addRow(
@@ -67,29 +69,30 @@ class ImageJTableColocalizationOutput(
                 count = transductionEfficiency.roundToInt()
             )
         )
-
         table.addRow(
             Row(
                 label = "Mean intensity of colocalized cells",
-                count = result.overlappingTransducedIntensityAnalysis.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.size))
+                count = result.channelResults[transducedChannel].cellAnalyses.sumBy { it.mean } / result.channelResults[transducedChannel].cellAnalyses.size))
     }
 
     override fun writeAnalysis() {
-        table.addRow(Row(label = "--- Transduced Channel Analysis, Colocalized Cells ---"))
+        channelNames().forEachIndexed { idx, name ->
+            table.addRow(Row(label = "--- Cell Analysis, $name ---"))
 
-        // Construct column values using the channel analysis values.
-        result.overlappingTransducedIntensityAnalysis.forEachIndexed { i, cell ->
-            table.addRow(
-                Row(
-                    "Cell ${i + 1}",
-                    1,
-                    cell.area,
-                    cell.median,
-                    cell.mean,
-                    cell.area * cell.mean,
-                    cell.rawIntDen
+            // Construct column values using the channel analysis values.
+            result.channelResults[idx].cellAnalyses.forEachIndexed { i, cell ->
+                table.addRow(
+                    Row(
+                        "Cell ${i + 1}",
+                        1,
+                        cell.area,
+                        cell.median,
+                        cell.mean,
+                        cell.area * cell.mean,
+                        cell.rawIntDen
+                    )
                 )
-            )
+            }
         }
     }
 
@@ -99,6 +102,15 @@ class ImageJTableColocalizationOutput(
 
     override fun writeDocumentation() {
         // no-op
+    }
+
+    override fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Int>>,
+        spaces: Int
+    ): AggregateRow {
+        // no-op
+        return AggregateRow("", emptyList())
     }
 
     override fun output() {

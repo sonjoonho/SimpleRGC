@@ -2,6 +2,9 @@ package simplergc.services.colocalizer.output
 
 import java.io.File
 import java.io.IOException
+import simplergc.services.Aggregate
+import simplergc.services.AggregateRow
+import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
 import simplergc.services.Parameters
 
@@ -10,7 +13,7 @@ import simplergc.services.Parameters
  * CSVs generated are:
  *     - Documentation.csv
  *     - Summary.csv
- *     - Transduced Cell Analysis.csv
+ *     - Analysis - [Channel].csv for each channel in image
  *     - Parameters.csv
  */
 class CsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
@@ -44,7 +47,19 @@ class CsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
     }
 
     override fun writeAnalysis() {
-        tableWriter.produce(analysisData(), "${outputPath}Transduced Cell Analysis.csv")
+        channelNames().forEachIndexed { idx, name ->
+            tableWriter.produce(analysisData(idx), "${outputPath}Analysis - $name.csv")
+        }
+    }
+
+    override fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Int>>,
+        spaces: Int
+    ): AggregateRow {
+        return AggregateRow(aggregate.abbreviation, rawValues.map { values ->
+            aggregate.generateValue(CsvAggregateGenerator(values))
+        }, spaces)
     }
 
     override fun writeParameters() {

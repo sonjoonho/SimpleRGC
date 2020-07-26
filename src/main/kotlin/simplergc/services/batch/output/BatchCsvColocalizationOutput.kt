@@ -1,46 +1,19 @@
 package simplergc.services.batch.output
 
-import kotlin.math.pow
-import kotlin.math.sqrt
+import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.CsvTableWriter
-import simplergc.services.DoubleField
-import simplergc.services.Field
-import simplergc.services.IntField
 import simplergc.services.Parameters
+import simplergc.services.Table
 import simplergc.services.colocalizer.output.CsvColocalizationOutput
-
-class CsvAggregateGenerator(val values: List<Int>) : AggregateGenerator() {
-
-    private fun computeStandardDeviation(): Double {
-        val squareOfMean = values.average().pow(2)
-        val meanOfSquares = values.map { it.toDouble().pow(2) }.average()
-        return sqrt(meanOfSquares - squareOfMean)
-    }
-
-    override fun generateMean(): Field<*> {
-        return DoubleField(values.average())
-    }
-
-    override fun generateStandardDeviation(): Field<*> {
-        return DoubleField(computeStandardDeviation())
-    }
-
-    override fun generateStandardErrorOfMean(): Field<*> {
-        return DoubleField(computeStandardDeviation() / sqrt(values.size.toDouble()))
-    }
-
-    override fun generateCount(): Field<*> {
-        return IntField(values.size)
-    }
-}
 
 /**
  * Outputs multiple CSVs into an output folder.
  * CSVs generated are:
  *     - Documentation.csv
  *     - Summary.csv
- *     - [metric].csv for each metric
+ *     - Morphology Area.csv
+ *     - [metric - channel].csv for each metric (other than area) and channel
  *     - Parameters.csv
  *
  * For some operations it delegates to colocalizationOutput.
@@ -54,11 +27,10 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
 
     override fun generateAggregateRow(
         aggregate: Aggregate,
-        fileValues: List<List<Int>>
+        rawValues: List<List<Int>>,
+        spaces: Int
     ): AggregateRow {
-        return AggregateRow(aggregate.abbreviation, fileValues.map { values ->
-            aggregate.generateValue(CsvAggregateGenerator(values))
-        })
+        return colocalizationOutput.generateAggregateRow(aggregate, rawValues, spaces)
     }
 
     override fun output() {
@@ -71,7 +43,7 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
         tableWriter.produce(documentationData(), "${colocalizationOutput.outputPath}Documentation.csv")
     }
 
-    override fun writeMetric(metric: Metric) {
-        tableWriter.produce(metricData(metric), "${colocalizationOutput.outputPath}${metric.value}.csv")
+    override fun writeMetric(name: String, table: Table) {
+        tableWriter.produce(table, "${colocalizationOutput.outputPath}$name.csv")
     }
 }

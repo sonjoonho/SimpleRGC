@@ -3,6 +3,8 @@ package simplergc.services
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
+import kotlin.math.pow
+import kotlin.math.sqrt
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.IndexedColors
@@ -113,7 +115,7 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
 
         var columns: List<DefaultColumn<String>> = listOf()
         if (!table.schema.isNullOrEmpty()) {
-            columns = header.map { DefaultColumn(String::class.java, it.toString()) }
+            columns = header.map { DefaultColumn(String::class.java, it.value.toString()) }
         }
 
         for (row in body) {
@@ -141,9 +143,10 @@ data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
     }
 }
 
-data class AggregateRow(val name: String, val values: List<Field<*>>) : BaseRow {
+data class AggregateRow(val name: String, val values: List<Field<*>>, val spaces: Int = 0) : BaseRow {
     override fun toList(): List<Field<*>> {
-        return listOf(StringField(name)) + values
+        // Spaces allows for the row to start at a later column
+        return MutableList(spaces) { StringField("") } + listOf(StringField(name)) + values
     }
 }
 
@@ -153,3 +156,65 @@ class IntField(value: Int) : Field<Int>(value)
 class DoubleField(value: Double) : Field<Double>(value)
 class BooleanField(value: Boolean) : Field<Boolean>(value)
 class FormulaField(value: String) : Field<String>(value)
+
+enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
+    Mean("Mean", AggregateGenerator::generateMean),
+    StandardDeviation("Std Dev", AggregateGenerator::generateStandardDeviation),
+    StandardErrorOfMean("SEM", AggregateGenerator::generateStandardErrorOfMean),
+    Count("N", AggregateGenerator::generateCount)
+}
+
+abstract class AggregateGenerator {
+    abstract fun generateMean(): Field<*>
+    abstract fun generateStandardDeviation(): Field<*>
+    abstract fun generateStandardErrorOfMean(): Field<*>
+    abstract fun generateCount(): Field<*>
+}
+
+class XlsxAggregateGenerator(column: Char, numCells: Int) : AggregateGenerator() {
+
+    private val startCellRow = 2
+    private val endCellRow = numCells + startCellRow - 1
+    private val cellRange = "$column$startCellRow:$column$endCellRow"
+
+    override fun generateMean(): Field<*> {
+        return FormulaField("AVERAGE($cellRange)")
+    }
+
+    override fun generateStandardDeviation(): Field<*> {
+        return FormulaField("STDEV($cellRange)")
+    }
+
+    override fun generateStandardErrorOfMean(): Field<*> {
+        return FormulaField("STDEV($cellRange)/SQRT(COUNT($cellRange))")
+    }
+
+    override fun generateCount(): Field<*> {
+        return FormulaField("COUNT($cellRange)")
+    }
+}
+
+class CsvAggregateGenerator(val values: List<Int>) : AggregateGenerator() {
+
+    private fun computeStandardDeviation(): Double {
+        val squareOfMean = values.average().pow(2)
+        val meanOfSquares = values.map { it.toDouble().pow(2) }.average()
+        return sqrt(meanOfSquares - squareOfMean)
+    }
+
+    override fun generateMean(): Field<*> {
+        return DoubleField(values.average())
+    }
+
+    override fun generateStandardDeviation(): Field<*> {
+        return DoubleField(computeStandardDeviation())
+    }
+
+    override fun generateStandardErrorOfMean(): Field<*> {
+        return DoubleField(computeStandardDeviation() / sqrt(values.size.toDouble()))
+    }
+
+    override fun generateCount(): Field<*> {
+        return IntField(values.size)
+    }
+}

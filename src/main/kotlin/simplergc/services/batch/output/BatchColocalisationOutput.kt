@@ -1,36 +1,28 @@
 package simplergc.services.batch.output
 
+import kotlin.math.max
 import simplergc.commands.RGCTransduction.TransductionResult
+import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.CellColocalizationService.CellAnalysis
-import simplergc.services.Field
 import simplergc.services.MetricRow
 import simplergc.services.Output
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.ColocalizationOutput
 import simplergc.services.colocalizer.output.DocumentationRow
 
-enum class Metric(val value: String, val compute: (CellAnalysis) -> Int) {
-    Area("Morphology Area", CellAnalysis::area),
-    Mean("Mean Int", CellAnalysis::mean),
-    Median("Median Int", CellAnalysis::median),
-    Min("Min Int", CellAnalysis::min),
-    Max("Max Int", CellAnalysis::max),
-    IntDen("Raw IntDen", CellAnalysis::rawIntDen)
-}
+enum class Metric(val value: String, val compute: (CellAnalysis) -> Int, val channels: ChannelSelection) {
+    Area("Morphology Area", CellAnalysis::area, ChannelSelection.TRANSDUCTION_ONLY),
+    Mean("Mean Int", CellAnalysis::mean, ChannelSelection.ALL_CHANNELS),
+    Median("Median Int", CellAnalysis::median, ChannelSelection.ALL_CHANNELS),
+    Min("Min Int", CellAnalysis::min, ChannelSelection.ALL_CHANNELS),
+    Max("Max Int", CellAnalysis::max, ChannelSelection.ALL_CHANNELS),
+    IntDen("Raw IntDen", CellAnalysis::rawIntDen, ChannelSelection.ALL_CHANNELS);
 
-enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
-    Mean("Mean", AggregateGenerator::generateMean),
-    StandardDeviation("Std Dev", AggregateGenerator::generateStandardDeviation),
-    StandardErrorOfMean("SEM", AggregateGenerator::generateStandardErrorOfMean),
-    Count("N", AggregateGenerator::generateCount)
-}
-
-abstract class AggregateGenerator {
-    abstract fun generateMean(): Field<*>
-    abstract fun generateStandardDeviation(): Field<*>
-    abstract fun generateStandardErrorOfMean(): Field<*>
-    abstract fun generateCount(): Field<*>
+    enum class ChannelSelection {
+        TRANSDUCTION_ONLY,
+        ALL_CHANNELS
+    }
 }
 
 abstract class BatchColocalizationOutput : Output {
@@ -38,9 +30,9 @@ abstract class BatchColocalizationOutput : Output {
     private val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
     abstract val colocalizationOutput: ColocalizationOutput
-    abstract fun generateAggregateRow(aggregate: Aggregate, fileValues: List<List<Int>>): AggregateRow
+    abstract fun generateAggregateRow(aggregate: Aggregate, rawValues: List<List<Int>>, spaces: Int = 0): AggregateRow
     abstract fun writeDocumentation()
-    abstract fun writeMetric(metric: Metric)
+    abstract fun writeMetric(name: String, table: Table)
 
     fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))
@@ -51,8 +43,8 @@ abstract class BatchColocalizationOutput : Output {
         writeDocumentation()
         colocalizationOutput.writeSummary()
 
-        for (metric in Metric.values()) {
-            writeMetric(metric)
+        for (metricTable in computeMetricTables()) {
+            writeMetric(metricTable.first, metricTable.second)
         }
 
         colocalizationOutput.writeParameters()
@@ -71,38 +63,55 @@ abstract class BatchColocalizationOutput : Output {
         addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
     }
 
-    // Returns a map from metric to a list of [filenames and a list of values].
-    private fun metricMappings(): Map<Metric, MutableList<Pair<String, List<Int>>>> {
-        return Metric.values().toList().associateWith { metric: Metric ->
-            // Create [filenames and a list of values] to associate with metric
-            val fileValues = mutableListOf<Pair<String, List<Int>>>()
-            for ((fileName, result) in fileNameAndResultsList) {
-                val cellValues = result.overlappingTransducedIntensityAnalysis.map { cell ->
-                    metric.compute(cell)
-                }
-                fileValues.add(Pair(fileName, cellValues))
-            }
-            fileValues
+    private fun computeMetricTables(): List<Pair<String, Table>> {
+        // Check for no files before trying to get the number of channels
+        if (fileNameAndResultsList.size == 0) {
+            return emptyList()
         }
+
+        val channelNames = colocalizationOutput.channelNames()
+        val transductionChannel = colocalizationOutput.transductionParameters.transducedChannel
+
+        return Metric.values().map { metric: Metric ->
+            if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
+                listOf(
+                    Pair(metric.value, computeMetricTableForChannel(metric, transductionChannel))
+                )
+            } else {
+                // Compute the metric values for all channels
+                channelNames.mapIndexed { idx, name ->
+                    Pair("${metric.value} - $name", computeMetricTableForChannel(metric, idx))
+                }
+            }
+        }.flatten()
     }
 
-    private fun maxRows(): Int {
-        val results = fileNameAndResultsList.unzip().second
-        val sizes = results.map { it.overlappingTransducedIntensityAnalysis.size }
-        return sizes.max() ?: 0
-    }
+    private fun computeMetricTableForChannel(metric: Metric, channelIdx: Int): Table {
+        val schema = mutableListOf("Transduced Cell")
+        var maxRows = 0
 
-    fun metricData(metric: Metric): Table {
-        val fileNames = fileNameAndResultsList.unzip().first
-        val t = Table(listOf("Transduced Cell") + fileNames)
-        val nRows = maxRows()
-        val metricFileValues = metricMappings().getValue(metric)
-        for (rowIdx in 0 until nRows) {
-            val rowData = metricFileValues.map { it.second.getOrNull(rowIdx) }
+        // Generate all of the values for each file
+        val rawValues = mutableListOf<List<Int>>()
+        val fileValues = mutableListOf<Pair<String, List<Int>>>()
+
+        for ((fileName, result) in fileNameAndResultsList) {
+            val cellValues = result.channelResults[channelIdx].cellAnalyses.map { cell ->
+                metric.compute(cell)
+            }
+            fileValues.add(Pair(fileName, cellValues))
+            rawValues.add(cellValues)
+            schema.add(fileName)
+            maxRows = max(maxRows, cellValues.size)
+        }
+
+        val t = Table(schema)
+        // Populate each row since we have the values for each file
+        for (rowIdx in 0 until maxRows) {
+            val rowData = fileValues.map { it.second.getOrNull(rowIdx) }
             t.addRow(MetricRow(rowIdx + 1, rowData))
         }
-        val fileValues = metricFileValues.unzip().second
-        Aggregate.values().forEach { t.addRow(generateAggregateRow(it, fileValues)) }
+
+        Aggregate.values().forEach { t.addRow(generateAggregateRow(it, rawValues, 0)) }
         return t
     }
 }

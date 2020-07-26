@@ -25,6 +25,7 @@ import org.scijava.ui.UIService
 import org.scijava.widget.FileWidget
 import org.scijava.widget.NumberWidget
 import simplergc.services.CellColocalizationService
+import simplergc.services.CellColocalizationService.CellAnalysis
 import simplergc.services.CellDiameterRange
 import simplergc.services.CellSegmentationService
 import simplergc.services.DiameterParseException
@@ -207,42 +208,29 @@ class RGCTransduction : Command, Previewable {
     )
     private var preview: Boolean = false
 
+    data class ChannelResult(val name: String, val cellAnalyses: List<CellAnalysis>) {
+        val avgMorphologyArea = (cellAnalyses.sumBy { it.area } / cellAnalyses.size)
+        val meanFluorescenceIntensity = (cellAnalyses.sumBy { it.mean } / cellAnalyses.size)
+        val medianFluorescenceIntensity = (cellAnalyses.sumBy { it.median } / cellAnalyses.size)
+        val minFluorescenceIntensity = (cellAnalyses.sumBy { it.min } / cellAnalyses.size)
+        val maxFluorescenceIntensity = (cellAnalyses.sumBy { it.max } / cellAnalyses.size)
+        val rawIntDen = (cellAnalyses.sumBy { it.rawIntDen } / cellAnalyses.size)
+    }
+
     /**
      * Result of transduction analysis for output.
      * @property targetCellCount Number of red channel cells.
-     * @property overlappingTransducedIntensityAnalysis Quantification of each transduced cell overlapping target cells.
+     * @property channelResults Quantification of each channel's cells overlapping target cells.
      * @property overlappingTwoChannelCells List of cells which overlap two channels.
      *
      */
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
-        val overlappingTransducedIntensityAnalysis: List<CellColocalizationService.CellAnalysis>,
+        val channelResults: List<ChannelResult>,
         val overlappingTwoChannelCells: List<PositionedCell>
     ) {
-
-        data class Summary(
-            val targetCellCount: Int,
-            val transducedCellCount: Int,
-            val transductionEfficiency: Double,
-            val avgMorphologyArea: Int,
-            val meanFluorescenceIntensity: Int,
-            val medianFluorescenceIntensity: Int,
-            val minFluorescenceIntensity: Int,
-            val maxFluorescenceIntenstity: Int,
-            val rawIntDen: Int
-        )
-
-        fun summary() = Summary(
-            targetCellCount,
-            overlappingTwoChannelCells.size,
-            ((overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100),
-            (overlappingTransducedIntensityAnalysis.sumBy { it.area } / overlappingTransducedIntensityAnalysis.size),
-            (overlappingTransducedIntensityAnalysis.sumBy { it.mean } / overlappingTransducedIntensityAnalysis.size),
-            (overlappingTransducedIntensityAnalysis.sumBy { it.median } / overlappingTransducedIntensityAnalysis.size),
-            (overlappingTransducedIntensityAnalysis.sumBy { it.min } / overlappingTransducedIntensityAnalysis.size),
-            (overlappingTransducedIntensityAnalysis.sumBy { it.max } / overlappingTransducedIntensityAnalysis.size),
-            (overlappingTransducedIntensityAnalysis.sumBy { it.rawIntDen } / overlappingTransducedIntensityAnalysis.size)
-        )
+        val transducedCellCount = overlappingTwoChannelCells.size
+        val transductionEfficiency = ((overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100)
     }
 
     override fun run() {
@@ -333,30 +321,33 @@ class RGCTransduction : Command, Previewable {
         image: ImagePlus,
         cellDiameterRange: CellDiameterRange
     ): TransductionResult {
-        val imageChannels = ChannelSplitter.split(image)
-        if (targetChannel < 1 || targetChannel > imageChannels.size) {
-            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
+        val numChannels = image.nChannels
+        if (targetChannel < 1 || targetChannel > numChannels) {
+            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. " +
+                "There are $numChannels channels available")
         }
-
-        if (transducedChannel < 1 || transducedChannel > imageChannels.size) {
-            throw ChannelDoesNotExistException("Transduced channel selected ($transducedChannel) does not exist. There are ${imageChannels.size} channels available")
+        if (transducedChannel < 1 || transducedChannel > image.nChannels) {
+            throw ChannelDoesNotExistException("Transduced channel selected ($numChannels) does not exist. " +
+                "There are $numChannels channels available")
         }
-
-        return analyseTransduction(
-            imageChannels[targetChannel - 1],
-            imageChannels[transducedChannel - 1],
-            cellDiameterRange
-        )
+        return analyseTransduction(image, targetChannel, transducedChannel, cellDiameterRange)
     }
 
     private fun analyseTransduction(
-        targetChannel: ImagePlus,
-        transducedChannel: ImagePlus,
+        image: ImagePlus,
+        targetChannel: Int,
+        transducedChannel: Int,
         cellDiameterRange: CellDiameterRange
     ): TransductionResult {
         logService.info("Starting extraction")
+
+        // Extract relevant channels
+        val channelImages = ChannelSplitter.split(image)
+        val targetChannelImage = channelImages[targetChannel - 1]
+        val transducedChannelImage = channelImages[transducedChannel - 1]
+
         val targetCells = cellSegmentationService.extractCells(
-            targetChannel,
+            targetChannelImage,
             cellDiameterRange,
             localThresholdRadius,
             gaussianBlurSigma,
@@ -366,13 +357,13 @@ class RGCTransduction : Command, Previewable {
         // Allow cells in the transduced channel to have unbounded area
         val transducedCells = filterCellsByIntensity(
             cellSegmentationService.extractCells(
-                transducedChannel,
+                transducedChannelImage,
                 CellDiameterRange(cellDiameterRange.smallest, Double.MAX_VALUE),
                 localThresholdRadius,
                 gaussianBlurSigma,
                 shouldRemoveAxonsFromTransductionChannel
             ),
-            transducedChannel
+            transducedChannelImage
         )
 
         statusService.showStatus(80, 100, "Analysing transduction...")
@@ -381,21 +372,39 @@ class RGCTransduction : Command, Previewable {
         // Target layer is based and transduced layer is overlaid.
         val targetTransducedAnalysis = BucketedNaiveColocalizer(
             cellDiameterRange.largest.toInt(),
-            targetChannel.width,
-            targetChannel.height,
+            targetChannelImage.width,
+            targetChannelImage.height,
             SubsetPixelCellComparator(threshold = 0.5f)
         ).analyseColocalization(targetCells, transducedCells)
 
-        val transductionIntensityAnalysis = cellColocalizationService.analyseCellIntensity(
-            transducedChannel,
-            targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }
-        )
+        // Measure intensity of all channels
+        val rois = targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }
+
+        val channelResults = mutableListOf<ChannelResult>()
+        val transductionChannelResult = ChannelResult("C-Transduction", cellColocalizationService.analyseCellIntensity(
+            channelImages[transducedChannel - 1],
+            rois
+        ))
+        channelResults.add(transductionChannelResult)
+        channelResults.add(ChannelResult("C-Target", cellColocalizationService.analyseCellIntensity(
+            channelImages[targetChannel - 1],
+            rois
+        )))
+        for (channel in (1..channelImages.size).toSet() - setOf(targetChannel, transducedChannel)) {
+            val result = ChannelResult("C-$channel",
+                cellColocalizationService.analyseCellIntensity(
+                    channelImages[channel - 1],
+                    targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }
+                )
+            )
+            channelResults.add(result)
+        }
 
         // We return the overlapping target channel instead of transduced channel as we want to mark the target layer,
         // not the transduced layer.
         return TransductionResult(
             targetCellCount = targetCells.size,
-            overlappingTransducedIntensityAnalysis = transductionIntensityAnalysis,
+            channelResults = channelResults,
             overlappingTwoChannelCells = targetTransducedAnalysis.overlappingBase
         )
     }
