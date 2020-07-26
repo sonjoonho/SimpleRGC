@@ -8,6 +8,7 @@ import simplergc.services.DoubleField
 import simplergc.services.Field
 import simplergc.services.IntField
 import simplergc.services.Parameters
+import simplergc.services.Table
 import simplergc.services.colocalizer.output.CsvColocalizationOutput
 
 class CsvAggregateGenerator(val values: List<Int>) : AggregateGenerator() {
@@ -71,9 +72,7 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
         tableWriter.produce(documentationData(), "${colocalizationOutput.outputPath}Documentation.csv")
     }
 
-    override fun writeMetric(metricMapping: MetricMapping, metric: Metric) {
-        for (metricTable in metricData(metricMapping, metric)) {
-            tableWriter.produce(metricTable.second, "${colocalizationOutput.outputPath}${metricTable.first}.csv")
-        }
+    override fun writeMetric(name: String, table: Table) {
+        tableWriter.produce(table, "${colocalizationOutput.outputPath}$name.csv")
     }
 }

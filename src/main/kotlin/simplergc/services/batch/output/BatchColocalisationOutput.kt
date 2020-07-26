@@ -1,5 +1,6 @@
 package simplergc.services.batch.output
 
+import kotlin.math.max
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.AggregateRow
 import simplergc.services.CellColocalizationService.CellAnalysis
@@ -24,9 +25,6 @@ enum class Metric(val value: String, val compute: (CellAnalysis) -> Int, val cha
     }
 }
 
-// Oooh what's that over there, look there instead.
-typealias MetricMapping = Map<Metric, List<Pair<String, List<Pair<String, List<Int>>>>>>
-
 enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
     Mean("Mean", AggregateGenerator::generateMean),
     StandardDeviation("Std Dev", AggregateGenerator::generateStandardDeviation),
@@ -48,7 +46,7 @@ abstract class BatchColocalizationOutput : Output {
     abstract val colocalizationOutput: ColocalizationOutput
     abstract fun generateAggregateRow(aggregate: Aggregate, fileValues: List<List<Int>>): AggregateRow
     abstract fun writeDocumentation()
-    abstract fun writeMetric(metricMapping: MetricMapping, metric: Metric)
+    abstract fun writeMetric(name: String, table: Table)
 
     fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))
@@ -59,9 +57,8 @@ abstract class BatchColocalizationOutput : Output {
         writeDocumentation()
         colocalizationOutput.writeSummary()
 
-        val metricMapping = computeMetricMapping()
-        for (metric in Metric.values()) {
-            writeMetric(metricMapping, metric)
+        for (metricTable in computeMetricTables()) {
+            writeMetric(metricTable.first, metricTable.second)
         }
 
         colocalizationOutput.writeParameters()
@@ -80,11 +77,10 @@ abstract class BatchColocalizationOutput : Output {
         addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
     }
 
-    // Returns a map from metric to a list of [filenames and a list of values].
-    private fun computeMetricMapping(): MetricMapping {
+    private fun computeMetricTables(): List<Pair<String, Table>> {
         // Check for no files before trying to get the number of channels
         if (fileNameAndResultsList.size == 0) {
-            return Metric.values().toList().associateWith { listOf<Pair<String, List<Pair<String, List<Int>>>>>() }
+            return emptyList()
         }
         // All transduction results will have the same channels
         val firstTransductionResult = fileNameAndResultsList[0].second
@@ -92,58 +88,45 @@ abstract class BatchColocalizationOutput : Output {
 
         val transductionChannel = colocalizationOutput.transductionParameters.transducedChannel
 
-        // For each metric, generate a mapping to a list of [filenames and a list of values] pairs
-        // Depending on the metric, we may wish to do this for all channels, or just the transduction channel
-        return Metric.values().toList().associateWith { metric: Metric ->
+        return Metric.values().map { metric: Metric ->
             if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
-                listOf(Pair(metric.value, computeMetricValuesForChannel(metric, transductionChannel)))
+                listOf(Pair(metric.value, computeMetricTableForChannel(metric, transductionChannel)))
             } else {
                 // Compute the metric values for all channels
-                val channelFileValues = mutableListOf<Pair<String, List<Pair<String, List<Int>>>>>()
+                val channelFileValues = mutableListOf<Pair<String, Table>>()
                 for (channel in channelNames.indices) {
-                    channelFileValues.add(Pair("${metric.value}-${channelNames[channel]}", computeMetricValuesForChannel(metric, channel)))
+                    channelFileValues.add(Pair("${metric.value}-${channelNames[channel]}", computeMetricTableForChannel(metric, channel)))
                 }
                 channelFileValues
             }
-        }
+        }.flatten()
     }
 
-    private fun computeMetricValuesForChannel(metric: Metric, channelIdx: Int): List<Pair<String, List<Int>>> {
+    private fun computeMetricTableForChannel(metric: Metric, channelIdx: Int): Table {
+        val schema = mutableListOf("Transduced Cell")
+        var maxRows = 0
+
+        // Generate all of the values for each file
         val fileValues = mutableListOf<Pair<String, List<Int>>>()
         for ((fileName, result) in fileNameAndResultsList) {
             val cellValues = result.channelResults[channelIdx].cellAnalyses.map { cell ->
                 metric.compute(cell)
             }
             fileValues.add(Pair(fileName, cellValues))
+
+            schema.add(fileName)
+            maxRows = max(maxRows, cellValues.size)
         }
-        return fileValues
-    }
 
-    private fun maxRows(): Int {
-        // All channels will have the same number of cells, so just use transduced channel
-        val transducedChannel = colocalizationOutput.transductionParameters.transducedChannel
-
-        val results = fileNameAndResultsList.unzip().second
-        val sizes = results.map { it.channelResults[transducedChannel].cellAnalyses.size }
-        return sizes.max() ?: 0
-    }
-
-    fun metricData(metricMapping: MetricMapping, metric: Metric): List<Pair<String, Table>> {
-        val (fileNames, results) = fileNameAndResultsList.unzip()
-        val channelTables = mutableListOf<Pair<String, Table>>()
-
-        val nRows = maxRows()
-        val metricChannelValues = metricMapping.getValue(metric)
-        for (metricChannel in metricChannelValues) {
-            val t = Table(listOf("Transduced Cell") + fileNames)
-            for (rowIdx in 0 until nRows) {
-                val rowData = metricChannel.second.map { it.second.getOrNull(rowIdx) }
-                t.addRow(MetricRow(rowIdx + 1, rowData))
-            }
-            val fileValues = metricChannel.second.unzip().second
-            Aggregate.values().forEach { t.addRow(generateAggregateRow(it, fileValues)) }
-            channelTables.add(Pair(metricChannel.first, t))
+        val t = Table(schema)
+        // Populate each row since we have the values for each file
+        for (rowIdx in 0 until maxRows) {
+            val rowData = fileValues.map { it.second.getOrNull(rowIdx) }
+            t.addRow(MetricRow(rowIdx + 1, rowData))
         }
-        return channelTables
+
+        val rawValues = fileValues.unzip().second
+        Aggregate.values().forEach { t.addRow(generateAggregateRow(it, rawValues)) }
+        return t
     }
 }

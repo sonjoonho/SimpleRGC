@@ -5,6 +5,7 @@ import simplergc.services.AggregateRow
 import simplergc.services.Field
 import simplergc.services.FormulaField
 import simplergc.services.Parameters
+import simplergc.services.Table
 import simplergc.services.TableWriter
 import simplergc.services.XlsxTableWriter
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
@@ -74,9 +75,7 @@ class BatchXlsxColocalizationOutput(transductionParameters: Parameters.Transduct
         tableWriter.produce(documentationData(), "Documentation")
     }
 
-    override fun writeMetric(metricMapping: MetricMapping, metric: Metric) {
-        for (metricTable in metricData(metricMapping, metric)) {
-            tableWriter.produce(metricTable.second, metricTable.first)
-        }
+    override fun writeMetric(name: String, table: Table) {
+        tableWriter.produce(table, name)
     }
 }
