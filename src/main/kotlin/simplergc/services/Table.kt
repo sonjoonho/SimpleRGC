@@ -118,7 +118,7 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
 
         for (row in body) {
             for (colIdx in row.indices) {
-                columns[colIdx].add(row[colIdx].toString())
+                columns[colIdx].add(row[colIdx].value.toString())
             }
         }
 
