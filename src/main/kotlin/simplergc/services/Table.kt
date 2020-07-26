@@ -3,8 +3,8 @@ package simplergc.services
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
-import org.apache.poi.ss.usermodel.CellType
 import org.apache.commons.io.FilenameUtils
+import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
@@ -59,8 +59,6 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
         }
 
         val body = data.drop(rowNum)
-
-        val evaluator = workbook.creationHelper.createFormulaEvaluator()
 
         for (row in body) {
             val currRow = currSheet.createRow(rowNum)
