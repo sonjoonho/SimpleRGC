@@ -90,14 +90,14 @@ abstract class BatchColocalizationOutput : Output {
 
         return Metric.values().map { metric: Metric ->
             if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
-                listOf(Pair(metric.value, computeMetricTableForChannel(metric, transductionChannel)))
+                listOf(
+                    Pair(metric.value, computeMetricTableForChannel(metric, transductionChannel))
+                )
             } else {
                 // Compute the metric values for all channels
-                val channelFileValues = mutableListOf<Pair<String, Table>>()
-                for (channel in channelNames.indices) {
-                    channelFileValues.add(Pair("${metric.value}-${channelNames[channel]}", computeMetricTableForChannel(metric, channel)))
+                channelNames.mapIndexed { idx, name ->
+                    Pair("${metric.value}-$name", computeMetricTableForChannel(metric, idx))
                 }
-                channelFileValues
             }
         }.flatten()
     }
