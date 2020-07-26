@@ -1,6 +1,8 @@
 package simplergc.services.colocalizer.output
 
 import simplergc.commands.RGCTransduction.TransductionResult
+import simplergc.services.Aggregate
+import simplergc.services.AggregateRow
 import simplergc.services.BaseRow
 import simplergc.services.BooleanField
 import simplergc.services.CellColocalizationService
@@ -11,6 +13,7 @@ import simplergc.services.Output
 import simplergc.services.Parameters
 import simplergc.services.StringField
 import simplergc.services.Table
+import simplergc.services.batch.output.Metric
 
 data class DocumentationRow(val key: String, val description: String) : BaseRow {
     override fun toList() = listOf(StringField(key), StringField(description))
@@ -181,9 +184,24 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
                     )
                 )
             }
+            Aggregate.values().forEach {
+                val rawValues = mutableListOf<List<Int>>()
+                Metric.values().forEach { metric ->
+                    rawValues.add(result.channelResults[channelIdx].cellAnalyses.map { cell ->
+                        metric.compute(cell)
+                    })
+                }
+                t.addRow(generateAggregateRow(it, rawValues, spaces = 1))
+            }
         }
         return t
     }
+
+    abstract fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Int>>,
+        spaces: Int
+    ): AggregateRow
 
     fun parameterData(): Table {
         val t = Table(

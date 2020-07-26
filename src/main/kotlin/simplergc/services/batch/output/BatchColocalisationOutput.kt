@@ -2,9 +2,9 @@ package simplergc.services.batch.output
 
 import kotlin.math.max
 import simplergc.commands.RGCTransduction.TransductionResult
+import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.CellColocalizationService.CellAnalysis
-import simplergc.services.Field
 import simplergc.services.MetricRow
 import simplergc.services.Output
 import simplergc.services.Table
@@ -25,26 +25,12 @@ enum class Metric(val value: String, val compute: (CellAnalysis) -> Int, val cha
     }
 }
 
-enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
-    Mean("Mean", AggregateGenerator::generateMean),
-    StandardDeviation("Std Dev", AggregateGenerator::generateStandardDeviation),
-    StandardErrorOfMean("SEM", AggregateGenerator::generateStandardErrorOfMean),
-    Count("N", AggregateGenerator::generateCount)
-}
-
-abstract class AggregateGenerator {
-    abstract fun generateMean(): Field<*>
-    abstract fun generateStandardDeviation(): Field<*>
-    abstract fun generateStandardErrorOfMean(): Field<*>
-    abstract fun generateCount(): Field<*>
-}
-
 abstract class BatchColocalizationOutput : Output {
 
     private val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
     abstract val colocalizationOutput: ColocalizationOutput
-    abstract fun generateAggregateRow(aggregate: Aggregate, fileValues: List<List<Int>>): AggregateRow
+    abstract fun generateAggregateRow(aggregate: Aggregate, rawValues: List<List<Int>>, spaces: Int = 0): AggregateRow
     abstract fun writeDocumentation()
     abstract fun writeMetric(name: String, table: Table)
 
@@ -125,7 +111,7 @@ abstract class BatchColocalizationOutput : Output {
             t.addRow(MetricRow(rowIdx + 1, rowData))
         }
 
-        Aggregate.values().forEach { t.addRow(generateAggregateRow(it, rawValues)) }
+        Aggregate.values().forEach { t.addRow(generateAggregateRow(it, rawValues, 0)) }
         return t
     }
 }

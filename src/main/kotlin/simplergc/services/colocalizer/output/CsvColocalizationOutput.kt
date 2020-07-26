@@ -2,6 +2,9 @@ package simplergc.services.colocalizer.output
 
 import java.io.File
 import java.io.IOException
+import simplergc.services.Aggregate
+import simplergc.services.AggregateRow
+import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
 import simplergc.services.Parameters
 
@@ -47,6 +50,16 @@ class CsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
         channelNames().forEachIndexed { idx, name ->
             tableWriter.produce(analysisData(idx), "${outputPath}Analysis - $name.csv")
         }
+    }
+
+    override fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Int>>,
+        spaces: Int
+    ): AggregateRow {
+        return AggregateRow(aggregate.abbreviation, rawValues.map { values ->
+            aggregate.generateValue(CsvAggregateGenerator(values))
+        }, spaces)
     }
 
     override fun writeParameters() {

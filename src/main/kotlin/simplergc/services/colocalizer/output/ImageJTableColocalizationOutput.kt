@@ -3,6 +3,8 @@ package simplergc.services.colocalizer.output
 import kotlin.math.roundToInt
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
+import simplergc.services.Aggregate
+import simplergc.services.AggregateRow
 import simplergc.services.BaseRow
 import simplergc.services.ImageJTableWriter
 import simplergc.services.IntField
@@ -100,6 +102,15 @@ class ImageJTableColocalizationOutput(
 
     override fun writeDocumentation() {
         // no-op
+    }
+
+    override fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Int>>,
+        spaces: Int
+    ): AggregateRow {
+        // no-op
+        return AggregateRow("", emptyList())
     }
 
     override fun output() {

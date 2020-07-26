@@ -3,7 +3,11 @@ package simplergc.services.colocalizer.output
 import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import simplergc.services.Aggregate
+import simplergc.services.AggregateRow
+import simplergc.services.Field
 import simplergc.services.Parameters
+import simplergc.services.XlsxAggregateGenerator
 import simplergc.services.XlsxTableWriter
 
 /**
@@ -37,6 +41,21 @@ class XlsxColocalizationOutput(
 
     override fun writeDocumentation() {
         tableWriter.produce(documentationData(), "Documentation")
+    }
+
+    override fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Int>>,
+        spaces: Int
+    ): AggregateRow {
+        var column = 'B' + spaces
+        val rowValues = mutableListOf<Field<*>>()
+        rawValues.forEach { values ->
+            rowValues.add(aggregate.generateValue(
+                XlsxAggregateGenerator(column++, values.size)
+            ))
+        }
+        return AggregateRow(aggregate.abbreviation, rowValues, spaces)
     }
 
     override fun writeSummary() {
