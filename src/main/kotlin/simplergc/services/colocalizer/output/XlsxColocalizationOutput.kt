@@ -5,7 +5,6 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Parameters
 import simplergc.services.XlsxTableWriter
-import kotlin.random.Random
 
 /**
  * Outputs the analysis with the result of overlapping, transduced cells in XLSX format.
