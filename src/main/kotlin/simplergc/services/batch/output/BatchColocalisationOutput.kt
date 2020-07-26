@@ -107,13 +107,15 @@ abstract class BatchColocalizationOutput : Output {
         var maxRows = 0
 
         // Generate all of the values for each file
+        val rawValues = mutableListOf<List<Int>>()
         val fileValues = mutableListOf<Pair<String, List<Int>>>()
+
         for ((fileName, result) in fileNameAndResultsList) {
             val cellValues = result.channelResults[channelIdx].cellAnalyses.map { cell ->
                 metric.compute(cell)
             }
             fileValues.add(Pair(fileName, cellValues))
-
+            rawValues.add(cellValues)
             schema.add(fileName)
             maxRows = max(maxRows, cellValues.size)
         }
@@ -125,7 +127,6 @@ abstract class BatchColocalizationOutput : Output {
             t.addRow(MetricRow(rowIdx + 1, rowData))
         }
 
-        val rawValues = fileValues.unzip().second
         Aggregate.values().forEach { t.addRow(generateAggregateRow(it, rawValues)) }
         return t
     }
