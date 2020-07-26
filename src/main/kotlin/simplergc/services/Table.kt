@@ -1,14 +1,14 @@
 package simplergc.services
 
 import de.siegmar.fastcsv.writer.CsvWriter
+import java.io.File
+import java.nio.charset.StandardCharsets
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.ui.UIService
-import java.io.File
-import java.nio.charset.StandardCharsets
 
 /**
  * Table represents data in terms of rows and columns.

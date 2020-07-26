@@ -1,5 +1,6 @@
 package simplergc.services.counter.output
 
+import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.BaseRow
@@ -7,7 +8,6 @@ import simplergc.services.Output.Companion.ARTICLE_CITATION
 import simplergc.services.Parameters
 import simplergc.services.StringField
 import simplergc.services.XlsxTableWriter
-import java.io.File
 
 data class Citation(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
     override fun toList() = listOf(StringField(article), StringField(citation))
