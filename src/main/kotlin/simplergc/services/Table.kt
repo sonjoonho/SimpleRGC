@@ -3,6 +3,7 @@ package simplergc.services
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
+import org.apache.poi.ss.usermodel.CellType
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -28,6 +29,7 @@ class Table(val schema: List<String>) {
  */
 interface TableWriter {
     fun produce(table: Table, to: String)
+    fun produceFunctions()
 }
 
 /**
@@ -59,6 +61,8 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
 
         val body = data.drop(rowNum)
 
+        val evaluator = workbook.creationHelper.createFormulaEvaluator()
+
         for (row in body) {
             val currRow = currSheet.createRow(rowNum)
             for (i in row.indices) {
@@ -68,6 +72,10 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
                     is IntField -> currCell.setCellValue(f.value.toDouble()) // Does not support Ints.
                     is DoubleField -> currCell.setCellValue(f.value)
                     is BooleanField -> currCell.setCellValue(f.value)
+                    is FormulaField -> {
+                        currCell.setCellType(CellType.FORMULA)
+                        currCell.cellFormula = f.value
+                    }
                 }
             }
             rowNum++
@@ -77,6 +85,10 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
                 currSheet.autoSizeColumn(i)
             }
         }
+    }
+
+    override fun produceFunctions() {
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 }
 
@@ -91,6 +103,10 @@ class CsvTableWriter : TableWriter {
             file,
             StandardCharsets.UTF_8,
             table.data.map { row -> row.map { it.value.toString() }.toTypedArray() })
+    }
+
+    override fun produceFunctions() {
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 }
 
@@ -120,6 +136,10 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
         imageJTable.addAll(columns)
         uiService.show(imageJTable)
     }
+
+    override fun produceFunctions() {
+        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
+    }
 }
 
 interface BaseRow {
@@ -130,9 +150,15 @@ interface BaseRow {
 // of equal length so fields can be null.
 data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
     override fun toList(): List<Field<*>> {
-        val row = mutableListOf(IntField(rowIdx) as Field<*>)
-        row.addAll(metrics.map { if (it !== null) IntField(it) else StringField("") })
-        return row
+        return listOf(IntField(rowIdx)) +
+            metrics.map { if (it !== null) IntField(it) else StringField("")
+        }
+    }
+}
+
+data class AggregateRow(val name: String, val values: List<Field<*>>) : BaseRow {
+    override fun toList(): List<Field<*>> {
+        return listOf(StringField(name)) + values
     }
 }
 
@@ -141,3 +167,4 @@ class StringField(value: String) : Field<String>(value)
 class IntField(value: Int) : Field<Int>(value)
 class DoubleField(value: Double) : Field<Double>(value)
 class BooleanField(value: Boolean) : Field<Boolean>(value)
+class FormulaField(value: String) : Field<String>(value)
