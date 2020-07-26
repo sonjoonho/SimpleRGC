@@ -4,6 +4,7 @@ import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
 import org.apache.commons.io.FilenameUtils
+import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
@@ -68,6 +69,10 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
                     is IntField -> currCell.setCellValue(f.value.toDouble()) // Does not support Ints.
                     is DoubleField -> currCell.setCellValue(f.value)
                     is BooleanField -> currCell.setCellValue(f.value)
+                    is FormulaField -> {
+                        currCell.setCellType(CellType.FORMULA)
+                        currCell.cellFormula = f.value
+                    }
                 }
             }
             rowNum++
@@ -130,9 +135,15 @@ interface BaseRow {
 // of equal length so fields can be null.
 data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
     override fun toList(): List<Field<*>> {
-        val row = mutableListOf(IntField(rowIdx) as Field<*>)
-        row.addAll(metrics.map { if (it !== null) IntField(it) else StringField("") })
-        return row
+        return listOf(IntField(rowIdx)) +
+            metrics.map { if (it != null) IntField(it) else StringField("")
+        }
+    }
+}
+
+data class AggregateRow(val name: String, val values: List<Field<*>>) : BaseRow {
+    override fun toList(): List<Field<*>> {
+        return listOf(StringField(name)) + values
     }
 }
 
@@ -141,3 +152,4 @@ class StringField(value: String) : Field<String>(value)
 class IntField(value: Int) : Field<Int>(value)
 class DoubleField(value: Double) : Field<Double>(value)
 class BooleanField(value: Boolean) : Field<Boolean>(value)
+class FormulaField(value: String) : Field<String>(value)

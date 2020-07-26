@@ -1,7 +1,9 @@
 package simplergc.services.batch.output
 
-import simplergc.commands.RGCTransduction
+import simplergc.commands.RGCTransduction.TransductionResult
+import simplergc.services.AggregateRow
 import simplergc.services.CellColocalizationService.CellAnalysis
+import simplergc.services.Field
 import simplergc.services.MetricRow
 import simplergc.services.Output
 import simplergc.services.Table
@@ -17,15 +19,30 @@ enum class Metric(val value: String, val compute: (CellAnalysis) -> Int) {
     IntDen("Raw IntDen", CellAnalysis::rawIntDen)
 }
 
+enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
+    Mean("Mean", AggregateGenerator::generateMean),
+    StandardDeviation("Std Dev", AggregateGenerator::generateStandardDeviation),
+    StandardErrorOfMean("SEM", AggregateGenerator::generateStandardErrorOfMean),
+    Count("N", AggregateGenerator::generateCount)
+}
+
+abstract class AggregateGenerator {
+    abstract fun generateMean(): Field<*>
+    abstract fun generateStandardDeviation(): Field<*>
+    abstract fun generateStandardErrorOfMean(): Field<*>
+    abstract fun generateCount(): Field<*>
+}
+
 abstract class BatchColocalizationOutput : Output {
 
-    private val fileNameAndResultsList = mutableListOf<Pair<String, RGCTransduction.TransductionResult>>()
+    private val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
     abstract val colocalizationOutput: ColocalizationOutput
+    abstract fun generateAggregateRow(aggregate: Aggregate, fileValues: List<List<Int>>): AggregateRow
     abstract fun writeDocumentation()
-    abstract fun writeMetrics(metric: Metric)
+    abstract fun writeMetric(metric: Metric)
 
-    fun addTransductionResultForFile(transductionResult: RGCTransduction.TransductionResult, file: String) {
+    fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))
         colocalizationOutput.addTransductionResultForFile(transductionResult, file)
     }
@@ -35,7 +52,7 @@ abstract class BatchColocalizationOutput : Output {
         colocalizationOutput.writeSummary()
 
         for (metric in Metric.values()) {
-            writeMetrics(metric)
+            writeMetric(metric)
         }
 
         colocalizationOutput.writeParameters()
@@ -55,7 +72,7 @@ abstract class BatchColocalizationOutput : Output {
     }
 
     // Returns a map from metric to a list of [filenames and a list of values].
-    fun metricMappings(): Map<Metric, MutableList<Pair<String, List<Int>>>> {
+    private fun metricMappings(): Map<Metric, MutableList<Pair<String, List<Int>>>> {
         return Metric.values().toList().associateWith { metric: Metric ->
             // Create [filenames and a list of values] to associate with metric
             val fileValues = mutableListOf<Pair<String, List<Int>>>()
@@ -69,18 +86,23 @@ abstract class BatchColocalizationOutput : Output {
         }
     }
 
-    fun maxRows(): Int {
+    private fun maxRows(): Int {
         val results = fileNameAndResultsList.unzip().second
         val sizes = results.map { it.overlappingTransducedIntensityAnalysis.size }
         return sizes.max() ?: 0
     }
 
     fun metricData(metric: Metric): Table {
-        val t = Table(listOf("Transduced Cell") + fileNameAndResultsList.unzip().first)
-        for (rowIdx in 0 until maxRows()) {
-            val rowData = metricMappings().getValue(metric).map { it.second.getOrNull(rowIdx) }
+        val fileNames = fileNameAndResultsList.unzip().first
+        val t = Table(listOf("Transduced Cell") + fileNames)
+        val nRows = maxRows()
+        val metricFileValues = metricMappings().getValue(metric)
+        for (rowIdx in 0 until nRows) {
+            val rowData = metricFileValues.map { it.second.getOrNull(rowIdx) }
             t.addRow(MetricRow(rowIdx + 1, rowData))
         }
+        val fileValues = metricFileValues.unzip().second
+        Aggregate.values().forEach { t.addRow(generateAggregateRow(it, fileValues)) }
         return t
     }
 }
