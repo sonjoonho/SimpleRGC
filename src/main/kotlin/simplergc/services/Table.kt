@@ -138,7 +138,7 @@ interface BaseRow {
 data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
     override fun toList(): List<Field<*>> {
         return listOf(IntField(rowIdx)) +
-            metrics.map { if (it !== null) IntField(it) else StringField("")
+            metrics.map { if (it != null) IntField(it) else StringField("")
         }
     }
 }
