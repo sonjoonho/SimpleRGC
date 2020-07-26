@@ -77,7 +77,7 @@ abstract class BatchColocalizationOutput : Output {
             // Create [filenames and a list of values] to associate with metric
             val fileValues = mutableListOf<Pair<String, List<Int>>>()
             for ((fileName, result) in fileNameAndResultsList) {
-                val cellValues = result.overlappingTransducedIntensityAnalysis.map { cell ->
+                val cellValues = result.overlappingTransducedIntensityAnalysis.cellAnalyses.map { cell ->
                     metric.compute(cell)
                 }
                 fileValues.add(Pair(fileName, cellValues))
@@ -88,7 +88,7 @@ abstract class BatchColocalizationOutput : Output {
 
     private fun maxRows(): Int {
         val results = fileNameAndResultsList.unzip().second
-        val sizes = results.map { it.overlappingTransducedIntensityAnalysis.size }
+        val sizes = results.map { it.overlappingTransducedIntensityAnalysis.cellAnalyses.size }
         return sizes.max() ?: 0
     }
 

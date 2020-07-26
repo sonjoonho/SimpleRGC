@@ -41,19 +41,13 @@ data class ParametersRow(
 
 data class SummaryRow(
     val fileName: String,
-    val summary: TransductionResult.Summary
+    val summary: TransductionResult
 ) : BaseRow {
     override fun toList() = listOf(
         StringField(fileName),
         IntField(summary.targetCellCount),
         IntField(summary.transducedCellCount),
-        DoubleField(summary.transductionEfficiency),
-        IntField(summary.avgMorphologyArea),
-        IntField(summary.meanFluorescenceIntensity),
-        IntField(summary.medianFluorescenceIntensity),
-        IntField(summary.minFluorescenceIntensity),
-        IntField(summary.maxFluorescenceIntenstity),
-        IntField(summary.rawIntDen)
+        DoubleField(summary.transductionEfficiency)
     )
 }
 
@@ -120,7 +114,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         )
         // Add summary data.
         for ((fileName, result) in fileNameAndResultsList) {
-            t.addRow(SummaryRow(fileName = fileName, summary = result.summary()))
+            t.addRow(SummaryRow(fileName = fileName, summary = result))
         }
         return t
     }
@@ -139,7 +133,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
             )
         )
         for ((fileName, result) in fileNameAndResultsList) {
-            result.overlappingTransducedIntensityAnalysis.forEachIndexed { i, cellAnalysis ->
+            result.overlappingTransducedIntensityAnalysis.cellAnalyses.forEachIndexed { i, cellAnalysis ->
                 t.addRow(
                     TransductionAnalysisRow(
                         fileName = fileName,
