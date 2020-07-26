@@ -41,7 +41,8 @@ class CsvAggregateGenerator(val values: List<Int>) : AggregateGenerator() {
  * CSVs generated are:
  *     - Documentation.csv
  *     - Summary.csv
- *     - [metric].csv for each metric
+ *     - Morphology Area.csv
+ *     - [metric - channel].csv for each metric (other than area) and channel
  *     - Parameters.csv
  *
  * For some operations it delegates to colocalizationOutput.

@@ -38,7 +38,8 @@ class XlsxAggregateGenerator(column: Char, numCells: Int) : AggregateGenerator()
  * Sheets generated are:
  *     - Documentation
  *     - Summary
- *     - [metric].csv for each metric
+ *     - Morphology Area
+ *     - [metric - channel] for each metric (other than area) and channel
  *     - Parameters
  * For some operations it delegates to colocalizationOutput.
  */

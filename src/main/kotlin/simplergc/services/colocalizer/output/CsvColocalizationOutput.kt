@@ -10,7 +10,7 @@ import simplergc.services.Parameters
  * CSVs generated are:
  *     - Documentation.csv
  *     - Summary.csv
- *     - Transduced Cell Analysis.csv
+ *     - Analysis - [Channel].csv for each channel in image
  *     - Parameters.csv
  */
 class CsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
