@@ -16,13 +16,16 @@ enum class Metric(val value: String, val compute: (CellAnalysis) -> Int, val cha
     Median("Median Int", CellAnalysis::median, ChannelSelection.ALL_CHANNELS),
     Min("Min Int", CellAnalysis::min, ChannelSelection.ALL_CHANNELS),
     Max("Max Int", CellAnalysis::max, ChannelSelection.ALL_CHANNELS),
-    IntDen("Raw IntDen", CellAnalysis::rawIntDen, ChannelSelection.ALL_CHANNELS)
+    IntDen("Raw IntDen", CellAnalysis::rawIntDen, ChannelSelection.ALL_CHANNELS);
+
+    enum class ChannelSelection {
+        TRANSDUCTION_ONLY,
+        ALL_CHANNELS
+    }
 }
 
-enum class ChannelSelection {
-    TRANSDUCTION_ONLY,
-    ALL_CHANNELS
-}
+// Oooh what's that over there, look there instead.
+typealias MetricMapping = Map<Metric, List<Pair<String, List<Pair<String, List<Int>>>>>>
 
 enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
     Mean("Mean", AggregateGenerator::generateMean),
@@ -45,7 +48,7 @@ abstract class BatchColocalizationOutput : Output {
     abstract val colocalizationOutput: ColocalizationOutput
     abstract fun generateAggregateRow(aggregate: Aggregate, fileValues: List<List<Int>>): AggregateRow
     abstract fun writeDocumentation()
-    abstract fun writeMetric(metric: Metric)
+    abstract fun writeMetric(metricMapping: MetricMapping, metric: Metric)
 
     fun addTransductionResultForFile(transductionResult: TransductionResult, file: String) {
         fileNameAndResultsList.add(Pair(file, transductionResult))
@@ -56,8 +59,9 @@ abstract class BatchColocalizationOutput : Output {
         writeDocumentation()
         colocalizationOutput.writeSummary()
 
+        val metricMapping = computeMetricMapping()
         for (metric in Metric.values()) {
-            writeMetric(metric)
+            writeMetric(metricMapping, metric)
         }
 
         colocalizationOutput.writeParameters()
@@ -77,7 +81,7 @@ abstract class BatchColocalizationOutput : Output {
     }
 
     // Returns a map from metric to a list of [filenames and a list of values].
-    private fun metricMappings(): Map<Metric, List<Pair<String, List<Pair<String, List<Int>>>>>> {
+    private fun computeMetricMapping(): MetricMapping {
         // Check for no files before trying to get the number of channels
         if (fileNameAndResultsList.size == 0) {
             return Metric.values().toList().associateWith { listOf<Pair<String, List<Pair<String, List<Int>>>>>() }
@@ -88,8 +92,10 @@ abstract class BatchColocalizationOutput : Output {
 
         val transductionChannel = colocalizationOutput.transductionParameters.transducedChannel
 
+        // For each metric, generate a mapping to a list of [filenames and a list of values] pairs
+        // Depending on the metric, we may wish to do this for all channels, or just the transduction channel
         return Metric.values().toList().associateWith { metric: Metric ->
-            if (metric.channels == ChannelSelection.TRANSDUCTION_ONLY) {
+            if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
                 listOf(Pair(metric.value, computeMetricValuesForChannel(metric, transductionChannel)))
             } else {
                 // Compute the metric values for all channels
@@ -122,12 +128,12 @@ abstract class BatchColocalizationOutput : Output {
         return sizes.max() ?: 0
     }
 
-    fun metricData(metric: Metric): List<Pair<String, Table>> {
+    fun metricData(metricMapping: MetricMapping, metric: Metric): List<Pair<String, Table>> {
         val (fileNames, results) = fileNameAndResultsList.unzip()
         val channelTables = mutableListOf<Pair<String, Table>>()
 
         val nRows = maxRows()
-        val metricChannelValues = metricMappings().getValue(metric)
+        val metricChannelValues = metricMapping.getValue(metric)
         for (metricChannel in metricChannelValues) {
             val t = Table(listOf("Transduced Cell") + fileNames)
             for (rowIdx in 0 until nRows) {

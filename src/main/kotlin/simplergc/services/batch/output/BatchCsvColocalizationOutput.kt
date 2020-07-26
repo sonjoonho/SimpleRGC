@@ -71,8 +71,8 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
         tableWriter.produce(documentationData(), "${colocalizationOutput.outputPath}Documentation.csv")
     }
 
-    override fun writeMetric(metric: Metric) {
-        for (metricTable in metricData(metric)) {
+    override fun writeMetric(metricMapping: MetricMapping, metric: Metric) {
+        for (metricTable in metricData(metricMapping, metric)) {
             tableWriter.produce(metricTable.second, "${colocalizationOutput.outputPath}${metricTable.first}.csv")
         }
     }
