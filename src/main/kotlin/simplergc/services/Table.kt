@@ -29,7 +29,6 @@ class Table(val schema: List<String>) {
  */
 interface TableWriter {
     fun produce(table: Table, to: String)
-    fun produceFunctions()
 }
 
 /**
@@ -86,10 +85,6 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
             }
         }
     }
-
-    override fun produceFunctions() {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
-    }
 }
 
 /**
@@ -103,10 +98,6 @@ class CsvTableWriter : TableWriter {
             file,
             StandardCharsets.UTF_8,
             table.data.map { row -> row.map { it.value.toString() }.toTypedArray() })
-    }
-
-    override fun produceFunctions() {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 }
 
@@ -135,10 +126,6 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
 
         imageJTable.addAll(columns)
         uiService.show(imageJTable)
-    }
-
-    override fun produceFunctions() {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
     }
 }
 

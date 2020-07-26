@@ -9,21 +9,21 @@ import simplergc.services.TableWriter
 import simplergc.services.XlsxTableWriter
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
 
-class XlsxAggregateGenerator(column: Char, nCells: Int) : AggregateGenerator() {
+class XlsxAggregateGenerator(column: Char, numCells: Int) : AggregateGenerator() {
 
-    private val startRow = 2
-    private val endRow = nCells + startRow - 1
-    private val cellRange = "$column$startRow:$column$endRow"
+    private val startCellRow = 2
+    private val endCellRow = numCells + startCellRow - 1
+    private val cellRange = "$column$startCellRow:$column$endCellRow"
 
     override fun generateMean(): Field<*> {
         return FormulaField("AVERAGE($cellRange)")
     }
 
-    override fun generateStd(): Field<*> {
+    override fun generateStandardDeviation(): Field<*> {
         return FormulaField("STDEV($cellRange)")
     }
 
-    override fun generateSem(): Field<*> {
+    override fun generateStandardErrorOfMean(): Field<*> {
         return FormulaField("STDEV($cellRange)/SQRT(COUNT($cellRange))")
     }
 
@@ -61,7 +61,7 @@ class BatchXlsxColocalizationOutput(transductionParameters: Parameters.Transduct
                 column++, values.size
             )))
         }
-        return AggregateRow(aggregate.title, rowValues)
+        return AggregateRow(aggregate.abbreviation, rowValues)
     }
 
     override fun output() {

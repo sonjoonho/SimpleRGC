@@ -22,11 +22,11 @@ class CsvAggregateGenerator(val values: List<Int>) : AggregateGenerator() {
         return DoubleField(values.average())
     }
 
-    override fun generateStd(): Field<*> {
+    override fun generateStandardDeviation(): Field<*> {
         return DoubleField(computeStandardDeviation())
     }
 
-    override fun generateSem(): Field<*> {
+    override fun generateStandardErrorOfMean(): Field<*> {
         return DoubleField(computeStandardDeviation() / sqrt(values.size.toDouble()))
     }
 
@@ -56,11 +56,9 @@ class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transducti
         aggregate: Aggregate,
         fileValues: List<List<Int>>
     ): AggregateRow {
-        return AggregateRow(aggregate.title, fileValues.map { values ->
-            aggregate.generateValue(CsvAggregateGenerator(
-                values
-                ))
-            })
+        return AggregateRow(aggregate.abbreviation, fileValues.map { values ->
+            aggregate.generateValue(CsvAggregateGenerator(values))
+        })
     }
 
     override fun output() {

@@ -19,17 +19,17 @@ enum class Metric(val value: String, val compute: (CellAnalysis) -> Int) {
     IntDen("Raw IntDen", CellAnalysis::rawIntDen)
 }
 
-enum class Aggregate(val title: String, val generateValue: (AggregateGenerator) -> Field<*>) {
+enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
     Mean("Mean", AggregateGenerator::generateMean),
-    Std("Std", AggregateGenerator::generateStd),
-    SEM("SEM", AggregateGenerator::generateSem),
+    StandardDeviation("Std Dev", AggregateGenerator::generateStandardDeviation),
+    StandardErrorOfMean("SEM", AggregateGenerator::generateStandardErrorOfMean),
     Count("N", AggregateGenerator::generateCount)
 }
 
 abstract class AggregateGenerator {
     abstract fun generateMean(): Field<*>
-    abstract fun generateStd(): Field<*>
-    abstract fun generateSem(): Field<*>
+    abstract fun generateStandardDeviation(): Field<*>
+    abstract fun generateStandardErrorOfMean(): Field<*>
     abstract fun generateCount(): Field<*>
 }
 
@@ -38,10 +38,7 @@ abstract class BatchColocalizationOutput : Output {
     private val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
     abstract val colocalizationOutput: ColocalizationOutput
-    abstract fun generateAggregateRow(
-        aggregate: Aggregate,
-        fileValues: List<List<Int>>
-    ): AggregateRow
+    abstract fun generateAggregateRow(aggregate: Aggregate, fileValues: List<List<Int>>): AggregateRow
     abstract fun writeDocumentation()
     abstract fun writeMetric(metric: Metric)
 
