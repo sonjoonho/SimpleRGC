@@ -75,6 +75,8 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
 
     private val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
+    val transducedChannel = transductionParameters.transducedChannel
+
     companion object {
         const val PLUGIN_NAME = "RGC Transduction"
     }
@@ -133,7 +135,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
             )
         )
         for ((fileName, result) in fileNameAndResultsList) {
-            result.overlappingTransducedIntensityAnalysis.cellAnalyses.forEachIndexed { i, cellAnalysis ->
+            result.channelResults[transducedChannel].cellAnalyses.forEachIndexed { i, cellAnalysis ->
                 t.addRow(
                     TransductionAnalysisRow(
                         fileName = fileName,

@@ -67,18 +67,17 @@ class ImageJTableColocalizationOutput(
                 count = transductionEfficiency.roundToInt()
             )
         )
-
         table.addRow(
             Row(
                 label = "Mean intensity of colocalized cells",
-                count = result.overlappingTransducedIntensityAnalysis.cellAnalyses.sumBy { it.mean } / result.overlappingTransducedIntensityAnalysis.cellAnalyses.size))
+                count = result.channelResults[transducedChannel].cellAnalyses.sumBy { it.mean } / result.channelResults[transducedChannel].cellAnalyses.size))
     }
 
     override fun writeAnalysis() {
         table.addRow(Row(label = "--- Transduced Channel Analysis, Colocalized Cells ---"))
 
         // Construct column values using the channel analysis values.
-        result.overlappingTransducedIntensityAnalysis.cellAnalyses.forEachIndexed { i, cell ->
+        result.channelResults[transducedChannel].cellAnalyses.forEachIndexed { i, cell ->
             table.addRow(
                 Row(
                     "Cell ${i + 1}",

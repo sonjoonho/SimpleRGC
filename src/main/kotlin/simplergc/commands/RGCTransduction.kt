@@ -227,7 +227,6 @@ class RGCTransduction : Command, Previewable {
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
         val channelResults: List<ChannelResult>,
-        val overlappingTransducedIntensityAnalysis: ChannelResult,
         val overlappingTwoChannelCells: List<PositionedCell>
     ) {
         val transducedCellCount = overlappingTwoChannelCells.size
@@ -386,6 +385,7 @@ class RGCTransduction : Command, Previewable {
             channelImages[transducedChannel - 1],
             rois
         ))
+        channelResults.add(transductionChannelResult)
         channelResults.add(ChannelResult("Target Channel", cellColocalizationService.analyseCellIntensity(
             channelImages[targetChannel - 1],
             rois
@@ -405,8 +405,7 @@ class RGCTransduction : Command, Previewable {
         return TransductionResult(
             targetCellCount = targetCells.size,
             channelResults = channelResults,
-            overlappingTwoChannelCells = targetTransducedAnalysis.overlappingBase,
-            overlappingTransducedIntensityAnalysis = transductionChannelResult
+            overlappingTwoChannelCells = targetTransducedAnalysis.overlappingBase
         )
     }
 

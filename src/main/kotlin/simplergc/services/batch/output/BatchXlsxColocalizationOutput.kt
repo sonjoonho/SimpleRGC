@@ -75,6 +75,8 @@ class BatchXlsxColocalizationOutput(transductionParameters: Parameters.Transduct
     }
 
     override fun writeMetric(metric: Metric) {
-        tableWriter.produce(metricData(metric), metric.value)
+        for (metricTable in metricData(metric)) {
+            tableWriter.produce(metricTable.second, metricTable.first)
+        }
     }
 }
