@@ -3,6 +3,7 @@ package simplergc.services
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
+import org.apache.commons.io.FilenameUtils
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
@@ -84,11 +85,12 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
  */
 class CsvTableWriter : TableWriter {
     override fun produce(table: Table, to: String) {
-        val data = table.data
+        val filename = FilenameUtils.removeExtension(to) ?: "Untitled"
+        val file = File("$filename.csv")
         CsvWriter().write(
-            File(to),
+            file,
             StandardCharsets.UTF_8,
-            data.map { row -> row.map { it.value.toString() }.toTypedArray() })
+            table.data.map { row -> row.map { it.value.toString() }.toTypedArray() })
     }
 }
 

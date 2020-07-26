@@ -59,10 +59,12 @@ class XlsxCounterOutput(private val counterParameters: Parameters.Counter) : Cou
         writeResults()
         writeParameters()
 
-        val outputXlsxFile = File(FilenameUtils.removeExtension(counterParameters.outputFile.path) + ".xlsx")
-        val xlsxFileOut = outputXlsxFile.outputStream()
-        workbook.write(xlsxFileOut)
-        xlsxFileOut.close()
+        val filename = FilenameUtils.removeExtension(counterParameters.outputFile.path) ?: "Untitled"
+        val file = File("$filename.xlsx")
+        val outputStream = file.outputStream()
+
+        workbook.write(outputStream)
+        outputStream.close()
         workbook.close()
     }
 }
