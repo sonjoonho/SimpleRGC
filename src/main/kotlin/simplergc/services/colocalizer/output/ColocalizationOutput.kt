@@ -5,6 +5,7 @@ import simplergc.services.BaseRow
 import simplergc.services.BooleanField
 import simplergc.services.CellColocalizationService
 import simplergc.services.DoubleField
+import simplergc.services.Field
 import simplergc.services.IntField
 import simplergc.services.Output
 import simplergc.services.Parameters
@@ -43,12 +44,32 @@ data class SummaryRow(
     val fileName: String,
     val summary: TransductionResult
 ) : BaseRow {
-    override fun toList() = listOf(
-        StringField(fileName),
-        IntField(summary.targetCellCount),
-        IntField(summary.transducedCellCount),
-        DoubleField(summary.transductionEfficiency)
-    )
+    override fun toList(): List<Field<*>> {
+        val fields = mutableListOf(
+            StringField(fileName),
+            IntField(summary.targetCellCount),
+            IntField(summary.transducedCellCount),
+            DoubleField(summary.transductionEfficiency),
+            IntField(summary.channelResults[0].avgMorphologyArea)
+        )
+        // Add each channel's metric values grouped by metric
+        summary.channelResults.forEach { channelResult ->
+            fields.add(IntField(channelResult.meanFluorescenceIntensity))
+        }
+        summary.channelResults.forEach { channelResult ->
+            fields.add(IntField(channelResult.medianFluorescenceIntensity))
+        }
+        summary.channelResults.forEach { channelResult ->
+            fields.add(IntField(channelResult.minFluorescenceIntensity))
+        }
+        summary.channelResults.forEach { channelResult ->
+            fields.add(IntField(channelResult.maxFluorescenceIntensity))
+        }
+        summary.channelResults.forEach { channelResult ->
+            fields.add(IntField(channelResult.rawIntDen))
+        }
+        return fields
+    }
 }
 
 data class TransductionAnalysisRow(
@@ -109,20 +130,27 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     }
 
     fun summaryData(): Table {
-        val t = Table(
-            listOf(
-                "File Name",
-                "Number of Cells",
-                "Number of Transduced Cells",
-                "Transduction Efficiency (%)",
-                "Average Morphology Area (pixel^2)",
-                "Mean Fluorescence Intensity (a.u.)",
-                "Median Fluorescence Intensity (a.u.)",
-                "Min Fluorescence Intensity (a.u.)",
-                "Max Fluorescence Intensity (a.u.)",
-                "RawIntDen"
-            )
+        val channelNames = channelNames()
+        val schema = mutableListOf("File Name",
+            "Number of Cells",
+            "Number of Transduced Cells",
+            "Transduction Efficiency (%)",
+            "Average Morphology Area (pixel^2)"
         )
+
+        val metricColumns = listOf("Mean Fluorescence Intensity (a.u.)",
+            "Median Fluorescence Intensity (a.u.)",
+            "Min Fluominrescence Intensity (a.u.)",
+            "Max Fluorescence Intensity (a.u.)",
+            "RawIntDen")
+
+        for (metricColumn in metricColumns) {
+            for (channelName in channelNames) {
+                schema.add("$metricColumn - $channelName")
+            }
+        }
+        val t = Table(schema)
+
         // Add summary data.
         for ((fileName, result) in fileNameAndResultsList) {
             t.addRow(SummaryRow(fileName = fileName, summary = result))
