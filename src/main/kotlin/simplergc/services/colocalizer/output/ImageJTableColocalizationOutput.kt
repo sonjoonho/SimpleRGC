@@ -56,9 +56,9 @@ class ImageJTableColocalizationOutput(
 
     override fun writeSummary() {
         table.addRow(Row(label = "--- Summary ---", count = result.targetCellCount))
-        table.addRow(Row(label = "Total number of cells in cell morphology channel 1", count = result.targetCellCount))
+        table.addRow(Row(label = "Total number of cells in cell morphology channel", count = result.targetCellCount))
 
-        table.addRow(Row(label = "Transduced cells in channel 1", count = result.overlappingTwoChannelCells.size))
+        table.addRow(Row(label = "Transduced cells", count = result.overlappingTwoChannelCells.size))
 
         val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
         table.addRow(
@@ -74,21 +74,23 @@ class ImageJTableColocalizationOutput(
     }
 
     override fun writeAnalysis() {
-        table.addRow(Row(label = "--- Transduced Channel Analysis, Colocalized Cells ---"))
+        channelNames().forEachIndexed { idx, name ->
+            table.addRow(Row(label = "--- Cell Analysis, $name ---"))
 
-        // Construct column values using the channel analysis values.
-        result.channelResults[transducedChannel].cellAnalyses.forEachIndexed { i, cell ->
-            table.addRow(
-                Row(
-                    "Cell ${i + 1}",
-                    1,
-                    cell.area,
-                    cell.median,
-                    cell.mean,
-                    cell.area * cell.mean,
-                    cell.rawIntDen
+            // Construct column values using the channel analysis values.
+            result.channelResults[idx].cellAnalyses.forEachIndexed { i, cell ->
+                table.addRow(
+                    Row(
+                        "Cell ${i + 1}",
+                        1,
+                        cell.area,
+                        cell.median,
+                        cell.mean,
+                        cell.area * cell.mean,
+                        cell.rawIntDen
+                    )
                 )
-            )
+            }
         }
     }
 

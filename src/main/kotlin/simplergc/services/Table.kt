@@ -113,7 +113,7 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
 
         var columns: List<DefaultColumn<String>> = listOf()
         if (!table.schema.isNullOrEmpty()) {
-            columns = header.map { DefaultColumn(String::class.java, it.toString()) }
+            columns = header.map { DefaultColumn(String::class.java, it.value.toString()) }
         }
 
         for (row in body) {

@@ -82,10 +82,8 @@ abstract class BatchColocalizationOutput : Output {
         if (fileNameAndResultsList.size == 0) {
             return emptyList()
         }
-        // All transduction results will have the same channels
-        val firstTransductionResult = fileNameAndResultsList[0].second
-        val channelNames = firstTransductionResult.channelResults.map { it.name }
 
+        val channelNames = colocalizationOutput.channelNames()
         val transductionChannel = colocalizationOutput.transductionParameters.transducedChannel
 
         return Metric.values().map { metric: Metric ->
@@ -96,7 +94,7 @@ abstract class BatchColocalizationOutput : Output {
             } else {
                 // Compute the metric values for all channels
                 channelNames.mapIndexed { idx, name ->
-                    Pair("${metric.value}-$name", computeMetricTableForChannel(metric, idx))
+                    Pair("${metric.value} - $name", computeMetricTableForChannel(metric, idx))
                 }
             }
         }.flatten()

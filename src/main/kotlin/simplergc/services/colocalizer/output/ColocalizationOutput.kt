@@ -73,7 +73,7 @@ data class TransductionAnalysisRow(
  */
 abstract class ColocalizationOutput(val transductionParameters: Parameters.Transduction) : Output {
 
-    private val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
+    val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
     val transducedChannel = transductionParameters.transducedChannel
 
@@ -89,6 +89,15 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     abstract fun writeAnalysis()
     abstract fun writeParameters()
     abstract fun writeDocumentation()
+
+    fun channelNames(): List<String> {
+        if (fileNameAndResultsList.size == 0) {
+            return emptyList()
+        }
+        // All transduction results will have the same channels
+        val firstTransductionResult = fileNameAndResultsList[0].second
+        return firstTransductionResult.channelResults.map { it.name }
+    }
 
     fun documentationData(): Table = Table(listOf()).apply {
         addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
@@ -121,7 +130,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         return t
     }
 
-    fun analysisData(): Table {
+    fun analysisData(channelIdx: Int): Table {
         val t = Table(
             listOf(
                 "File Name",
@@ -135,7 +144,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
             )
         )
         for ((fileName, result) in fileNameAndResultsList) {
-            result.channelResults[transducedChannel].cellAnalyses.forEachIndexed { i, cellAnalysis ->
+            result.channelResults[channelIdx].cellAnalyses.forEachIndexed { i, cellAnalysis ->
                 t.addRow(
                     TransductionAnalysisRow(
                         fileName = fileName,

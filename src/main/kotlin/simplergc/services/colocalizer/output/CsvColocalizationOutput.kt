@@ -44,7 +44,9 @@ class CsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
     }
 
     override fun writeAnalysis() {
-        tableWriter.produce(analysisData(), "${outputPath}Transduced Cell Analysis.csv")
+        channelNames().forEachIndexed { idx, name ->
+            tableWriter.produce(analysisData(idx), "${outputPath}Analysis - $name.csv")
+        }
     }
 
     override fun writeParameters() {
