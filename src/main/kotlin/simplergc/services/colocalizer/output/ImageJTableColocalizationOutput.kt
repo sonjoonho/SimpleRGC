@@ -72,7 +72,7 @@ class ImageJTableColocalizationOutput(
         table.addRow(
             Row(
                 label = "Mean intensity of colocalized cells",
-                count = result.channelResults[transducedChannel].cellAnalyses.sumBy { it.mean } / result.channelResults[transducedChannel].cellAnalyses.size))
+                count = result.channelResults[transducedChannel - 1].cellAnalyses.sumBy { it.mean } / result.channelResults[transducedChannel - 1].cellAnalyses.size))
     }
 
     override fun writeAnalysis() {
