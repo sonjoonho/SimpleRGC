@@ -1,5 +1,6 @@
 package simplergc.services.batch.output
 
+import java.io.File
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.CsvTableWriter
@@ -18,10 +19,10 @@ import simplergc.services.colocalizer.output.CsvColocalizationOutput
  *
  * For some operations it delegates to colocalizationOutput.
  */
-class BatchCsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
+class BatchCsvColocalizationOutput(outputFile: File, transductionParameters: Parameters.Transduction) :
     BatchColocalizationOutput() {
 
-    override val colocalizationOutput = CsvColocalizationOutput(transductionParameters)
+    override val colocalizationOutput = CsvColocalizationOutput(outputFile, transductionParameters)
 
     override val tableWriter = CsvTableWriter()
 

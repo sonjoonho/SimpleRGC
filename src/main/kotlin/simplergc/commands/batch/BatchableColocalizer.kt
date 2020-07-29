@@ -49,7 +49,6 @@ class BatchableColocalizer(
         }
 
         val transductionParameters = Parameters.Transduction(
-            outputFile,
             shouldRemoveAxonsFromTargetChannel,
             transducedChannel,
             shouldRemoveAxonsFromTransductionChannel,
@@ -59,17 +58,18 @@ class BatchableColocalizer(
             targetChannel
         )
 
-        writeOutput(fileNameAndAnalysis, transductionParameters, outputFormat)
+        writeOutput(outputFile, fileNameAndAnalysis, transductionParameters, outputFormat)
     }
 
     private fun writeOutput(
+        outputFile: File,
         fileNameAndAnalysis: List<Pair<String, TransductionResult>>,
         transductionParameters: Parameters.Transduction,
         outputFormat: String
     ) {
         val output = when (outputFormat) {
-            OutputFormat.XLSX -> BatchXlsxColocalizationOutput(transductionParameters)
-            OutputFormat.CSV -> BatchCsvColocalizationOutput(transductionParameters)
+            OutputFormat.XLSX -> BatchXlsxColocalizationOutput(outputFile, transductionParameters)
+            OutputFormat.CSV -> BatchCsvColocalizationOutput(outputFile, transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided: $outputFormat")
         }
 

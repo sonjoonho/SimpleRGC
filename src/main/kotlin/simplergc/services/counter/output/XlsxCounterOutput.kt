@@ -13,7 +13,7 @@ data class Citation(val article: String = "The article:", val citation: String =
     override fun toList() = listOf(StringField(article), StringField(citation))
 }
 
-class XlsxCounterOutput(private val counterParameters: Parameters.Counter) : CounterOutput() {
+class XlsxCounterOutput(private val outputFile: File, private val counterParameters: Parameters.Counter) : CounterOutput() {
 
     private val workbook = XSSFWorkbook()
 
@@ -59,7 +59,7 @@ class XlsxCounterOutput(private val counterParameters: Parameters.Counter) : Cou
         writeResults()
         writeParameters()
 
-        val filename = FilenameUtils.removeExtension(counterParameters.outputFile.path) ?: "Untitled"
+        val filename = FilenameUtils.removeExtension(outputFile.path) ?: "Untitled"
         val file = File("$filename.xlsx")
         val outputStream = file.outputStream()
 

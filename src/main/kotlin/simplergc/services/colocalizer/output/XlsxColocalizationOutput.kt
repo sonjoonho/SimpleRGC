@@ -14,6 +14,7 @@ import simplergc.services.XlsxTableWriter
  * Outputs the analysis with the result of overlapping, transduced cells in XLSX format.
  */
 class XlsxColocalizationOutput(
+    private val outputFile: File,
     transductionParameters: Parameters.Transduction,
     private val workbook: XSSFWorkbook = XSSFWorkbook()
 ) :
@@ -22,7 +23,7 @@ class XlsxColocalizationOutput(
     override val tableWriter = XlsxTableWriter(workbook)
 
     fun writeWorkbook() {
-        val filename = FilenameUtils.removeExtension(transductionParameters.outputFile.path) ?: "Untitled"
+        val filename = FilenameUtils.removeExtension(outputFile.path) ?: "Untitled"
         val file = File("$filename.xlsx")
         val outputStream = file.outputStream()
 

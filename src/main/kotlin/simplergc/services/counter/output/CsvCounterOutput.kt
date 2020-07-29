@@ -1,9 +1,10 @@
 package simplergc.services.counter.output
 
+import java.io.File
 import simplergc.services.CsvTableWriter
 import simplergc.services.Parameters
 
-class CsvCounterOutput(private val counterParameters: Parameters.Counter) : CounterOutput() {
+class CsvCounterOutput(private val outputFile: File, private val counterParameters: Parameters.Counter) : CounterOutput() {
 
     override val tableWriter = CsvTableWriter()
 
@@ -23,6 +24,6 @@ class CsvCounterOutput(private val counterParameters: Parameters.Counter) : Coun
                 gaussianBlurSigma = counterParameters.gaussianBlurSigma
                 ))
         }
-        tableWriter.produce(parametersAndResultsData, counterParameters.outputFile.absolutePath)
+        tableWriter.produce(parametersAndResultsData, outputFile.absolutePath)
     }
 }

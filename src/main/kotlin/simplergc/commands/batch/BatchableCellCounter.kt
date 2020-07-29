@@ -35,7 +35,6 @@ class BatchableCellCounter(
         val imageAndCount = inputImages.zip(numCellsList)
 
         val counterParameters = Parameters.Counter(
-            outputFile,
             targetChannel,
             cellDiameterRange,
             localThresholdRadius,
@@ -43,8 +42,8 @@ class BatchableCellCounter(
         )
 
         val output = when (outputFormat) {
-            OutputFormat.CSV -> CsvCounterOutput(counterParameters)
-            OutputFormat.XLSX -> XlsxCounterOutput(counterParameters)
+            OutputFormat.CSV -> CsvCounterOutput(outputFile, counterParameters)
+            OutputFormat.XLSX -> XlsxCounterOutput(outputFile, counterParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 

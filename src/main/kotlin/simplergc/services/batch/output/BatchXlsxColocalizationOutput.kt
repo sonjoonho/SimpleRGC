@@ -1,5 +1,6 @@
 package simplergc.services.batch.output
 
+import java.io.File
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
@@ -19,12 +20,12 @@ import simplergc.services.colocalizer.output.XlsxColocalizationOutput
  *     - Parameters
  * For some operations it delegates to colocalizationOutput.
  */
-class BatchXlsxColocalizationOutput(transductionParameters: Parameters.Transduction) :
+class BatchXlsxColocalizationOutput(outputFile: File, transductionParameters: Parameters.Transduction) :
     BatchColocalizationOutput() {
 
     private val workbook = XSSFWorkbook()
 
-    override val colocalizationOutput = XlsxColocalizationOutput(transductionParameters, workbook)
+    override val colocalizationOutput = XlsxColocalizationOutput(outputFile, transductionParameters, workbook)
 
     override val tableWriter: TableWriter = XlsxTableWriter(workbook)
 

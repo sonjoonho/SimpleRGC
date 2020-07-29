@@ -279,7 +279,6 @@ class RGCTransduction : Command, Previewable {
 
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
         val transductionParameters = Parameters.Transduction(
-            outputFile!!,
             shouldRemoveAxonsFromTargetChannel,
             transducedChannel,
             shouldRemoveAxonsFromTransductionChannel,
@@ -290,8 +289,8 @@ class RGCTransduction : Command, Previewable {
         )
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableColocalizationOutput(transductionParameters, result, uiService)
-            OutputFormat.XLSX -> XlsxColocalizationOutput(transductionParameters)
-            OutputFormat.CSV -> CsvColocalizationOutput(transductionParameters)
+            OutputFormat.XLSX -> XlsxColocalizationOutput(outputFile!!, transductionParameters)
+            OutputFormat.CSV -> CsvColocalizationOutput(outputFile!!, transductionParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
