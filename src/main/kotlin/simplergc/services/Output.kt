@@ -1,7 +1,5 @@
 package simplergc.services
 
-import java.io.File
-
 /**
  * Output defines an object that can process and output a Table.
  */
@@ -22,7 +20,6 @@ interface Output {
  */
 sealed class Parameters {
     data class Counter(
-        val outputFile: File,
         val targetChannel: Int,
         val cellDiameterRange: CellDiameterRange,
         val localThresholdRadius: Int,
@@ -30,7 +27,6 @@ sealed class Parameters {
     ) : Parameters()
 
     data class Transduction(
-        val outputFile: File,
         val shouldRemoveAxonsFromTargetChannel: Boolean,
         val transducedChannel: Int,
         val shouldRemoveAxonsFromTransductionChannel: Boolean,

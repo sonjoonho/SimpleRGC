@@ -16,10 +16,13 @@ import simplergc.services.Parameters
  *     - Analysis - [Channel].csv for each channel in image
  *     - Parameters.csv
  */
-class CsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
+class CsvColocalizationOutput(
+    private val outputFile: File,
+    transductionParameters: Parameters.Transduction
+) :
     ColocalizationOutput(transductionParameters) {
 
-    val outputPath: String = "${transductionParameters.outputFile.path}${File.separator}"
+    val outputPath: String = "${outputFile.path}${File.separator}"
     override val tableWriter = CsvTableWriter()
 
     override fun output() {
@@ -31,9 +34,9 @@ class CsvColocalizationOutput(transductionParameters: Parameters.Transduction) :
     }
 
     fun createOutputFolder() {
-        val outputFileSuccess = File(transductionParameters.outputFile.path).mkdir()
+        val outputFileSuccess = File(outputFile.path).mkdir()
         // If the output file cannot be created, an IOException should be caught
-        if (!outputFileSuccess and !transductionParameters.outputFile.exists()) {
+        if (!outputFileSuccess and !outputFile.exists()) {
             throw IOException("Unable to create folder for CSV files.")
         }
     }

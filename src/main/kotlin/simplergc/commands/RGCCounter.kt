@@ -219,7 +219,6 @@ class RGCCounter : Command, Previewable {
 
     private fun writeOutput(numCells: Int, file: String, cellDiameterRange: CellDiameterRange) {
         val counterParameters = Parameters.Counter(
-            outputFile!!,
             targetChannel,
             cellDiameterRange,
             localThresholdRadius,
@@ -227,8 +226,8 @@ class RGCCounter : Command, Previewable {
         )
         val output = when (outputFormat) {
             OutputFormat.DISPLAY -> ImageJTableCounterOutput(uiService)
-            OutputFormat.XLSX -> XlsxCounterOutput(counterParameters)
-            OutputFormat.CSV -> CsvCounterOutput(counterParameters)
+            OutputFormat.XLSX -> XlsxCounterOutput(outputFile!!, counterParameters)
+            OutputFormat.CSV -> CsvCounterOutput(outputFile!!, counterParameters)
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
