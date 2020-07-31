@@ -227,7 +227,8 @@ class RGCTransduction : Command, Previewable {
     data class TransductionResult(
         val targetCellCount: Int, // Number of red cells
         val channelResults: List<ChannelResult>,
-        val overlappingTwoChannelCells: List<PositionedCell>
+        val overlappingTwoChannelCells: List<PositionedCell>,
+        val overlappingOverlaidCells: List<PositionedCell>
     ) {
         val transducedCellCount = overlappingTwoChannelCells.size
         val transductionEfficiency = ((overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100)
@@ -274,7 +275,7 @@ class RGCTransduction : Command, Previewable {
         writeOutput(image.originalFileInfo.fileName, result)
 
         image.show()
-        addToRoiManager(result.overlappingTwoChannelCells)
+        addToRoiManager(result.overlappingOverlaidCells)
     }
 
     private fun writeOutput(inputFileName: String, result: TransductionResult) {
@@ -404,7 +405,8 @@ class RGCTransduction : Command, Previewable {
         return TransductionResult(
             targetCellCount = targetCells.size,
             channelResults = channelResults,
-            overlappingTwoChannelCells = targetTransducedAnalysis.overlappingBase
+            overlappingTwoChannelCells = targetTransducedAnalysis.overlappingBase,
+            overlappingOverlaidCells = targetTransducedAnalysis.overlappingOverlaid
         )
     }
 
