@@ -1,7 +1,5 @@
 package simplergc.commands.batch.views
 
-import javax.swing.BoxLayout
-import javax.swing.SpinnerNumberModel
 import simplergc.commands.batch.controllers.RGCController
 import simplergc.commands.batch.models.RGCCounterModel
 import simplergc.commands.batch.views.common.CellDiameterField
@@ -10,6 +8,8 @@ import simplergc.commands.batch.views.common.OutputFileChooserPanel
 import simplergc.commands.batch.views.common.RGCCheckbox
 import simplergc.commands.batch.views.common.RGCSpinner
 import simplergc.commands.batch.views.common.addLabel
+import javax.swing.BoxLayout
+import javax.swing.SpinnerNumberModel
 
 class RGCCounterView(model: RGCCounterModel) : RGCView() {
 
@@ -22,7 +22,7 @@ class RGCCounterView(model: RGCCounterModel) : RGCView() {
         )
 
     private val channelModel = SpinnerNumberModel(model.channelToUse, 0, 10, 1)
-    val channelSpinner = RGCSpinner("Select channel to use", channelModel)
+    val channelSpinner = RGCSpinner("Morphology channel", channelModel)
 
     val cellDiameterChannelField = CellDiameterField(model.cellDiameter)
 

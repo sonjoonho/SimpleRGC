@@ -1,7 +1,5 @@
 package simplergc.commands.batch.views
 
-import javax.swing.BoxLayout
-import javax.swing.SpinnerNumberModel
 import simplergc.commands.batch.controllers.RGCController
 import simplergc.commands.batch.models.RGCTransductionModel
 import simplergc.commands.batch.views.common.CellDiameterField
@@ -11,6 +9,8 @@ import simplergc.commands.batch.views.common.RGCCheckbox
 import simplergc.commands.batch.views.common.RGCSpinner
 import simplergc.commands.batch.views.common.addLabel
 import simplergc.commands.batch.views.common.addMessage
+import javax.swing.BoxLayout
+import javax.swing.SpinnerNumberModel
 
 class RGCTransductionView(model: RGCTransductionModel) : RGCView() {
 
@@ -20,7 +20,7 @@ class RGCTransductionView(model: RGCTransductionModel) : RGCView() {
         RGCCheckbox("Batch process in nested sub-folders?", model.shouldProcessFilesInNestedFolders)
 
     private val targetChannelModel = SpinnerNumberModel(model.targetChannel, 1, 100, 1)
-    val targetChannelSpinner = RGCSpinner("Channel", targetChannelModel)
+    val targetChannelSpinner = RGCSpinner("Morphology channel", targetChannelModel)
 
     val shouldRemoveAxonsFromTargetChannelCheckbox =
         RGCCheckbox("Exclude axons", model.shouldRemoveAxonsFromTargetChannel)
@@ -53,21 +53,21 @@ class RGCTransductionView(model: RGCTransductionModel) : RGCView() {
             "<html><div align=\\\"left\\\">When performing batch colocalization, ensure that all input images have the same </br> channel ordering as specified below.</div></html>"
         )
 
-        addLabel(this, "Target (morphology) cells")
-
-        this.add(cellDiameterField)
+        addLabel(this, "Morphology cells")
 
         this.add(targetChannelSpinner)
 
+        this.add(cellDiameterField)
+
         this.add(shouldRemoveAxonsFromTargetChannelCheckbox)
 
-        addLabel(this, "Transduced cells")
+        addLabel(this, "Transduction cells")
 
         this.add(transductionChannelSpinner)
 
         this.add(shouldRemoveAxonsFromTransductionChannelCheckbox)
 
-        addLabel(this, "Preprocessing parameters")
+        addLabel(this, "Image processing parameters")
 
         this.add(thresholdRadiusSpinner)
         thresholdRadiusSpinner.toolTipText = "The radius of the local domain over which the threshold will be computed."
