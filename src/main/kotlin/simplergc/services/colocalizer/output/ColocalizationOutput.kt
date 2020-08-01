@@ -8,6 +8,7 @@ import simplergc.services.BooleanField
 import simplergc.services.CellColocalizationService
 import simplergc.services.DoubleField
 import simplergc.services.Field
+import simplergc.services.HeaderRow
 import simplergc.services.IntField
 import simplergc.services.Output
 import simplergc.services.Parameters
@@ -125,7 +126,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         return firstTransductionResult.channelResults.map { it.name }
     }
 
-    fun documentationData(): Table = Table(listOf()).apply {
+    fun documentationData(): Table = Table().apply {
         addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
         addRow(DocumentationRow("", ""))
         addRow(DocumentationRow("Abbreviation", "Description"))
@@ -136,7 +137,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
 
     fun summaryData(): Table {
         val channelNames = channelNames()
-        val schema = mutableListOf("File Name",
+        val headers = mutableListOf("File Name",
             "Number of Cells",
             "Number of Transduced Cells",
             "Transduction Efficiency (%)",
@@ -151,10 +152,12 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
 
         for (metricColumn in metricColumns) {
             for (channelName in channelNames) {
-                schema.add("$metricColumn - $channelName")
+                headers.add("$metricColumn - $channelName")
             }
         }
-        val t = Table(schema)
+        val t = Table()
+
+        t.addRow(HeaderRow(headers))
 
         // Add summary data.
         for ((fileName, result) in fileNameAndResultsList) {
@@ -164,18 +167,17 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     }
 
     fun analysisData(channelIdx: Int): Table {
-        val t = Table(
-            listOf(
-                "File Name",
-                "Transduced Cell",
-                "Morphology Area (pixel$UTF_8_SUP2)",
-                "Mean Fluorescence Intensity (a.u.)",
-                "Median Fluorescence Intensity (a.u.)",
-                "Min Fluorescence Intensity (a.u.)",
-                "Max Fluorescence Intensity (a.u.)",
-                "RawIntDen"
-            )
-        )
+        val t = Table()
+        t.addRow(HeaderRow(listOf(
+            "File Name",
+            "Transduced Cell",
+            "Morphology Area (pixel$UTF_8_SUP2)",
+            "Mean Fluorescence Intensity (a.u.)",
+            "Median Fluorescence Intensity (a.u.)",
+            "Min Fluorescence Intensity (a.u.)",
+            "Max Fluorescence Intensity (a.u.)",
+            "RawIntDen"
+        )))
         for ((fileName, result) in fileNameAndResultsList) {
             result.channelResults[channelIdx].cellAnalyses.forEachIndexed { i, cellAnalysis ->
                 t.addRow(
@@ -206,20 +208,19 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     ): AggregateRow
 
     fun parameterData(): Table {
-        val t = Table(
-            listOf(
-                "File Name",
-                "SimpleRGC Plugin",
-                "Plugin Version",
-                "Morphology channel",
-                "Exclude Axons from morphology channel?",
-                "Transduction channel",
-                "Exclude Axons from transduction channel?",
-                "Cell diameter range (px)",
-                "Local threshold radius",
-                "Gaussian blur sigma"
-            )
-        )
+        val t = Table()
+        t.addRow(HeaderRow(listOf(
+            "File Name",
+            "SimpleRGC Plugin",
+            "Plugin Version",
+            "Morphology channel",
+            "Exclude Axons from morphology channel?",
+            "Transduction channel",
+            "Exclude Axons from transduction channel?",
+            "Cell diameter range (px)",
+            "Local threshold radius",
+            "Gaussian blur sigma"
+        )))
         // Add parameter data.
         for ((fileName, _) in fileNameAndResultsList) {
             t.addRow(

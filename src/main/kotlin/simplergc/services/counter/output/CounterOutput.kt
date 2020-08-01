@@ -2,6 +2,7 @@ package simplergc.services.counter.output
 
 import simplergc.services.BaseRow
 import simplergc.services.DoubleField
+import simplergc.services.HeaderRow
 import simplergc.services.IntField
 import simplergc.services.Output
 import simplergc.services.StringField
@@ -22,13 +23,13 @@ abstract class CounterOutput : Output {
         fileNameAndCountList.add(Pair(file, count))
     }
 
-    protected val resultsData = Table(listOf("File Name", "Cell Count"))
+    protected val resultsData = Table().apply { addRow(HeaderRow(listOf("File Name", "Cell Count"))) }
     data class ResultsRow(val fileName: String, val count: Int) : BaseRow {
         override fun toList() = listOf(StringField(fileName), IntField(count))
     }
 
-    protected val parametersData = Table(
-        listOf(
+    protected val parametersData = Table().apply {
+        addRow(HeaderRow(listOf(
             "File Name",
             "Simple RGC Plugin",
             "Version",
@@ -37,8 +38,9 @@ abstract class CounterOutput : Output {
             "Largest Cell Diameter (px)",
             "Local Threshold Radius",
             "Gaussian Blur Sigma"
-        )
-    )
+        )))
+    }
+
     data class ParametersRow(
         val fileName: String,
         val pluginName: String = PLUGIN_NAME,
@@ -61,7 +63,7 @@ abstract class CounterOutput : Output {
         )
     }
 
-    protected val parametersAndResultsData = Table(
+    protected val parametersAndResultsData = Table().apply { addRow(HeaderRow(
         listOf(
             "File Name",
             "Cell Count",
@@ -73,7 +75,7 @@ abstract class CounterOutput : Output {
             "Local Threshold Radius",
             "Gaussian Blur Sigma"
         )
-    )
+    )) }
 
     data class ParametersResultsRow(
         val fileName: String,

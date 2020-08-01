@@ -18,10 +18,9 @@ private const val UTF_8_BOM = "\ufeff"
 /**
  * Table represents data in terms of rows and columns.
  */
-class Table(val schema: List<String>) {
+class Table {
     // data is a rows x columns representation of a table.
-    val data: MutableList<List<Field<*>>> =
-        if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) })
+    val data: MutableList<List<Field<*>>> = mutableListOf()
 
     fun addRow(row: BaseRow) {
         data.add(row.toList())
@@ -42,29 +41,16 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
     override fun produce(table: Table, to: String) {
         val currSheet = workbook.createSheet(to)
         val data = table.data
-        val header = data[0]
 
         var rowNum = 0
-        // Set the header.
-        if (!table.schema.isNullOrEmpty()) {
-            val headerFont = workbook.createFont()
-            headerFont.bold = true
-            headerFont.color = IndexedColors.BLUE.index
-            val headerCellStyle = workbook.createCellStyle()
-            headerCellStyle.setFont(headerFont)
-            val headerRow = currSheet.createRow(rowNum)
+        // Set the header style.
+        val headerFont = workbook.createFont()
+        headerFont.bold = true
+        headerFont.color = IndexedColors.BLUE.index
+        val headerCellStyle = workbook.createCellStyle()
+        headerCellStyle.setFont(headerFont)
 
-            for (i in header.indices) {
-                val cell = headerRow.createCell(i)
-                cell.cellStyle = headerCellStyle
-                cell.setCellValue(header[i].value.toString())
-            }
-            rowNum = 1
-        }
-
-        val body = data.drop(rowNum)
-
-        for (row in body) {
+        for (row in data) {
             val currRow = currSheet.createRow(rowNum)
             for (i in row.indices) {
                 val currCell = currRow.createCell(i)
@@ -73,6 +59,10 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
                     is IntField -> currCell.setCellValue(f.value.toDouble()) // Does not support Ints.
                     is DoubleField -> currCell.setCellValue(f.value)
                     is BooleanField -> currCell.setCellValue(f.value)
+                    is HeaderField -> {
+                        currCell.cellStyle = headerCellStyle
+                        currCell.setCellValue(f.value)
+                    }
                     is FormulaField -> {
                         currCell.setCellType(CellType.FORMULA)
                         currCell.cellFormula = f.value
@@ -82,7 +72,7 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
             rowNum++
         }
         if (data.isNotEmpty()) {
-            for (i in header.indices) {
+            for (i in data[0].indices) {
                 currSheet.autoSizeColumn(i)
             }
         }
@@ -112,15 +102,10 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
     override fun produce(table: Table, to: String) {
         val imageJTable = DefaultGenericTable()
         val data = table.data
-        val header = data[0]
-        val body = data.drop(1)
 
-        var columns: List<DefaultColumn<String>> = listOf()
-        if (!table.schema.isNullOrEmpty()) {
-            columns = header.map { DefaultColumn(String::class.java, it.value.toString()) }
-        }
+        val columns: List<DefaultColumn<String>> = listOf()
 
-        for (row in body) {
+        for (row in data) {
             for (colIdx in row.indices) {
                 columns[colIdx].add(row[colIdx].value.toString())
             }
@@ -133,6 +118,10 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
 
 interface BaseRow {
     fun toList(): List<Field<*>>
+}
+
+data class HeaderRow(val headers: List<String>) : BaseRow {
+    override fun toList(): List<Field<*>> = headers.map { HeaderField(it) }
 }
 
 // A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
@@ -158,6 +147,7 @@ class IntField(value: Int) : Field<Int>(value)
 class DoubleField(value: Double) : Field<Double>(value)
 class BooleanField(value: Boolean) : Field<Boolean>(value)
 class FormulaField(value: String) : Field<String>(value)
+class HeaderField(value: String) : Field<String>(value)
 
 enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
     Mean("Mean", AggregateGenerator::generateMean),
