@@ -8,9 +8,11 @@ import simplergc.services.AggregateRow
 import simplergc.services.Field
 import simplergc.services.HeaderField
 import simplergc.services.HeaderRow
-import simplergc.services.MergedHeaderField
+import simplergc.services.HorizontallyMergedHeaderField
 import simplergc.services.Parameters
+import simplergc.services.StringField
 import simplergc.services.Table
+import simplergc.services.VerticallyMergedHeaderField
 import simplergc.services.XlsxAggregateGenerator
 import simplergc.services.XlsxTableWriter
 
@@ -51,19 +53,19 @@ class XlsxColocalizationOutput(
             "Number of Transduced Cells",
             "Transduction Efficiency (%)",
             "Average Morphology Area (pixel^2)"
-        ).map { HeaderField(it) }
+        ).map { VerticallyMergedHeaderField(HeaderField(it), 2) }
 
         val metricColumns = listOf("Mean Fluorescence Intensity (a.u.)",
             "Median Fluorescence Intensity (a.u.)",
-            "Min Fluominrescence Intensity (a.u.)",
+            "Min Fluorescence Intensity (a.u.)",
             "Max Fluorescence Intensity (a.u.)",
-            "RawIntDen").map { MergedHeaderField(HeaderField(it), channelNames.size) }
+            "RawIntDen").map { HorizontallyMergedHeaderField(HeaderField(it), channelNames.size) }
 
         val t = Table()
 
         t.addRow(HeaderRow(headers + metricColumns))
 
-        val subHeaders = MutableList(headers.size) { HeaderField("") }
+        val subHeaders: MutableList<Field<*>> = MutableList(headers.size) { StringField("") }
 
         for (metricColumn in metricColumns) {
             for (channelName in channelNames) {

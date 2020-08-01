@@ -2,6 +2,7 @@ package simplergc.services
 
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.pow
@@ -23,10 +24,10 @@ private const val UTF_8_BOM = "\ufeff"
  */
 class Table {
     // data is a rows x columns representation of a table.
-    val data: MutableList<List<Field<*>>> = mutableListOf()
+    val data: MutableList<BaseRow> = mutableListOf()
 
     fun addRow(row: BaseRow) {
-        data.add(row.toList())
+        data.add(row)
     }
 }
 
@@ -62,8 +63,9 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
         for (row in data) {
             val currRow = currSheet.createRow(rowNum)
             var colNum = 0
-            for (i in row.indices) {
-                val field = row[i]
+            val fields = row.toList()
+            for (i in fields.indices) {
+                val field = fields[i]
                 val currCell = currRow.createCell(colNum)
                 when (field) {
                     is StringField -> currCell.setCellValue(field.value)
@@ -78,11 +80,16 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
                         currCell.cellStyle = headerCellStyle
                         currCell.setCellValue(field.value)
                     }
-                    is MergedHeaderField -> {
+                    is HorizontallyMergedHeaderField -> {
                         currCell.cellStyle = mergedCellStyle
                         currCell.setCellValue(field.value)
-                        currSheet.addMergedRegion(CellRangeAddress(rowNum, rowNum, colNum, colNum + field.span - 1))
-                        colNum += field.span - 1
+                        currSheet.addMergedRegion(CellRangeAddress(rowNum, rowNum, colNum, colNum + field.columnSpan - 1))
+                        colNum += field.columnSpan - 1
+                    }
+                    is VerticallyMergedHeaderField -> {
+                        currCell.cellStyle = headerCellStyle
+                        currCell.setCellValue(field.value)
+                        currSheet.addMergedRegion(CellRangeAddress(rowNum, rowNum + field.rowSpan - 1, colNum, colNum))
                     }
                 }
                 colNum++
@@ -91,7 +98,7 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
             rowNum++
         }
         for (i in 0 until maxCols) {
-            currSheet.autoSizeColumn(i)
+            currSheet.autoSizeColumn(i, true)
         }
     }
 }
@@ -106,7 +113,7 @@ class CsvTableWriter : TableWriter {
         CsvWriter().write(
             file,
             StandardCharsets.UTF_8,
-            table.data.map { row -> arrayOf(UTF_8_BOM) + row.map { it.value.toString() }.toTypedArray() })
+            table.data.map { row -> arrayOf(UTF_8_BOM) + row.toList().map { it.value.toString() }.toTypedArray() })
     }
 }
 
@@ -123,8 +130,9 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
         val columns: List<DefaultColumn<String>> = listOf()
 
         for (row in data) {
-            for (colIdx in row.indices) {
-                columns[colIdx].add(row[colIdx].value.toString())
+            val fields = row.toList()
+            for (colIdx in fields.indices) {
+                columns[colIdx].add(fields[colIdx].value.toString())
             }
         }
 
@@ -135,10 +143,6 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
 
 interface BaseRow {
     fun toList(): List<Field<*>>
-}
-
-data class HeaderRow(val headers: List<Field<*>>) : BaseRow {
-    override fun toList(): List<Field<*>> = headers
 }
 
 // A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
@@ -158,6 +162,10 @@ data class AggregateRow(val name: String, val values: List<Field<*>>, val spaces
     }
 }
 
+data class HeaderRow(val headers: List<Field<*>>) : BaseRow {
+    override fun toList(): List<Field<*>> = headers
+}
+
 sealed class Field<V>(val value: V)
 class StringField(value: String) : Field<String>(value)
 class IntField(value: Int) : Field<Int>(value)
@@ -165,7 +173,21 @@ class DoubleField(value: Double) : Field<Double>(value)
 class BooleanField(value: Boolean) : Field<Boolean>(value)
 class FormulaField(value: String) : Field<String>(value)
 class HeaderField(value: String) : Field<String>(value)
-class MergedHeaderField(field: HeaderField, val span: Int) : Field<String>(field.value)
+class HorizontallyMergedHeaderField(field: HeaderField, val columnSpan: Int) : Field<String>(field.value) {
+    init {
+        if (columnSpan < 0) {
+            throw IllegalArgumentException("Cannot have negative span for merged header")
+        }
+    }
+}
+
+class VerticallyMergedHeaderField(field: HeaderField, val rowSpan: Int) : Field<String>(field.value) {
+    init {
+        if (rowSpan < 0) {
+            throw IllegalArgumentException("Cannot have negative span for merged header")
+        }
+    }
+}
 
 enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
     Mean("Mean", AggregateGenerator::generateMean),
