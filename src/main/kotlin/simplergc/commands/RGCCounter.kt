@@ -7,6 +7,8 @@ import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.frame.RoiManager
+import java.io.File
+import java.io.IOException
 import net.imagej.ImageJ
 import org.apache.commons.io.FilenameUtils
 import org.scijava.ItemVisibility
@@ -31,8 +33,6 @@ import simplergc.services.counter.output.CsvCounterOutput
 import simplergc.services.counter.output.ImageJTableCounterOutput
 import simplergc.services.counter.output.XlsxCounterOutput
 import simplergc.widgets.AlignedTextWidget
-import java.io.File
-import java.io.IOException
 
 /**
  * Segments and counts cells which are almost circular in shape which are likely

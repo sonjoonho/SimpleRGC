@@ -1,5 +1,11 @@
 package simplergc.commands.batch
 
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.util.prefs.Preferences
+import javax.swing.BorderFactory
+import javax.swing.JFrame
+import javax.swing.JTabbedPane
 import net.imagej.ImageJ
 import org.scijava.Context
 import org.scijava.app.StatusService
@@ -14,12 +20,6 @@ import simplergc.commands.batch.models.RGCTransductionModel
 import simplergc.commands.batch.views.RGCCounterView
 import simplergc.commands.batch.views.RGCTransductionView
 import simplergc.services.CellSegmentationService
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.util.prefs.Preferences
-import javax.swing.BorderFactory
-import javax.swing.JFrame
-import javax.swing.JTabbedPane
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Batch")
 class RGCBatch : Command {
