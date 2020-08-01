@@ -3,11 +3,14 @@ package simplergc.services
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
 import java.nio.charset.StandardCharsets
+import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sqrt
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
@@ -50,31 +53,45 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
         val headerCellStyle = workbook.createCellStyle()
         headerCellStyle.setFont(headerFont)
 
+        val mergedCellStyle = workbook.createCellStyle()
+        mergedCellStyle.setFont(headerFont)
+        mergedCellStyle.setAlignment(HorizontalAlignment.CENTER)
+
+        var maxCols = 0
+
         for (row in data) {
             val currRow = currSheet.createRow(rowNum)
+            var colNum = 0
             for (i in row.indices) {
-                val currCell = currRow.createCell(i)
-                when (val f = row[i]) {
-                    is StringField -> currCell.setCellValue(f.value)
-                    is IntField -> currCell.setCellValue(f.value.toDouble()) // Does not support Ints.
-                    is DoubleField -> currCell.setCellValue(f.value)
-                    is BooleanField -> currCell.setCellValue(f.value)
-                    is HeaderField -> {
-                        currCell.cellStyle = headerCellStyle
-                        currCell.setCellValue(f.value)
-                    }
+                val field = row[i]
+                val currCell = currRow.createCell(colNum)
+                when (field) {
+                    is StringField -> currCell.setCellValue(field.value)
+                    is IntField -> currCell.setCellValue(field.value.toDouble()) // Does not support Ints.
+                    is DoubleField -> currCell.setCellValue(field.value)
+                    is BooleanField -> currCell.setCellValue(field.value)
                     is FormulaField -> {
                         currCell.setCellType(CellType.FORMULA)
-                        currCell.cellFormula = f.value
+                        currCell.cellFormula = field.value
+                    }
+                    is HeaderField -> {
+                        currCell.cellStyle = headerCellStyle
+                        currCell.setCellValue(field.value)
+                    }
+                    is MergedHeaderField -> {
+                        currCell.cellStyle = mergedCellStyle
+                        currCell.setCellValue(field.value)
+                        currSheet.addMergedRegion(CellRangeAddress(rowNum, rowNum, colNum, colNum + field.span - 1))
+                        colNum += field.span - 1
                     }
                 }
+                colNum++
             }
+            maxCols = max(maxCols, colNum)
             rowNum++
         }
-        if (data.isNotEmpty()) {
-            for (i in data[0].indices) {
-                currSheet.autoSizeColumn(i)
-            }
+        for (i in 0 until maxCols) {
+            currSheet.autoSizeColumn(i)
         }
     }
 }
@@ -120,8 +137,8 @@ interface BaseRow {
     fun toList(): List<Field<*>>
 }
 
-data class HeaderRow(val headers: List<String>) : BaseRow {
-    override fun toList(): List<Field<*>> = headers.map { HeaderField(it) }
+data class HeaderRow(val headers: List<Field<*>>) : BaseRow {
+    override fun toList(): List<Field<*>> = headers
 }
 
 // A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
@@ -148,6 +165,7 @@ class DoubleField(value: Double) : Field<Double>(value)
 class BooleanField(value: Boolean) : Field<Boolean>(value)
 class FormulaField(value: String) : Field<String>(value)
 class HeaderField(value: String) : Field<String>(value)
+class MergedHeaderField(field: HeaderField, val span: Int) : Field<String>(field.value)
 
 enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
     Mean("Mean", AggregateGenerator::generateMean),

@@ -33,7 +33,7 @@ class ImageJTableColocalizationOutput(
         "Mean",
         "Integrated Density",
         "Raw Integrated Density"
-    ))) }
+    ).map { StringField(it) })) }
 
     data class Row(
         val label: String,

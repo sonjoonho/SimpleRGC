@@ -6,7 +6,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.Field
+import simplergc.services.HeaderField
+import simplergc.services.HeaderRow
+import simplergc.services.MergedHeaderField
 import simplergc.services.Parameters
+import simplergc.services.Table
 import simplergc.services.XlsxAggregateGenerator
 import simplergc.services.XlsxTableWriter
 
@@ -38,6 +42,42 @@ class XlsxColocalizationOutput(
         writeAnalysis()
         writeParameters()
         writeWorkbook()
+    }
+
+    override fun summaryData(): Table {
+        val channelNames = channelNames()
+        val headers = mutableListOf("File Name",
+            "Number of Cells",
+            "Number of Transduced Cells",
+            "Transduction Efficiency (%)",
+            "Average Morphology Area (pixel^2)"
+        ).map { HeaderField(it) }
+
+        val metricColumns = listOf("Mean Fluorescence Intensity (a.u.)",
+            "Median Fluorescence Intensity (a.u.)",
+            "Min Fluominrescence Intensity (a.u.)",
+            "Max Fluorescence Intensity (a.u.)",
+            "RawIntDen").map { MergedHeaderField(HeaderField(it), channelNames.size) }
+
+        val t = Table()
+
+        t.addRow(HeaderRow(headers + metricColumns))
+
+        val subHeaders = MutableList(headers.size) { HeaderField("") }
+
+        for (metricColumn in metricColumns) {
+            for (channelName in channelNames) {
+                subHeaders.add(HeaderField(channelName))
+            }
+        }
+
+        t.addRow(HeaderRow(subHeaders))
+
+        // Add summary data.
+        for ((fileName, result) in fileNameAndResultsList) {
+            t.addRow(SummaryRow(fileName = fileName, summary = result))
+        }
+        return t
     }
 
     override fun writeDocumentation() {

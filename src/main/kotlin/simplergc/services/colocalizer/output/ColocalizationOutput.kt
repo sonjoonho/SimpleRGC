@@ -8,6 +8,7 @@ import simplergc.services.BooleanField
 import simplergc.services.CellColocalizationService
 import simplergc.services.DoubleField
 import simplergc.services.Field
+import simplergc.services.HeaderField
 import simplergc.services.HeaderRow
 import simplergc.services.IntField
 import simplergc.services.Output
@@ -135,7 +136,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
     }
 
-    fun summaryData(): Table {
+    open fun summaryData(): Table {
         val channelNames = channelNames()
         val headers = mutableListOf("File Name",
             "Number of Cells",
@@ -157,7 +158,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         }
         val t = Table()
 
-        t.addRow(HeaderRow(headers))
+        t.addRow(HeaderRow(headers.map { HeaderField(it) }))
 
         // Add summary data.
         for ((fileName, result) in fileNameAndResultsList) {
@@ -177,7 +178,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
             "Min Fluorescence Intensity (a.u.)",
             "Max Fluorescence Intensity (a.u.)",
             "RawIntDen"
-        )))
+        ).map { HeaderField(it) }))
         for ((fileName, result) in fileNameAndResultsList) {
             result.channelResults[channelIdx].cellAnalyses.forEachIndexed { i, cellAnalysis ->
                 t.addRow(
@@ -220,7 +221,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
             "Cell diameter range (px)",
             "Local threshold radius",
             "Gaussian blur sigma"
-        )))
+        ).map { StringField(it) }))
         // Add parameter data.
         for ((fileName, _) in fileNameAndResultsList) {
             t.addRow(

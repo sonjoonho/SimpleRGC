@@ -5,6 +5,7 @@ import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.CellColocalizationService.CellAnalysis
+import simplergc.services.HeaderField
 import simplergc.services.HeaderRow
 import simplergc.services.MetricRow
 import simplergc.services.Output
@@ -130,7 +131,7 @@ abstract class BatchColocalizationOutput : Output {
     }
 
     private fun computeMetricTableForChannel(metric: Metric, channelIdx: Int): Table {
-        val headers = mutableListOf("Transduced Cell")
+        val headers = mutableListOf(HeaderField("Transduced Cell"))
         var maxRows = 0
 
         // Generate all of the values for each file
@@ -143,7 +144,7 @@ abstract class BatchColocalizationOutput : Output {
             }
             fileValues.add(Pair(fileName, cellValues))
             rawValues.add(cellValues)
-            headers.add(fileName)
+            headers.add(HeaderField(fileName))
             maxRows = max(maxRows, cellValues.size)
         }
 

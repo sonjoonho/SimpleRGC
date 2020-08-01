@@ -2,6 +2,7 @@ package simplergc.services.counter.output
 
 import simplergc.services.BaseRow
 import simplergc.services.DoubleField
+import simplergc.services.HeaderField
 import simplergc.services.HeaderRow
 import simplergc.services.IntField
 import simplergc.services.Output
@@ -23,7 +24,7 @@ abstract class CounterOutput : Output {
         fileNameAndCountList.add(Pair(file, count))
     }
 
-    protected val resultsData = Table().apply { addRow(HeaderRow(listOf("File Name", "Cell Count"))) }
+    protected val resultsData = Table().apply { addRow(HeaderRow(listOf("File Name", "Cell Count").map { HeaderField(it) })) }
     data class ResultsRow(val fileName: String, val count: Int) : BaseRow {
         override fun toList() = listOf(StringField(fileName), IntField(count))
     }
@@ -38,7 +39,7 @@ abstract class CounterOutput : Output {
             "Largest Cell Diameter (px)",
             "Local Threshold Radius",
             "Gaussian Blur Sigma"
-        )))
+        ).map { HeaderField(it) }))
     }
 
     data class ParametersRow(
@@ -74,7 +75,7 @@ abstract class CounterOutput : Output {
             "Largest Cell Diameter (px)",
             "Local Threshold Radius",
             "Gaussian Blur Sigma"
-        )
+        ).map { HeaderField(it) }
     )) }
 
     data class ParametersResultsRow(
