@@ -20,6 +20,8 @@ unzip -q fiji-linux64.zip
 # Install the package.
 printf "Installing the package\n"
 cd "$TRAVIS_BUILD_DIR"/
+# TODO(#194): Temporary workaround.
+mvn deploy:deploy-file -DgroupId=org.renjin -DartifactId=renjin-script-engine -Dversion=0.8.1906 -Durl=file:./local-maven-repo/ -DrepositoryId=local-maven-repo -DupdateReleaseInfo=true -Dfile=./local-maven-repo/jars/renjin-script-engine-0.8.1906.jar
 mvn -q clean install -Dscijava.app.directory="$IJ_PATH" -Dscijava.deleteOtherVersions=true
 
 # Deploy the package
