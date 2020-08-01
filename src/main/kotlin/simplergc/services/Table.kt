@@ -203,11 +203,10 @@ abstract class AggregateGenerator {
     abstract fun generateCount(): Field<*>
 }
 
-class XlsxAggregateGenerator(column: Char, numCells: Int) : AggregateGenerator() {
+class XlsxAggregateGenerator(startRow: Int, column: Char, numCells: Int) : AggregateGenerator() {
 
-    private val startCellRow = 2
-    private val endCellRow = numCells + startCellRow - 1
-    private val cellRange = "$column$startCellRow:$column$endCellRow"
+    private val endCellRow = numCells + startRow - 1
+    private val cellRange = "$column$startRow:$column$endCellRow"
 
     override fun generateMean(): Field<*> {
         return FormulaField("AVERAGE($cellRange)")

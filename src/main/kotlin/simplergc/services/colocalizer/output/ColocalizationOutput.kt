@@ -15,7 +15,6 @@ import simplergc.services.Output
 import simplergc.services.Parameters
 import simplergc.services.StringField
 import simplergc.services.Table
-import simplergc.services.batch.output.Metric
 
 private const val UTF_8_SUP2 = "\u00b2"
 
@@ -117,6 +116,11 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     abstract fun writeAnalysis()
     abstract fun writeParameters()
     abstract fun writeDocumentation()
+    abstract fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Int>>,
+        spaces: Int
+    ): AggregateRow
 
     fun channelNames(): List<String> {
         if (fileNameAndResultsList.size == 0) {
@@ -136,47 +140,6 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
     }
 
-    fun analysisData(channelIdx: Int): Table {
-        val t = Table()
-        t.addRow(HeaderRow(listOf(
-            "File Name",
-            "Transduced Cell",
-            "Morphology Area (pixel$UTF_8_SUP2)",
-            "Mean Fluorescence Intensity (a.u.)",
-            "Median Fluorescence Intensity (a.u.)",
-            "Min Fluorescence Intensity (a.u.)",
-            "Max Fluorescence Intensity (a.u.)",
-            "RawIntDen"
-        ).map { HeaderField(it) }))
-        for ((fileName, result) in fileNameAndResultsList) {
-            result.channelResults[channelIdx].cellAnalyses.forEachIndexed { i, cellAnalysis ->
-                t.addRow(
-                    TransductionAnalysisRow(
-                        fileName = fileName,
-                        transducedCell = i + 1,
-                        cellAnalysis = cellAnalysis
-                    )
-                )
-            }
-            Aggregate.values().forEach {
-                val rawValues = mutableListOf<List<Int>>()
-                Metric.values().forEach { metric ->
-                    rawValues.add(result.channelResults[channelIdx].cellAnalyses.map { cell ->
-                        metric.compute(cell)
-                    })
-                }
-                t.addRow(generateAggregateRow(it, rawValues, spaces = 1))
-            }
-        }
-        return t
-    }
-
-    abstract fun generateAggregateRow(
-        aggregate: Aggregate,
-        rawValues: List<List<Int>>,
-        spaces: Int
-    ): AggregateRow
-
     fun parameterData(): Table {
         val t = Table()
         t.addRow(HeaderRow(listOf(
@@ -190,7 +153,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
             "Cell diameter range (px)",
             "Local threshold radius",
             "Gaussian blur sigma"
-        ).map { StringField(it) }))
+        ).map { HeaderField(it) }))
         // Add parameter data.
         for ((fileName, _) in fileNameAndResultsList) {
             t.addRow(

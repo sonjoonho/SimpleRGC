@@ -10,6 +10,7 @@ import simplergc.services.HeaderField
 import simplergc.services.HeaderRow
 import simplergc.services.Parameters
 import simplergc.services.Table
+import simplergc.services.batch.output.Metric
 
 /**
  * Outputs multiple CSVs into an output folder.
@@ -81,7 +82,38 @@ class CsvColocalizationOutput(
 
     override fun writeAnalysis() {
         channelNames().forEachIndexed { idx, name ->
-            tableWriter.produce(analysisData(idx), "${outputPath}Analysis - $name.csv")
+            val t = Table()
+            t.addRow(HeaderRow(listOf(
+                "File Name",
+                "Transduced Cell",
+                "Morphology Area (pixel^2)",
+                "Mean Fluorescence Intensity (a.u.)",
+                "Median Fluorescence Intensity (a.u.)",
+                "Min Fluorescence Intensity (a.u.)",
+                "Max Fluorescence Intensity (a.u.)",
+                "RawIntDen"
+            ).map { HeaderField(it) }))
+            for ((fileName, result) in fileNameAndResultsList) {
+                result.channelResults[idx].cellAnalyses.forEachIndexed { i, cellAnalysis ->
+                    t.addRow(
+                        TransductionAnalysisRow(
+                            fileName = fileName,
+                            transducedCell = i + 1,
+                            cellAnalysis = cellAnalysis
+                        )
+                    )
+                }
+                Aggregate.values().forEach {
+                    val rawValues = mutableListOf<List<Int>>()
+                    Metric.values().forEach { metric ->
+                        rawValues.add(result.channelResults[idx].cellAnalyses.map { cell ->
+                            metric.compute(cell)
+                        })
+                    }
+                    t.addRow(generateAggregateRow(it, rawValues, spaces = 1))
+                }
+            }
+            tableWriter.produce(t, "${outputPath}Analysis - $name.csv")
         }
     }
 
