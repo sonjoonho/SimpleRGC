@@ -69,7 +69,7 @@ class RGCTransduction : Command, Previewable {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Morphology cells",
+        label = "Morphology channel",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
@@ -97,7 +97,7 @@ class RGCTransduction : Command, Previewable {
     var shouldRemoveAxonsFromTargetChannel: Boolean = false
 
     @Parameter(
-        label = "Transduction cells",
+        label = "Transduction channel",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )

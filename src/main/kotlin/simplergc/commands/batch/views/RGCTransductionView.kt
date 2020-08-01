@@ -53,7 +53,7 @@ class RGCTransductionView(model: RGCTransductionModel) : RGCView() {
             "<html><div align=\\\"left\\\">When performing batch colocalization, ensure that all input images have the same </br> channel ordering as specified below.</div></html>"
         )
 
-        addLabel(this, "Morphology cells")
+        addLabel(this, "Morphology channel")
 
         this.add(targetChannelSpinner)
 
@@ -61,7 +61,7 @@ class RGCTransductionView(model: RGCTransductionModel) : RGCView() {
 
         this.add(shouldRemoveAxonsFromTargetChannelCheckbox)
 
-        addLabel(this, "Transduction cells")
+        addLabel(this, "Transduction channel")
 
         this.add(transductionChannelSpinner)
 
