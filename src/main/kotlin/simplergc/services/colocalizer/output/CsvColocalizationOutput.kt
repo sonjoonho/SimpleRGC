@@ -6,7 +6,10 @@ import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
+import simplergc.services.HeaderField
+import simplergc.services.HeaderRow
 import simplergc.services.Parameters
+import simplergc.services.Table
 
 /**
  * Outputs multiple CSVs into an output folder.
@@ -46,7 +49,34 @@ class CsvColocalizationOutput(
     }
 
     override fun writeSummary() {
-        tableWriter.produce(summaryData(), "${outputPath}Summary.csv")
+        val channelNames = channelNames()
+        val headers = mutableListOf("File Name",
+            "Number of Cells",
+            "Number of Transduced Cells",
+            "Transduction Efficiency (%)",
+            "Average Morphology Area (pixel^2)"
+        )
+
+        val metricColumns = listOf("Mean Fluorescence Intensity (a.u.)",
+            "Median Fluorescence Intensity (a.u.)",
+            "Min Fluominrescence Intensity (a.u.)",
+            "Max Fluorescence Intensity (a.u.)",
+            "RawIntDen")
+
+        for (metricColumn in metricColumns) {
+            for (channelName in channelNames) {
+                headers.add("$metricColumn - $channelName")
+            }
+        }
+        val t = Table()
+
+        t.addRow(HeaderRow(headers.map { HeaderField(it) }))
+
+        // Add summary data.
+        for ((fileName, result) in fileNameAndResultsList) {
+            t.addRow(SummaryRow(fileName = fileName, summary = result))
+        }
+        tableWriter.produce(t, "${outputPath}Summary.csv")
     }
 
     override fun writeAnalysis() {

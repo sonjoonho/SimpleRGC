@@ -136,37 +136,6 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
     }
 
-    open fun summaryData(): Table {
-        val channelNames = channelNames()
-        val headers = mutableListOf("File Name",
-            "Number of Cells",
-            "Number of Transduced Cells",
-            "Transduction Efficiency (%)",
-            "Average Morphology Area (pixel$UTF_8_SUP2)"
-        )
-
-        val metricColumns = listOf("Mean Fluorescence Intensity (a.u.)",
-            "Median Fluorescence Intensity (a.u.)",
-            "Min Fluominrescence Intensity (a.u.)",
-            "Max Fluorescence Intensity (a.u.)",
-            "RawIntDen")
-
-        for (metricColumn in metricColumns) {
-            for (channelName in channelNames) {
-                headers.add("$metricColumn - $channelName")
-            }
-        }
-        val t = Table()
-
-        t.addRow(HeaderRow(headers.map { HeaderField(it) }))
-
-        // Add summary data.
-        for ((fileName, result) in fileNameAndResultsList) {
-            t.addRow(SummaryRow(fileName = fileName, summary = result))
-        }
-        return t
-    }
-
     fun analysisData(channelIdx: Int): Table {
         val t = Table()
         t.addRow(HeaderRow(listOf(

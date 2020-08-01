@@ -46,7 +46,26 @@ class XlsxColocalizationOutput(
         writeWorkbook()
     }
 
-    override fun summaryData(): Table {
+    override fun writeDocumentation() {
+        tableWriter.produce(documentationData(), "Documentation")
+    }
+
+    override fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Int>>,
+        spaces: Int
+    ): AggregateRow {
+        var column = 'B' + spaces
+        val rowValues = mutableListOf<Field<*>>()
+        rawValues.forEach { values ->
+            rowValues.add(aggregate.generateValue(
+                XlsxAggregateGenerator(column++, values.size)
+            ))
+        }
+        return AggregateRow(aggregate.abbreviation, rowValues, spaces)
+    }
+
+    override fun writeSummary() {
         val channelNames = channelNames()
         val headers = mutableListOf("File Name",
             "Number of Cells",
@@ -79,30 +98,7 @@ class XlsxColocalizationOutput(
         for ((fileName, result) in fileNameAndResultsList) {
             t.addRow(SummaryRow(fileName = fileName, summary = result))
         }
-        return t
-    }
-
-    override fun writeDocumentation() {
-        tableWriter.produce(documentationData(), "Documentation")
-    }
-
-    override fun generateAggregateRow(
-        aggregate: Aggregate,
-        rawValues: List<List<Int>>,
-        spaces: Int
-    ): AggregateRow {
-        var column = 'B' + spaces
-        val rowValues = mutableListOf<Field<*>>()
-        rawValues.forEach { values ->
-            rowValues.add(aggregate.generateValue(
-                XlsxAggregateGenerator(column++, values.size)
-            ))
-        }
-        return AggregateRow(aggregate.abbreviation, rowValues, spaces)
-    }
-
-    override fun writeSummary() {
-        tableWriter.produce(summaryData(), "Summary")
+        tableWriter.produce(t, "Summary")
     }
 
     override fun writeAnalysis() {
