@@ -92,12 +92,12 @@ abstract class BatchColocalizationOutput : Output {
             addRow(DocumentationRow("", ""))
             addRow(DocumentationRow("Abbreviation", "Description"))
             addRow(DocumentationRow("Summary", "Key measurements per image"))
-            Metric.values().forEach {
-                if (it.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
-                    addRow(DocumentationRow(it.value, it.description))
+            Metric.values().forEach { metric ->
+                if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
+                    addRow(DocumentationRow(metric.value, metric.description))
                 } else {
                     for (name in channelNames) {
-                        addRow(DocumentationRow("${it.value}_$name", "${it.description} for $name"))
+                        addRow(DocumentationRow("${metric.value}_$name", "${metric.description} for $name"))
                     }
                 }
             }
