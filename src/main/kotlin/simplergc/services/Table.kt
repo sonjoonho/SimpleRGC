@@ -162,7 +162,7 @@ data class AggregateRow(val name: String, val values: List<Field<*>>, val spaces
     }
 }
 
-data class HeaderRow(val headers: List<Field<*>>) : BaseRow {
+data class FieldRow(val headers: List<Field<*>>) : BaseRow {
     override fun toList(): List<Field<*>> = headers
 }
 

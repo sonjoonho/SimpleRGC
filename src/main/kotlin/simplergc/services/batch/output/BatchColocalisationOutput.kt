@@ -6,7 +6,7 @@ import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.CellColocalizationService.CellAnalysis
 import simplergc.services.HeaderField
-import simplergc.services.HeaderRow
+import simplergc.services.FieldRow
 import simplergc.services.MetricRow
 import simplergc.services.Output
 import simplergc.services.Table
@@ -149,7 +149,7 @@ abstract class BatchColocalizationOutput : Output {
         }
 
         val t = Table()
-        t.addRow(HeaderRow(headers))
+        t.addRow(FieldRow(headers))
         // Populate each row since we have the values for each file
         for (rowIdx in 0 until maxRows) {
             val rowData = fileValues.map { it.second.getOrNull(rowIdx) }

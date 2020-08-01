@@ -7,7 +7,7 @@ import simplergc.services.AggregateRow
 import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
 import simplergc.services.HeaderField
-import simplergc.services.HeaderRow
+import simplergc.services.FieldRow
 import simplergc.services.Parameters
 import simplergc.services.Table
 import simplergc.services.batch.output.Metric
@@ -71,7 +71,7 @@ class CsvColocalizationOutput(
         }
         val t = Table()
 
-        t.addRow(HeaderRow(headers.map { HeaderField(it) }))
+        t.addRow(FieldRow(headers.map { HeaderField(it) }))
 
         // Add summary data.
         for ((fileName, result) in fileNameAndResultsList) {
@@ -83,7 +83,7 @@ class CsvColocalizationOutput(
     override fun writeAnalysis() {
         channelNames().forEachIndexed { idx, name ->
             val t = Table()
-            t.addRow(HeaderRow(listOf(
+            t.addRow(FieldRow(listOf(
                 "File Name",
                 "Transduced Cell",
                 "Morphology Area (pixel^2)",

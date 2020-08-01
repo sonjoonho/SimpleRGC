@@ -9,7 +9,7 @@ import simplergc.services.CellColocalizationService
 import simplergc.services.DoubleField
 import simplergc.services.Field
 import simplergc.services.HeaderField
-import simplergc.services.HeaderRow
+import simplergc.services.FieldRow
 import simplergc.services.IntField
 import simplergc.services.Output
 import simplergc.services.Parameters
@@ -142,7 +142,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
 
     fun parameterData(): Table {
         val t = Table()
-        t.addRow(HeaderRow(listOf(
+        t.addRow(FieldRow(listOf(
             "File Name",
             "SimpleRGC Plugin",
             "Plugin Version",

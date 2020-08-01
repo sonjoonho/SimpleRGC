@@ -7,7 +7,7 @@ import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.Field
 import simplergc.services.HeaderField
-import simplergc.services.HeaderRow
+import simplergc.services.FieldRow
 import simplergc.services.HorizontallyMergedHeaderField
 import simplergc.services.IntField
 import simplergc.services.Parameters
@@ -85,7 +85,7 @@ class XlsxColocalizationOutput(
 
         val t = Table()
 
-        t.addRow(HeaderRow(headers + metricColumns))
+        t.addRow(FieldRow(headers + metricColumns))
 
         val subHeaders: MutableList<Field<*>> = MutableList(headers.size) { StringField("") }
 
@@ -95,7 +95,7 @@ class XlsxColocalizationOutput(
             }
         }
 
-        t.addRow(HeaderRow(subHeaders))
+        t.addRow(FieldRow(subHeaders))
 
         // Add summary data.
         for ((fileName, result) in fileNameAndResultsList) {
@@ -120,7 +120,7 @@ class XlsxColocalizationOutput(
             "RawIntDen"
         ).map { HorizontallyMergedHeaderField(HeaderField(it), channelNames.size) }
 
-        t.addRow(HeaderRow(headers + metricColumns))
+        t.addRow(FieldRow(headers + metricColumns))
 
         val subHeaders: MutableList<Field<*>> = MutableList(headers.size) { StringField("") }
 
@@ -130,7 +130,7 @@ class XlsxColocalizationOutput(
             }
         }
 
-        t.addRow(HeaderRow(subHeaders))
+        t.addRow(FieldRow(subHeaders))
 
         for ((fileName, result) in fileNameAndResultsList) {
             result.channelResults[transducedChannel].cellAnalyses.forEachIndexed { i, cellAnalysis ->
@@ -146,8 +146,7 @@ class XlsxColocalizationOutput(
                         }
                     }
                 }
-                // TODO: Fix
-                t.addRow(HeaderRow(row))
+                t.addRow(FieldRow(row))
             }
 
             Aggregate.values().forEach {
