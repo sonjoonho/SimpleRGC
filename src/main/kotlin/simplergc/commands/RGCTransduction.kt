@@ -7,10 +7,6 @@ import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.frame.RoiManager
-import java.io.File
-import java.io.IOException
-import kotlin.math.max
-import kotlin.math.min
 import net.imagej.ImageJ
 import net.imagej.ops.OpService
 import org.apache.commons.io.FilenameUtils
@@ -40,6 +36,10 @@ import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.widgets.AlignedTextWidget
+import java.io.File
+import java.io.IOException
+import kotlin.math.max
+import kotlin.math.min
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Transduction")
 class RGCTransduction : Command, Previewable {
@@ -69,23 +69,11 @@ class RGCTransduction : Command, Previewable {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Target (morphology) cells",
+        label = "Morphology cells",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
     private lateinit var targetCellHeader: String
-
-    /**
-     * Used during the cell identification stage to filter out cells that are too small
-     */
-    @Parameter(
-        label = "Cell diameter (px)",
-        description = "Used as minimum/maximum diameter when identifying cells",
-        required = true,
-        style = AlignedTextWidget.RIGHT,
-        persist = true
-    )
-    var cellDiameterText = "0.0-30.0"
 
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
@@ -93,7 +81,7 @@ class RGCTransduction : Command, Previewable {
      * By default this is 1 (red) channel.
      */
     @Parameter(
-        label = "Channel",
+        label = "Morphology channel",
         min = "1",
         stepSize = "1",
         required = true,
@@ -109,7 +97,7 @@ class RGCTransduction : Command, Previewable {
     var shouldRemoveAxonsFromTargetChannel: Boolean = false
 
     @Parameter(
-        label = "Transduced cells",
+        label = "Transduction cells",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
@@ -120,7 +108,7 @@ class RGCTransduction : Command, Previewable {
      * By default this is the 2 (green) channel.
      */
     @Parameter(
-        label = "Channel",
+        label = "Transduction channel",
         min = "1",
         stepSize = "1",
         required = true,
@@ -135,8 +123,20 @@ class RGCTransduction : Command, Previewable {
     )
     var shouldRemoveAxonsFromTransductionChannel: Boolean = false
 
+    /**
+     * Used during the cell identification stage to filter out cells that are too small
+     */
     @Parameter(
-        label = "Preprocessing parameters",
+        label = "Cell diameter (px)",
+        description = "Used as minimum/maximum diameter when identifying cells",
+        required = true,
+        style = AlignedTextWidget.RIGHT,
+        persist = true
+    )
+    var cellDiameterText = "0.0-30.0"
+
+    @Parameter(
+        label = "Image processing parameters",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
@@ -181,7 +181,7 @@ class RGCTransduction : Command, Previewable {
      */
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
-        const val XLSX = "Save as Excel file (Recommended)"
+        const val XLSX = "Save as XLSX file (Recommended)"
         const val CSV = "Save as CSV files"
     }
 
@@ -323,12 +323,16 @@ class RGCTransduction : Command, Previewable {
     ): TransductionResult {
         val numChannels = image.nChannels
         if (targetChannel < 1 || targetChannel > numChannels) {
-            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. " +
-                "There are $numChannels channels available")
+            throw ChannelDoesNotExistException(
+                "Target channel selected ($targetChannel) does not exist. " +
+                    "There are $numChannels channels available"
+            )
         }
         if (transducedChannel < 1 || transducedChannel > image.nChannels) {
-            throw ChannelDoesNotExistException("Transduced channel selected ($numChannels) does not exist. " +
-                "There are $numChannels channels available")
+            throw ChannelDoesNotExistException(
+                "Transduced channel selected ($numChannels) does not exist. " +
+                    "There are $numChannels channels available"
+            )
         }
         return analyseTransduction(image, targetChannel, transducedChannel, cellDiameterRange)
     }
@@ -381,15 +385,21 @@ class RGCTransduction : Command, Previewable {
         val rois = targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }
 
         val channelResults = mutableListOf<ChannelResult>()
-        val transductionChannelResult = ChannelResult("C-Transduction", cellColocalizationService.analyseCellIntensity(
-            channelImages[transducedChannel - 1],
-            rois
-        ))
+        val transductionChannelResult = ChannelResult(
+            "C-Transduction", cellColocalizationService.analyseCellIntensity(
+                channelImages[transducedChannel - 1],
+                rois
+            )
+        )
         channelResults.add(transductionChannelResult)
-        channelResults.add(ChannelResult("C-Target", cellColocalizationService.analyseCellIntensity(
-            channelImages[targetChannel - 1],
-            rois
-        )))
+        channelResults.add(
+            ChannelResult(
+                "C-Target", cellColocalizationService.analyseCellIntensity(
+                    channelImages[targetChannel - 1],
+                    rois
+                )
+            )
+        )
         for (channel in (1..channelImages.size).toSet() - setOf(targetChannel, transducedChannel)) {
             val result = ChannelResult("C-$channel",
                 cellColocalizationService.analyseCellIntensity(

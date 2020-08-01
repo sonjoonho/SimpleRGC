@@ -1,12 +1,12 @@
 package simplergc.commands.batch.views.common
 
+import simplergc.commands.batch.RGCBatch.OutputFormat
 import java.awt.GridLayout
 import java.io.File
 import javax.swing.ButtonGroup
 import javax.swing.JFileChooser
 import javax.swing.JPanel
 import javax.swing.JRadioButton
-import simplergc.commands.batch.RGCBatch.OutputFormat
 
 const val COLUMN_WIDTH = 30
 
@@ -22,10 +22,10 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
         resultsOutputPanel.layout = GridLayout(0, 2)
         val resultsOutputLabel = ParameterLabel("Results output")
         resultsOutputPanel.add(resultsOutputLabel)
-        val saveAsXlsxButton = JRadioButton("Save as a XLSX file (Recommended)")
+        val saveAsXlsxButton = JRadioButton("Save as XLSX file (Recommended)")
         saveAsXlsxButton.isSelected = format == OutputFormat.XLSX
         addButtonActionListener(saveAsXlsxButton, OutputFormat.XLSX)
-        val saveAsCsvButton = JRadioButton("Save as a CSV file(s)")
+        val saveAsCsvButton = JRadioButton("Save as CSV files")
         saveAsCsvButton.isSelected = format == OutputFormat.CSV
         addButtonActionListener(saveAsCsvButton, OutputFormat.CSV)
 

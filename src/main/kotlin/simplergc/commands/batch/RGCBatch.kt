@@ -1,11 +1,5 @@
 package simplergc.commands.batch
 
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.util.prefs.Preferences
-import javax.swing.BorderFactory
-import javax.swing.JFrame
-import javax.swing.JTabbedPane
 import net.imagej.ImageJ
 import org.scijava.Context
 import org.scijava.app.StatusService
@@ -20,6 +14,12 @@ import simplergc.commands.batch.models.RGCTransductionModel
 import simplergc.commands.batch.views.RGCCounterView
 import simplergc.commands.batch.views.RGCTransductionView
 import simplergc.services.CellSegmentationService
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.util.prefs.Preferences
+import javax.swing.BorderFactory
+import javax.swing.JFrame
+import javax.swing.JTabbedPane
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Batch")
 class RGCBatch : Command {
@@ -52,8 +52,8 @@ class RGCBatch : Command {
         RGCTransductionController(transductionView, transductionModel, statusService)
 
         val tp = JTabbedPane()
-        tp.add("RGCCounter", counterView)
-        tp.add("RGCTransduction", transductionView)
+        tp.add("RGC Counter", counterView)
+        tp.add("RGC Transduction", transductionView)
         tp.border = BorderFactory.createEmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE)
         frame.add(tp, BorderLayout.CENTER)
         frame.preferredSize = Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT)
