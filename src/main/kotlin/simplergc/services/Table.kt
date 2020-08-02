@@ -54,9 +54,10 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
         val headerCellStyle = workbook.createCellStyle()
         headerCellStyle.setFont(headerFont)
 
-        val mergedCellStyle = workbook.createCellStyle()
-        mergedCellStyle.setFont(headerFont)
-        mergedCellStyle.setAlignment(HorizontalAlignment.CENTER)
+        // Used for horizontally merged headers.
+        val centeredHeaderStyle = workbook.createCellStyle()
+        centeredHeaderStyle.setFont(headerFont)
+        centeredHeaderStyle.setAlignment(HorizontalAlignment.CENTER)
 
         var maxCols = 0
 
@@ -80,7 +81,7 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
                         currCell.setCellValue(field.value)
                     }
                     is HorizontallyMergedHeaderField -> {
-                        currCell.cellStyle = mergedCellStyle
+                        currCell.cellStyle = centeredHeaderStyle
                         currCell.setCellValue(field.value)
                         currSheet.addMergedRegion(CellRangeAddress(rowNum, rowNum, colNum, colNum + field.columnSpan - 1))
                         colNum += field.columnSpan - 1

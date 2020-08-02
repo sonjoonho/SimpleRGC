@@ -81,12 +81,11 @@ class XlsxColocalizationOutput(
         val metricHeaders = mutableListOf<Field<*>>()
 
         for (metric in Metric.values()) {
-            val headerName = metric.summaryName ?: metric.full
             if (metric.channels == TRANSDUCTION_ONLY) {
-                metricHeaders.add(VerticallyMergedHeaderField(HeaderField(headerName), 2))
+                metricHeaders.add(VerticallyMergedHeaderField(HeaderField(metric.summaryHeader), 2))
                 subHeaders.add(StringField(""))
             } else {
-                metricHeaders.add(HorizontallyMergedHeaderField(HeaderField(headerName), channelNames.size))
+                metricHeaders.add(HorizontallyMergedHeaderField(HeaderField(metric.summaryHeader), channelNames.size))
                 for (channelName in channelNames) {
                     subHeaders.add(HeaderField(channelName))
                 }

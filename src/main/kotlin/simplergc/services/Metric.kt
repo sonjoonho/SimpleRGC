@@ -2,13 +2,23 @@ package simplergc.services
 
 const val UTF_8_SUP2 = "\u00b2"
 
+/**
+ * A metric that is evaluated for each cell.
+ *
+ * @param value: Shortened name for Metric, used in sheets/filenames.
+ * @param full: Full-length name for Metric, used in headers of tables.
+ * @param description: Description of metric, used in Documentation tables.
+ * @param compute: Function to be used to compute value of metric for a cell.
+ * @param channels: Determines set of channels to compute metric for, either TRANSDUCTION_ONLY or ALL_CHANNELS.
+ * @param summaryName: Optional summary name to indicate name to be used in Summary table (defaults to value of [full])
+ */
 enum class Metric(
     val value: String,
     val full: String,
     val description: String,
     val compute: (CellColocalizationService.CellAnalysis) -> Int,
     val channels: ChannelSelection,
-    val summaryName: String? = null
+    summaryName: String? = null
 ) {
     Area(
         "Morphology Area",
@@ -53,6 +63,8 @@ enum class Metric(
         CellColocalizationService.CellAnalysis::rawIntDen,
         ChannelSelection.ALL_CHANNELS
     );
+
+    val summaryHeader = summaryName ?: full
 
     enum class ChannelSelection {
         TRANSDUCTION_ONLY,

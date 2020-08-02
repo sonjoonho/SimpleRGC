@@ -58,12 +58,11 @@ class CsvColocalizationOutput(
         )
 
         for (metric in Metric.values()) {
-            val headerName = metric.summaryName ?: metric.full
             if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
-                headers.add(headerName)
+                headers.add(metric.summaryHeader)
             } else {
                 for (channelName in channelNames) {
-                    headers.add("$headerName - $channelName")
+                    headers.add("${metric.summaryHeader} - $channelName")
                 }
             }
         }
