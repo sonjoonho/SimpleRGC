@@ -329,8 +329,10 @@ class RGCTransduction : Command, Previewable {
                 "There are $numChannels channels available")
         }
         if (transducedChannel < 1 || transducedChannel > image.nChannels) {
-            throw ChannelDoesNotExistException("Transduced channel selected ($numChannels) does not exist. " +
-                "There are $numChannels channels available")
+            throw ChannelDoesNotExistException(
+                "Transduced channel selected ($transducedChannel) does not exist. " +
+                    "There are $numChannels channels available"
+            )
         }
         return analyseTransduction(image, targetChannel, transducedChannel, cellDiameterRange)
     }

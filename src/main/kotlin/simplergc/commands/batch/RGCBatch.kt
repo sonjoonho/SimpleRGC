@@ -44,11 +44,11 @@ class RGCBatch : Command {
         val frame = JFrame()
 
         val counterModel = RGCCounterModel(context, prefs)
-        val counterView = RGCCounterView(counterModel)
+        val counterView = RGCCounterView(frame, counterModel)
         RGCCounterController(counterView, counterModel, statusService)
 
         val transductionModel = RGCTransductionModel(context, prefs)
-        val transductionView = RGCTransductionView(transductionModel)
+        val transductionView = RGCTransductionView(frame, transductionModel)
         RGCTransductionController(transductionView, transductionModel, statusService)
 
         val tp = JTabbedPane()

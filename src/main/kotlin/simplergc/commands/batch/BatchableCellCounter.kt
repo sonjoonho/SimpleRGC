@@ -31,9 +31,6 @@ class BatchableCellCounter(
         simpleCellCounter.shouldRemoveAxons = shouldRemoveAxons
         context.inject(simpleCellCounter)
 
-        val numCellsList = inputImages.map { simpleCellCounter.process(it, cellDiameterRange).count }
-        val imageAndCount = inputImages.zip(numCellsList)
-
         val counterParameters = Parameters.Counter(
             targetChannel,
             cellDiameterRange,
@@ -47,7 +44,10 @@ class BatchableCellCounter(
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
-        imageAndCount.forEach { (image, count) -> output.addCountForFile(count, image.title) }
+        for (image in inputImages) {
+            val count = simpleCellCounter.process(image, cellDiameterRange).count
+            output.addCountForFile(count, image.title)
+        }
 
         output.output()
     }
