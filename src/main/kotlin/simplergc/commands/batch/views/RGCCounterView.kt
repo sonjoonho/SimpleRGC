@@ -1,8 +1,5 @@
 package simplergc.commands.batch.views
 
-import javax.swing.BoxLayout
-import javax.swing.JFrame
-import javax.swing.SpinnerNumberModel
 import simplergc.commands.batch.controllers.RGCController
 import simplergc.commands.batch.models.RGCCounterModel
 import simplergc.commands.batch.views.common.CellDiameterField
@@ -11,6 +8,9 @@ import simplergc.commands.batch.views.common.OutputFileChooserPanel
 import simplergc.commands.batch.views.common.RGCCheckbox
 import simplergc.commands.batch.views.common.RGCSpinner
 import simplergc.commands.batch.views.common.addLabel
+import javax.swing.BoxLayout
+import javax.swing.JFrame
+import javax.swing.SpinnerNumberModel
 
 class RGCCounterView(frame: JFrame, model: RGCCounterModel) : RGCView(frame) {
 
@@ -33,7 +33,7 @@ class RGCCounterView(frame: JFrame, model: RGCCounterModel) : RGCView(frame) {
     private val gaussianBlurModel = SpinnerNumberModel(model.gaussianBlur.toInt(), 1, 50, 1)
     val gaussianBlurSpinner = RGCSpinner("Gaussian blur sigma", gaussianBlurModel)
 
-    val shouldRemoveAxonsCheckbox = RGCCheckbox("Exclude Axons", model.shouldRemoveAxons)
+    val shouldRemoveAxonsCheckbox = RGCCheckbox("Exclude axons", model.shouldRemoveAxons)
 
     val outputFileChooserPanel = OutputFileChooserPanel(model.outputFile, model.outputFormat)
 
