@@ -24,10 +24,10 @@ private const val UTF_8_BOM = "\ufeff"
  */
 class Table {
     // data is a rows x columns representation of a table.
-    val data: MutableList<BaseRow> = mutableListOf()
+    val data: MutableList<List<Field<*>>> = mutableListOf()
 
     fun addRow(row: BaseRow) {
-        data.add(row)
+        data.add(row.toList())
     }
 }
 
@@ -63,9 +63,8 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
         for (row in data) {
             val currRow = currSheet.createRow(rowNum)
             var colNum = 0
-            val fields = row.toList()
-            for (i in fields.indices) {
-                val field = fields[i]
+            for (i in row.indices) {
+                val field = row[i]
                 val currCell = currRow.createCell(colNum)
                 when (field) {
                     is StringField -> currCell.setCellValue(field.value)
@@ -113,7 +112,7 @@ class CsvTableWriter : TableWriter {
         CsvWriter().write(
             file,
             StandardCharsets.UTF_8,
-            table.data.map { row -> arrayOf(UTF_8_BOM) + row.toList().map { it.value.toString() }.toTypedArray() })
+            table.data.map { row -> arrayOf(UTF_8_BOM) + row.map { it.value.toString() }.toTypedArray() })
     }
 }
 
@@ -130,9 +129,8 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
         val columns: List<DefaultColumn<String>> = listOf()
 
         for (row in data) {
-            val fields = row.toList()
-            for (colIdx in fields.indices) {
-                columns[colIdx].add(fields[colIdx].value.toString())
+            for (colIdx in row.indices) {
+                columns[colIdx].add(row[colIdx].value.toString())
             }
         }
 
