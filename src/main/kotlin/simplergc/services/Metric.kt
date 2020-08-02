@@ -1,5 +1,7 @@
 package simplergc.services
 
+const val UTF_8_SUP2 = "\u00b2"
+
 enum class Metric(
     val value: String,
     val full: String,
@@ -10,8 +12,8 @@ enum class Metric(
 ) {
     Area(
         "Morphology Area",
-        "Morphology Area (pixel^2)",
-        "Average morphology area (pixel²) for each transduced cell",
+        "Morphology Area (pixel$UTF_8_SUP2)",
+        "Average morphology area (pixel$UTF_8_SUP2) for each transduced cell",
         CellColocalizationService.CellAnalysis::area,
         ChannelSelection.TRANSDUCTION_ONLY,
         "Average Morphology Area"

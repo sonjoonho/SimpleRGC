@@ -18,8 +18,6 @@ import simplergc.services.Parameters
 import simplergc.services.StringField
 import simplergc.services.Table
 
-private const val UTF_8_SUP2 = "\u00b2"
-
 data class DocumentationRow(val key: String, val description: String) : BaseRow {
     override fun toList() = listOf(StringField(key), StringField(description))
 }
