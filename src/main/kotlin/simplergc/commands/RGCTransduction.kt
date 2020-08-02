@@ -7,10 +7,6 @@ import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.frame.RoiManager
-import java.io.File
-import java.io.IOException
-import kotlin.math.max
-import kotlin.math.min
 import net.imagej.ImageJ
 import net.imagej.ops.OpService
 import org.apache.commons.io.FilenameUtils
@@ -40,6 +36,10 @@ import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.widgets.AlignedTextWidget
+import java.io.File
+import java.io.IOException
+import kotlin.math.max
+import kotlin.math.min
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Transduction")
 class RGCTransduction : Command, Previewable {
@@ -327,8 +327,10 @@ class RGCTransduction : Command, Previewable {
                 "There are $numChannels channels available")
         }
         if (transducedChannel < 1 || transducedChannel > image.nChannels) {
-            throw ChannelDoesNotExistException("Transduced channel selected ($numChannels) does not exist. " +
-                "There are $numChannels channels available")
+            throw ChannelDoesNotExistException(
+                "Transduced channel selected ($transducedChannel) does not exist. " +
+                    "There are $numChannels channels available"
+            )
         }
         return analyseTransduction(image, targetChannel, transducedChannel, cellDiameterRange)
     }
