@@ -8,14 +8,15 @@ import simplergc.services.BooleanField
 import simplergc.services.CellColocalizationService
 import simplergc.services.DoubleField
 import simplergc.services.Field
+import simplergc.services.FieldRow
+import simplergc.services.HeaderField
 import simplergc.services.IntField
+import simplergc.services.Metric
+import simplergc.services.Metric.ChannelSelection.TRANSDUCTION_ONLY
 import simplergc.services.Output
 import simplergc.services.Parameters
 import simplergc.services.StringField
 import simplergc.services.Table
-import simplergc.services.batch.output.Metric
-
-private const val UTF_8_SUP2 = "\u00b2"
 
 data class DocumentationRow(val key: String, val description: String) : BaseRow {
     override fun toList() = listOf(StringField(key), StringField(description))
@@ -77,21 +78,45 @@ data class SummaryRow(
     }
 }
 
-data class TransductionAnalysisRow(
+data class SingleChannelTransductionAnalysisRow(
     val fileName: String,
     val transducedCell: Int,
     val cellAnalysis: CellColocalizationService.CellAnalysis
 ) : BaseRow {
-    override fun toList() = listOf(
-        StringField(fileName),
-        IntField(transducedCell),
-        IntField(cellAnalysis.area),
-        IntField(cellAnalysis.mean),
-        IntField(cellAnalysis.median),
-        IntField(cellAnalysis.min),
-        IntField(cellAnalysis.max),
-        IntField(cellAnalysis.rawIntDen)
-    )
+    override fun toList(): List<Field<*>> {
+        val fields = mutableListOf(
+            StringField(fileName),
+            IntField(transducedCell)
+        )
+        for (metric in Metric.values()) {
+            fields.add(IntField(metric.compute(cellAnalysis)))
+        }
+        return fields
+    }
+}
+
+data class MultiChannelTransductionAnalysisRow(
+    val fileName: String,
+    val transducedCell: Int,
+    val cellAnalyses: List<CellColocalizationService.CellAnalysis>,
+    val transductionChannel: Int
+) : BaseRow {
+    override fun toList(): List<Field<*>> {
+        val fields = mutableListOf(
+            StringField(fileName),
+            IntField(transducedCell)
+        )
+        for (metric in Metric.values()) {
+            if (metric.channels == TRANSDUCTION_ONLY) {
+                fields.add(IntField(metric.compute(cellAnalyses[transductionChannel])))
+            } else {
+                for (cellAnalysis in cellAnalyses) {
+                    fields.add(IntField(metric.compute(cellAnalysis)))
+                }
+            }
+        }
+        return fields
+    }
 }
 
 /**
@@ -115,6 +140,11 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     abstract fun writeAnalysis()
     abstract fun writeParameters()
     abstract fun writeDocumentation()
+    abstract fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Int>>,
+        spaces: Int
+    ): AggregateRow
 
     fun channelNames(): List<String> {
         if (fileNameAndResultsList.size == 0) {
@@ -125,7 +155,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         return firstTransductionResult.channelResults.map { it.name }
     }
 
-    fun documentationData(): Table = Table(listOf()).apply {
+    fun documentationData(): Table = Table().apply {
         addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
         addRow(DocumentationRow("", ""))
         addRow(DocumentationRow("Abbreviation", "Description"))
@@ -134,92 +164,20 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
     }
 
-    fun summaryData(): Table {
-        val channelNames = channelNames()
-        val schema = mutableListOf("File Name",
-            "Number of Cells",
-            "Number of Transduced Cells",
-            "Transduction Efficiency (%)",
-            "Average Morphology Area (pixel$UTF_8_SUP2)"
-        )
-
-        val metricColumns = listOf("Mean Fluorescence Intensity (a.u.)",
-            "Median Fluorescence Intensity (a.u.)",
-            "Min Fluominrescence Intensity (a.u.)",
-            "Max Fluorescence Intensity (a.u.)",
-            "RawIntDen")
-
-        for (metricColumn in metricColumns) {
-            for (channelName in channelNames) {
-                schema.add("$metricColumn - $channelName")
-            }
-        }
-        val t = Table(schema)
-
-        // Add summary data.
-        for ((fileName, result) in fileNameAndResultsList) {
-            t.addRow(SummaryRow(fileName = fileName, summary = result))
-        }
-        return t
-    }
-
-    fun analysisData(channelIdx: Int): Table {
-        val t = Table(
-            listOf(
-                "File Name",
-                "Transduced Cell",
-                "Morphology Area (pixel$UTF_8_SUP2)",
-                "Mean Fluorescence Intensity (a.u.)",
-                "Median Fluorescence Intensity (a.u.)",
-                "Min Fluorescence Intensity (a.u.)",
-                "Max Fluorescence Intensity (a.u.)",
-                "RawIntDen"
-            )
-        )
-        for ((fileName, result) in fileNameAndResultsList) {
-            result.channelResults[channelIdx].cellAnalyses.forEachIndexed { i, cellAnalysis ->
-                t.addRow(
-                    TransductionAnalysisRow(
-                        fileName = fileName,
-                        transducedCell = i + 1,
-                        cellAnalysis = cellAnalysis
-                    )
-                )
-            }
-            Aggregate.values().forEach {
-                val rawValues = mutableListOf<List<Int>>()
-                Metric.values().forEach { metric ->
-                    rawValues.add(result.channelResults[channelIdx].cellAnalyses.map { cell ->
-                        metric.compute(cell)
-                    })
-                }
-                t.addRow(generateAggregateRow(it, rawValues, spaces = 1))
-            }
-        }
-        return t
-    }
-
-    abstract fun generateAggregateRow(
-        aggregate: Aggregate,
-        rawValues: List<List<Int>>,
-        spaces: Int
-    ): AggregateRow
-
     fun parameterData(): Table {
-        val t = Table(
-            listOf(
-                "File Name",
-                "SimpleRGC Plugin",
-                "Plugin Version",
-                "Morphology channel",
-                "Exclude Axons from morphology channel?",
-                "Transduction channel",
-                "Exclude Axons from transduction channel?",
-                "Cell diameter range (px)",
-                "Local threshold radius",
-                "Gaussian blur sigma"
-            )
-        )
+        val t = Table()
+        t.addRow(FieldRow(listOf(
+            "File Name",
+            "SimpleRGC Plugin",
+            "Plugin Version",
+            "Morphology channel",
+            "Exclude Axons from morphology channel?",
+            "Transduction channel",
+            "Exclude Axons from transduction channel?",
+            "Cell diameter range (px)",
+            "Local threshold radius",
+            "Gaussian blur sigma"
+        ).map { HeaderField(it) }))
         // Add parameter data.
         for ((fileName, _) in fileNameAndResultsList) {
             t.addRow(

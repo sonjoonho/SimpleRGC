@@ -6,7 +6,11 @@ import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
+import simplergc.services.FieldRow
+import simplergc.services.HeaderField
+import simplergc.services.Metric
 import simplergc.services.Parameters
+import simplergc.services.Table
 
 /**
  * Outputs multiple CSVs into an output folder.
@@ -46,12 +50,67 @@ class CsvColocalizationOutput(
     }
 
     override fun writeSummary() {
-        tableWriter.produce(summaryData(), "${outputPath}Summary.csv")
+        val channelNames = channelNames()
+        val headers = mutableListOf("File Name",
+            "Number of Cells",
+            "Number of Transduced Cells",
+            "Transduction Efficiency (%)"
+        )
+
+        for (metric in Metric.values()) {
+            if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
+                headers.add(metric.summaryHeader)
+            } else {
+                for (channelName in channelNames) {
+                    headers.add("${metric.summaryHeader} - $channelName")
+                }
+            }
+        }
+
+        val t = Table()
+
+        t.addRow(FieldRow(headers.map { HeaderField(it) }))
+
+        // Add summary data.
+        for ((fileName, result) in fileNameAndResultsList) {
+            t.addRow(SummaryRow(fileName = fileName, summary = result))
+        }
+        tableWriter.produce(t, "${outputPath}Summary.csv")
     }
 
     override fun writeAnalysis() {
         channelNames().forEachIndexed { idx, name ->
-            tableWriter.produce(analysisData(idx), "${outputPath}Analysis - $name.csv")
+            val t = Table()
+            val headers = mutableListOf("File Name",
+                "Transduced Cell")
+
+            for (metric in Metric.values()) {
+                headers.add(metric.full)
+            }
+
+            t.addRow(FieldRow(headers.map { HeaderField(it) }))
+
+            for ((fileName, result) in fileNameAndResultsList) {
+                result.channelResults[idx].cellAnalyses.forEachIndexed { i, cellAnalysis ->
+                    t.addRow(
+                        SingleChannelTransductionAnalysisRow(
+                            fileName = fileName,
+                            transducedCell = i + 1,
+                            cellAnalysis = cellAnalysis
+                        )
+                    )
+                }
+                Aggregate.values().forEach {
+                    val rawValues = mutableListOf<List<Int>>()
+                    Metric.values().forEach { metric ->
+                        rawValues.add(result.channelResults[idx].cellAnalyses.map { cell ->
+                            metric.compute(cell)
+                        })
+                    }
+                    t.addRow(generateAggregateRow(it, rawValues, spaces = 1))
+                }
+            }
+            tableWriter.produce(t, "${outputPath}Analysis - $name.csv")
         }
     }
 

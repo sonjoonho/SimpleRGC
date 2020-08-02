@@ -6,6 +6,7 @@ import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.BaseRow
+import simplergc.services.FieldRow
 import simplergc.services.ImageJTableWriter
 import simplergc.services.IntField
 import simplergc.services.Parameters
@@ -24,17 +25,15 @@ class ImageJTableColocalizationOutput(
 
     override val tableWriter = ImageJTableWriter(uiService)
 
-    private val table = Table(
-        listOf(
-            "Label",
-            "Count",
-            "Area",
-            "Median",
-            "Mean",
-            "Integrated Density",
-            "Raw Integrated Density"
-        )
-    )
+    private val table = Table().apply { addRow(FieldRow(listOf(
+        "Label",
+        "Count",
+        "Area",
+        "Median",
+        "Mean",
+        "Integrated Density",
+        "Raw Integrated Density"
+    ).map { StringField(it) })) }
 
     data class Row(
         val label: String,

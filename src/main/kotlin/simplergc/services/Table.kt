@@ -2,12 +2,16 @@ package simplergc.services
 
 import de.siegmar.fastcsv.writer.CsvWriter
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.nio.charset.StandardCharsets
+import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.sqrt
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.ss.usermodel.CellType
+import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
@@ -18,10 +22,9 @@ private const val UTF_8_BOM = "\ufeff"
 /**
  * Table represents data in terms of rows and columns.
  */
-class Table(val schema: List<String>) {
+class Table {
     // data is a rows x columns representation of a table.
-    val data: MutableList<List<Field<*>>> =
-        if (schema.isNullOrEmpty()) mutableListOf() else mutableListOf(schema.map { StringField(it) })
+    val data: MutableList<List<Field<*>>> = mutableListOf()
 
     fun addRow(row: BaseRow) {
         data.add(row.toList())
@@ -42,49 +45,60 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
     override fun produce(table: Table, to: String) {
         val currSheet = workbook.createSheet(to)
         val data = table.data
-        val header = data[0]
 
         var rowNum = 0
-        // Set the header.
-        if (!table.schema.isNullOrEmpty()) {
-            val headerFont = workbook.createFont()
-            headerFont.bold = true
-            headerFont.color = IndexedColors.BLUE.index
-            val headerCellStyle = workbook.createCellStyle()
-            headerCellStyle.setFont(headerFont)
-            val headerRow = currSheet.createRow(rowNum)
+        // Set the header style.
+        val headerFont = workbook.createFont()
+        headerFont.bold = true
+        headerFont.color = IndexedColors.BLUE.index
+        val headerCellStyle = workbook.createCellStyle()
+        headerCellStyle.setFont(headerFont)
 
-            for (i in header.indices) {
-                val cell = headerRow.createCell(i)
-                cell.cellStyle = headerCellStyle
-                cell.setCellValue(header[i].value.toString())
-            }
-            rowNum = 1
-        }
+        // Used for horizontally merged headers.
+        val centeredHeaderStyle = workbook.createCellStyle()
+        centeredHeaderStyle.setFont(headerFont)
+        centeredHeaderStyle.setAlignment(HorizontalAlignment.CENTER)
 
-        val body = data.drop(rowNum)
+        var maxCols = 0
 
-        for (row in body) {
+        for (row in data) {
             val currRow = currSheet.createRow(rowNum)
+            var colNum = 0
             for (i in row.indices) {
-                val currCell = currRow.createCell(i)
-                when (val f = row[i]) {
-                    is StringField -> currCell.setCellValue(f.value)
-                    is IntField -> currCell.setCellValue(f.value.toDouble()) // Does not support Ints.
-                    is DoubleField -> currCell.setCellValue(f.value)
-                    is BooleanField -> currCell.setCellValue(f.value)
+                val field = row[i]
+                val currCell = currRow.createCell(colNum)
+                when (field) {
+                    is StringField -> currCell.setCellValue(field.value)
+                    is IntField -> currCell.setCellValue(field.value.toDouble()) // Does not support Ints.
+                    is DoubleField -> currCell.setCellValue(field.value)
+                    is BooleanField -> currCell.setCellValue(field.value)
                     is FormulaField -> {
                         currCell.setCellType(CellType.FORMULA)
-                        currCell.cellFormula = f.value
+                        currCell.cellFormula = field.value
+                    }
+                    is HeaderField -> {
+                        currCell.cellStyle = headerCellStyle
+                        currCell.setCellValue(field.value)
+                    }
+                    is HorizontallyMergedHeaderField -> {
+                        currCell.cellStyle = centeredHeaderStyle
+                        currCell.setCellValue(field.value)
+                        currSheet.addMergedRegion(CellRangeAddress(rowNum, rowNum, colNum, colNum + field.columnSpan - 1))
+                        colNum += field.columnSpan - 1
+                    }
+                    is VerticallyMergedHeaderField -> {
+                        currCell.cellStyle = headerCellStyle
+                        currCell.setCellValue(field.value)
+                        currSheet.addMergedRegion(CellRangeAddress(rowNum, rowNum + field.rowSpan - 1, colNum, colNum))
                     }
                 }
+                colNum++
             }
+            maxCols = max(maxCols, colNum)
             rowNum++
         }
-        if (data.isNotEmpty()) {
-            for (i in header.indices) {
-                currSheet.autoSizeColumn(i)
-            }
+        for (i in 0 until maxCols) {
+            currSheet.autoSizeColumn(i, true)
         }
     }
 }
@@ -112,15 +126,10 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
     override fun produce(table: Table, to: String) {
         val imageJTable = DefaultGenericTable()
         val data = table.data
-        val header = data[0]
-        val body = data.drop(1)
 
-        var columns: List<DefaultColumn<String>> = listOf()
-        if (!table.schema.isNullOrEmpty()) {
-            columns = header.map { DefaultColumn(String::class.java, it.value.toString()) }
-        }
+        val columns: List<DefaultColumn<String>> = listOf()
 
-        for (row in body) {
+        for (row in data) {
             for (colIdx in row.indices) {
                 columns[colIdx].add(row[colIdx].value.toString())
             }
@@ -133,6 +142,11 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
 
 interface BaseRow {
     fun toList(): List<Field<*>>
+}
+
+// A basic row of fields
+data class FieldRow(val headers: List<Field<*>>) : BaseRow {
+    override fun toList(): List<Field<*>> = headers
 }
 
 // A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
@@ -158,6 +172,22 @@ class IntField(value: Int) : Field<Int>(value)
 class DoubleField(value: Double) : Field<Double>(value)
 class BooleanField(value: Boolean) : Field<Boolean>(value)
 class FormulaField(value: String) : Field<String>(value)
+class HeaderField(value: String) : Field<String>(value)
+class HorizontallyMergedHeaderField(field: HeaderField, val columnSpan: Int) : Field<String>(field.value) {
+    init {
+        if (columnSpan < 0) {
+            throw IllegalArgumentException("Cannot have negative span for merged header")
+        }
+    }
+}
+
+class VerticallyMergedHeaderField(field: HeaderField, val rowSpan: Int) : Field<String>(field.value) {
+    init {
+        if (rowSpan < 0) {
+            throw IllegalArgumentException("Cannot have negative span for merged header")
+        }
+    }
+}
 
 enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
     Mean("Mean", AggregateGenerator::generateMean),
@@ -173,11 +203,10 @@ abstract class AggregateGenerator {
     abstract fun generateCount(): Field<*>
 }
 
-class XlsxAggregateGenerator(column: Char, numCells: Int) : AggregateGenerator() {
+class XlsxAggregateGenerator(startRow: Int, column: Char, numCells: Int) : AggregateGenerator() {
 
-    private val startCellRow = 2
-    private val endCellRow = numCells + startCellRow - 1
-    private val cellRange = "$column$startCellRow:$column$endCellRow"
+    private val endCellRow = numCells + startRow - 1
+    private val cellRange = "$column$startRow:$column$endCellRow"
 
     override fun generateMean(): Field<*> {
         return FormulaField("AVERAGE($cellRange)")

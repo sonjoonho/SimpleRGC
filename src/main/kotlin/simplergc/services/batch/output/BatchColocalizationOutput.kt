@@ -4,61 +4,14 @@ import kotlin.math.max
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
-import simplergc.services.CellColocalizationService.CellAnalysis
+import simplergc.services.FieldRow
+import simplergc.services.HeaderField
+import simplergc.services.Metric
 import simplergc.services.MetricRow
 import simplergc.services.Output
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.ColocalizationOutput
 import simplergc.services.colocalizer.output.DocumentationRow
-
-enum class Metric(
-    val value: String,
-    val description: String,
-    val compute: (CellAnalysis) -> Int,
-    val channels: ChannelSelection
-) {
-    Area(
-        "Morphology Area",
-        "Average morphology area (pixel²) for each transduced cell",
-        CellAnalysis::area,
-        ChannelSelection.TRANSDUCTION_ONLY
-    ),
-    Mean(
-        "Mean Int",
-        "Mean fluorescence intensity for each transduced cell",
-        CellAnalysis::mean,
-        ChannelSelection.ALL_CHANNELS
-    ),
-    Median(
-        "Median Int",
-        "Median fluorescence intensity for each transduced cell",
-        CellAnalysis::median,
-        ChannelSelection.ALL_CHANNELS
-    ),
-    Min(
-        "Min Int",
-        "Min fluorescence intensity for each transduced cell",
-        CellAnalysis::min,
-        ChannelSelection.ALL_CHANNELS
-    ),
-    Max(
-        "Max Int",
-        "Max fluorescence intensity for each transduced cell",
-        CellAnalysis::max,
-        ChannelSelection.ALL_CHANNELS
-    ),
-    IntDen(
-        "Raw IntDen",
-        "Raw Integrated Density for each transduced cell",
-        CellAnalysis::rawIntDen,
-        ChannelSelection.ALL_CHANNELS
-    );
-
-    enum class ChannelSelection {
-        TRANSDUCTION_ONLY,
-        ALL_CHANNELS
-    }
-}
 
 abstract class BatchColocalizationOutput : Output {
 
@@ -87,7 +40,7 @@ abstract class BatchColocalizationOutput : Output {
 
     fun documentationData(): Table {
         val channelNames = colocalizationOutput.channelNames()
-        return Table(listOf()).apply {
+        return Table().apply {
             addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
             addRow(DocumentationRow("", ""))
             addRow(DocumentationRow("Abbreviation", "Description"))
@@ -129,7 +82,7 @@ abstract class BatchColocalizationOutput : Output {
     }
 
     private fun computeMetricTableForChannel(metric: Metric, channelIdx: Int): Table {
-        val schema = mutableListOf("Transduced Cell")
+        val headers = mutableListOf(HeaderField("Transduced Cell"))
         var maxRows = 0
 
         // Generate all of the values for each file
@@ -142,11 +95,12 @@ abstract class BatchColocalizationOutput : Output {
             }
             fileValues.add(Pair(fileName, cellValues))
             rawValues.add(cellValues)
-            schema.add(fileName)
+            headers.add(HeaderField(fileName))
             maxRows = max(maxRows, cellValues.size)
         }
 
-        val t = Table(schema)
+        val t = Table()
+        t.addRow(FieldRow(headers))
         // Populate each row since we have the values for each file
         for (rowIdx in 0 until maxRows) {
             val rowData = fileValues.map { it.second.getOrNull(rowIdx) }
