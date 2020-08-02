@@ -15,6 +15,8 @@ import simplergc.services.StringField
 import simplergc.services.Table
 import simplergc.services.batch.output.Metric
 
+private const val UTF_8_SUP2 = "\u00b2"
+
 data class DocumentationRow(val key: String, val description: String) : BaseRow {
     override fun toList() = listOf(StringField(key), StringField(description))
 }
@@ -138,7 +140,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
             "Number of Cells",
             "Number of Transduced Cells",
             "Transduction Efficiency (%)",
-            "Average Morphology Area (pixel^2)"
+            "Average Morphology Area (pixel$UTF_8_SUP2)"
         )
 
         val metricColumns = listOf("Mean Fluorescence Intensity (a.u.)",
@@ -166,7 +168,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
             listOf(
                 "File Name",
                 "Transduced Cell",
-                "Morphology Area (pixel^2)",
+                "Morphology Area (pixel$UTF_8_SUP2)",
                 "Mean Fluorescence Intensity (a.u.)",
                 "Median Fluorescence Intensity (a.u.)",
                 "Min Fluorescence Intensity (a.u.)",

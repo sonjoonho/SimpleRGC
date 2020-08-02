@@ -62,11 +62,10 @@ class ImageJTableColocalizationOutput(
 
         table.addRow(Row(label = "Transduced cells", count = result.overlappingTwoChannelCells.size))
 
-        val transductionEfficiency = (result.overlappingTwoChannelCells.size / result.targetCellCount.toDouble()) * 100
         table.addRow(
             Row(
                 label = "Transduction Efficiency (rounded to nearest integer) %",
-                count = transductionEfficiency.roundToInt()
+                count = result.transductionEfficiency.roundToInt()
             )
         )
         table.addRow(

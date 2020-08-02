@@ -13,6 +13,8 @@ import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.ui.UIService
 
+private const val UTF_8_BOM = "\ufeff"
+
 /**
  * Table represents data in terms of rows and columns.
  */
@@ -97,7 +99,7 @@ class CsvTableWriter : TableWriter {
         CsvWriter().write(
             file,
             StandardCharsets.UTF_8,
-            table.data.map { row -> row.map { it.value.toString() }.toTypedArray() })
+            table.data.map { row -> arrayOf(UTF_8_BOM) + row.map { it.value.toString() }.toTypedArray() })
     }
 }
 
