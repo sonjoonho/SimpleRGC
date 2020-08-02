@@ -52,8 +52,8 @@ class RGCBatch : Command {
         RGCTransductionController(transductionView, transductionModel, statusService)
 
         val tp = JTabbedPane()
-        tp.add("RGCCounter", counterView)
-        tp.add("RGCTransduction", transductionView)
+        tp.add("RGC Counter", counterView)
+        tp.add("RGC Transduction", transductionView)
         tp.border = BorderFactory.createEmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE)
         frame.add(tp, BorderLayout.CENTER)
         frame.preferredSize = Dimension(PREFERRED_WIDTH, PREFERRED_HEIGHT)

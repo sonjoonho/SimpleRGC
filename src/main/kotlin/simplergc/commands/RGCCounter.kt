@@ -64,13 +64,27 @@ class RGCCounter : Command, Previewable {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Select channel to use",
+        label = "Select channel",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var selectChannelHeader: String
+
+    @Parameter(
+        label = "Morphology channel",
         min = "1",
         stepSize = "1",
         required = true,
         persist = true
     )
     var targetChannel = 1
+
+    @Parameter(
+        label = "",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var emptyLineUnused1: String
 
     @Parameter(
         label = "Image processing parameters",
@@ -119,11 +133,18 @@ class RGCCounter : Command, Previewable {
     var gaussianBlurSigma = 3.0
 
     @Parameter(
-        label = "Remove axons",
+        label = "Exclude axons",
         required = true,
         persist = true
     )
     var shouldRemoveAxons: Boolean = false
+
+    @Parameter(
+        label = "",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var emptyLineUnused2: String
 
     @Parameter(
         label = "Output parameters",
@@ -137,7 +158,7 @@ class RGCCounter : Command, Previewable {
      */
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
-        const val XLSX = "Save as XLSX file"
+        const val XLSX = "Save as XLSX file (Recommended)"
         const val CSV = "Save as CSV file"
     }
 
@@ -151,7 +172,7 @@ class RGCCounter : Command, Previewable {
     private var outputFormat = OutputFormat.DISPLAY
 
     @Parameter(
-        label = "Output File (if saving)",
+        label = "Output file (if saving)",
         style = "save",
         required = false
     )
