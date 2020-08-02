@@ -11,6 +11,8 @@ import simplergc.services.Field
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
 import simplergc.services.IntField
+import simplergc.services.Metric
+import simplergc.services.Metric.ChannelSelection.TRANSDUCTION_ONLY
 import simplergc.services.Output
 import simplergc.services.Parameters
 import simplergc.services.StringField
@@ -83,16 +85,40 @@ data class SingleChannelTransductionAnalysisRow(
     val transducedCell: Int,
     val cellAnalysis: CellColocalizationService.CellAnalysis
 ) : BaseRow {
-    override fun toList() = listOf(
-        StringField(fileName),
-        IntField(transducedCell),
-        IntField(cellAnalysis.area),
-        IntField(cellAnalysis.mean),
-        IntField(cellAnalysis.median),
-        IntField(cellAnalysis.min),
-        IntField(cellAnalysis.max),
-        IntField(cellAnalysis.rawIntDen)
-    )
+    override fun toList(): List<Field<*>> {
+        val fields = mutableListOf(
+            StringField(fileName),
+            IntField(transducedCell)
+        )
+        for (metric in Metric.values()) {
+            fields.add(IntField(metric.compute(cellAnalysis)))
+        }
+        return fields
+    }
+}
+
+data class MultiChannelTransductionAnalysisRow(
+    val fileName: String,
+    val transducedCell: Int,
+    val cellAnalyses: List<CellColocalizationService.CellAnalysis>,
+    val transductionChannel: Int
+) : BaseRow {
+    override fun toList(): List<Field<*>> {
+        val fields = mutableListOf(
+            StringField(fileName),
+            IntField(transducedCell)
+        )
+        for (metric in Metric.values()) {
+            if (metric.channels == TRANSDUCTION_ONLY) {
+                fields.add(IntField(metric.compute(cellAnalyses[transductionChannel])))
+            } else {
+                for (cellAnalysis in cellAnalyses) {
+                    fields.add(IntField(metric.compute(cellAnalysis)))
+                }
+            }
+        }
+        return fields
+    }
 }
 
 /**

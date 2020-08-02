@@ -8,9 +8,9 @@ import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
+import simplergc.services.Metric
 import simplergc.services.Parameters
 import simplergc.services.Table
-import simplergc.services.batch.output.Metric
 
 /**
  * Outputs multiple CSVs into an output folder.

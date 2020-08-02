@@ -5,19 +5,19 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
+import simplergc.services.CellColocalizationService
 import simplergc.services.Field
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
 import simplergc.services.HorizontallyMergedHeaderField
-import simplergc.services.IntField
+import simplergc.services.Metric
+import simplergc.services.Metric.ChannelSelection.TRANSDUCTION_ONLY
 import simplergc.services.Parameters
 import simplergc.services.StringField
 import simplergc.services.Table
 import simplergc.services.VerticallyMergedHeaderField
 import simplergc.services.XlsxAggregateGenerator
 import simplergc.services.XlsxTableWriter
-import simplergc.services.batch.output.Metric
-import simplergc.services.batch.output.Metric.ChannelSelection.TRANSDUCTION_ONLY
 
 /**
  * Outputs the analysis with the result of overlapping, transduced cells in XLSX format.
@@ -131,21 +131,20 @@ class XlsxColocalizationOutput(
         t.addRow(FieldRow(subHeaders))
 
         for ((fileName, result) in fileNameAndResultsList) {
-            result.channelResults[transducedChannel].cellAnalyses.forEachIndexed { i, cellAnalysis ->
-                val row: MutableList<Field<*>> = mutableListOf(
-                    StringField(fileName),
-                    IntField(i + 1)
-                )
-                for (metric in Metric.values()) {
-                    if (metric.channels == TRANSDUCTION_ONLY) {
-                        row.add(IntField(metric.compute(cellAnalysis)))
-                    } else {
-                        for (channel in channelNames.withIndex()) {
-                            row.add(IntField(metric.compute(result.channelResults[channel.index].cellAnalyses[i])))
-                        }
-                    }
+            val cellCount = result.channelResults[transducedChannel].cellAnalyses.size
+            for (i in 0 until cellCount) {
+                val channelAnalyses = mutableListOf<CellColocalizationService.CellAnalysis>()
+                for (idx in channelNames.indices) {
+                    channelAnalyses.add(result.channelResults[idx].cellAnalyses[i])
                 }
-                t.addRow(FieldRow(row))
+                t.addRow(
+                    MultiChannelTransductionAnalysisRow(
+                        fileName,
+                        i + 1,
+                        channelAnalyses,
+                        transducedChannel
+                    )
+                )
             }
 
             for (aggregate in Aggregate.values()) {
