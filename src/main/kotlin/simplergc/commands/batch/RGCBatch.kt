@@ -1,11 +1,5 @@
 package simplergc.commands.batch
 
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.util.prefs.Preferences
-import javax.swing.BorderFactory
-import javax.swing.JFrame
-import javax.swing.JTabbedPane
 import net.imagej.ImageJ
 import org.scijava.Context
 import org.scijava.app.StatusService
@@ -20,6 +14,12 @@ import simplergc.commands.batch.models.RGCTransductionModel
 import simplergc.commands.batch.views.RGCCounterView
 import simplergc.commands.batch.views.RGCTransductionView
 import simplergc.services.CellSegmentationService
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.util.prefs.Preferences
+import javax.swing.BorderFactory
+import javax.swing.JFrame
+import javax.swing.JTabbedPane
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Batch")
 class RGCBatch : Command {
@@ -44,11 +44,11 @@ class RGCBatch : Command {
         val frame = JFrame()
 
         val counterModel = RGCCounterModel(context, prefs)
-        val counterView = RGCCounterView(counterModel)
+        val counterView = RGCCounterView(frame, counterModel)
         RGCCounterController(counterView, counterModel, statusService)
 
         val transductionModel = RGCTransductionModel(context, prefs)
-        val transductionView = RGCTransductionView(transductionModel)
+        val transductionView = RGCTransductionView(frame, transductionModel)
         RGCTransductionController(transductionView, transductionModel, statusService)
 
         val tp = JTabbedPane()

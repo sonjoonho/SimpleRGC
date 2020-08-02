@@ -1,7 +1,5 @@
 package simplergc.commands.batch.views
 
-import javax.swing.BoxLayout
-import javax.swing.SpinnerNumberModel
 import simplergc.commands.batch.controllers.RGCController
 import simplergc.commands.batch.models.RGCTransductionModel
 import simplergc.commands.batch.views.common.CellDiameterField
@@ -11,8 +9,11 @@ import simplergc.commands.batch.views.common.RGCCheckbox
 import simplergc.commands.batch.views.common.RGCSpinner
 import simplergc.commands.batch.views.common.addLabel
 import simplergc.commands.batch.views.common.addMessage
+import javax.swing.BoxLayout
+import javax.swing.JFrame
+import javax.swing.SpinnerNumberModel
 
-class RGCTransductionView(model: RGCTransductionModel) : RGCView() {
+class RGCTransductionView(frame: JFrame, model: RGCTransductionModel) : RGCView(frame) {
 
     val inputDirectoryChooser = InputDirectoryChooserPanel(this, model.inputDirectory)
 
