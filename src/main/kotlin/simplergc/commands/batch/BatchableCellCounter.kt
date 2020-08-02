@@ -1,7 +1,6 @@
 package simplergc.commands.batch
 
 import ij.ImagePlus
-import java.io.File
 import org.scijava.Context
 import simplergc.commands.RGCCounter
 import simplergc.commands.batch.RGCBatch.OutputFormat
@@ -9,6 +8,7 @@ import simplergc.services.CellDiameterRange
 import simplergc.services.Parameters
 import simplergc.services.counter.output.CsvCounterOutput
 import simplergc.services.counter.output.XlsxCounterOutput
+import java.io.File
 
 class BatchableCellCounter(
     private val targetChannel: Int,
@@ -31,9 +31,6 @@ class BatchableCellCounter(
         simpleCellCounter.shouldRemoveAxons = shouldRemoveAxons
         context.inject(simpleCellCounter)
 
-        val numCellsList = inputImages.map { simpleCellCounter.process(it, cellDiameterRange).count }
-        val imageAndCount = inputImages.zip(numCellsList)
-
         val counterParameters = Parameters.Counter(
             targetChannel,
             cellDiameterRange,
@@ -47,7 +44,10 @@ class BatchableCellCounter(
             else -> throw IllegalArgumentException("Invalid output type provided")
         }
 
-        imageAndCount.forEach { (image, count) -> output.addCountForFile(count, image.title) }
+        for (image in inputImages) {
+            val count = simpleCellCounter.process(image, cellDiameterRange).count
+            output.addCountForFile(count, image.title)
+        }
 
         output.output()
     }
