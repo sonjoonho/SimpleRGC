@@ -9,6 +9,7 @@ import ij.plugin.ChannelSplitter
 import ij.plugin.frame.RoiManager
 import java.io.File
 import java.io.IOException
+import java.text.DecimalFormat
 import kotlin.math.max
 import kotlin.math.min
 import net.imagej.ImageJ
@@ -238,7 +239,8 @@ class RGCTransduction : Command, Previewable {
         val overlappingOverlaidCells: List<PositionedCell>
     ) {
         val transducedCellCount = overlappingTwoChannelCells.size
-        val transductionEfficiency = ((overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100)
+        val transductionEfficiency = DecimalFormat("#.##").format(
+            (overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100).toDouble()
     }
 
     override fun run() {
@@ -337,7 +339,7 @@ class RGCTransduction : Command, Previewable {
         }
         if (transducedChannel < 1 || transducedChannel > image.nChannels) {
             throw ChannelDoesNotExistException(
-                "Transduced channel selected ($numChannels) does not exist. " +
+                "Transduced channel selected ($transducedChannel) does not exist. " +
                     "There are $numChannels channels available"
             )
         }
@@ -393,7 +395,8 @@ class RGCTransduction : Command, Previewable {
 
         val channelResults = mutableListOf<ChannelResult>()
         val transductionChannelResult = ChannelResult(
-            "C-Transduction", cellColocalizationService.analyseCellIntensity(
+            "Transduction",
+            cellColocalizationService.analyseCellIntensity(
                 channelImages[transducedChannel - 1],
                 rois
             )
@@ -401,14 +404,14 @@ class RGCTransduction : Command, Previewable {
         channelResults.add(transductionChannelResult)
         channelResults.add(
             ChannelResult(
-                "C-Target", cellColocalizationService.analyseCellIntensity(
+                "Morphology", cellColocalizationService.analyseCellIntensity(
                     channelImages[targetChannel - 1],
                     rois
                 )
             )
         )
         for (channel in (1..channelImages.size).toSet() - setOf(targetChannel, transducedChannel)) {
-            val result = ChannelResult("C-$channel",
+            val result = ChannelResult("Channel $channel",
                 cellColocalizationService.analyseCellIntensity(
                     channelImages[channel - 1],
                     targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }

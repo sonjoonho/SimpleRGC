@@ -3,6 +3,7 @@ package simplergc.commands.batch.controllers
 import java.awt.event.ActionListener
 import java.io.FileNotFoundException
 import java.io.IOException
+import kotlin.concurrent.thread
 import org.scijava.app.StatusService
 import simplergc.commands.batch.Batchable
 import simplergc.commands.batch.models.RGCParameters
@@ -53,14 +54,18 @@ abstract class RGCController(private val statusService: StatusService) {
             }
 
             saveParameters(p)
-
-            try {
-                process(p)
-                view.dialog("Saved", "The batch processing results have successfully been saved to ${p.outputFile}")
-            } catch (e: FileNotFoundException) {
-                view.dialog("Error", e.message ?: "File not found.")
-            } catch (ioe: IOException) {
-                view.dialog("Error", ioe.message ?: "File could not be opened/saved.")
+            thread(start = true) {
+                try {
+                    process(p)
+                    view.close()
+                    view.dialog("Saved", "The batch processing results have successfully been saved to ${p.outputFile}")
+                } catch (e: FileNotFoundException) {
+                    view.dialog("Error", e.message ?: "File not found.")
+                } catch (e: IOException) {
+                    view.dialog("Error", e.message ?: "File could not be opened/saved.")
+                } catch (e: Exception) {
+                    view.dialog("Error", e.message ?: "An error occurred")
+                }
             }
         }
     }
