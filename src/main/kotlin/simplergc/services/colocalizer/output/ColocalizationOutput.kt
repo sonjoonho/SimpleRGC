@@ -7,6 +7,7 @@ import simplergc.services.BaseRow
 import simplergc.services.BooleanField
 import simplergc.services.CellColocalizationService
 import simplergc.services.DoubleField
+import simplergc.services.EmptyRow
 import simplergc.services.Field
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
@@ -157,8 +158,8 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
 
     fun documentationData(): Table = Table().apply {
         addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
-        addRow(DocumentationRow("", ""))
-        addRow(DocumentationRow("Abbreviation", "Description"))
+        addRow(EmptyRow())
+        addRow(FieldRow(listOf(HeaderField("Abbreviation"), HeaderField("Description"))))
         addRow(DocumentationRow("Summary", "Key measurements per image"))
         addRow(DocumentationRow("Transduced cells analysis", "Per-cell metrics of transduced cells"))
         addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))

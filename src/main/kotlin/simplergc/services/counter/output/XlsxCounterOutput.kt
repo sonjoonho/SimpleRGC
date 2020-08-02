@@ -4,12 +4,15 @@ import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.BaseRow
+import simplergc.services.EmptyRow
+import simplergc.services.FieldRow
+import simplergc.services.HeaderField
 import simplergc.services.Output.Companion.ARTICLE_CITATION
 import simplergc.services.Parameters
 import simplergc.services.StringField
 import simplergc.services.XlsxTableWriter
 
-data class Citation(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
+data class CitationRow(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
     override fun toList() = listOf(StringField(article), StringField(citation))
 }
 
@@ -26,10 +29,13 @@ class XlsxCounterOutput(private val outputFile: File, private val counterParamet
         val createHelper = workbook.creationHelper
         val numberCellStyle = workbook.createCellStyle()
         numberCellStyle.dataFormat = createHelper.createDataFormat().getFormat("#")
+        resultsData.addRow(CitationRow())
+        resultsData.addRow(EmptyRow())
+        resultsData.addRow(FieldRow(listOf("File Name", "Cell Count").map { HeaderField(it) }))
+
         for ((fileName, count) in fileNameAndCountList) {
             resultsData.addRow(ResultsRow(fileName.replace(",", ""), count))
         }
-        resultsData.addRow(Citation())
         tableWriter.produce(resultsData, "Results")
     }
 

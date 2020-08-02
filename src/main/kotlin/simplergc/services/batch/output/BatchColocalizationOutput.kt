@@ -4,6 +4,7 @@ import kotlin.math.max
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
+import simplergc.services.EmptyRow
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
 import simplergc.services.Metric
@@ -12,6 +13,7 @@ import simplergc.services.Output
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.ColocalizationOutput
 import simplergc.services.colocalizer.output.DocumentationRow
+import simplergc.services.counter.output.CitationRow
 
 abstract class BatchColocalizationOutput : Output {
 
@@ -41,9 +43,9 @@ abstract class BatchColocalizationOutput : Output {
     fun documentationData(): Table {
         val channelNames = colocalizationOutput.channelNames()
         return Table().apply {
-            addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
-            addRow(DocumentationRow("", ""))
-            addRow(DocumentationRow("Abbreviation", "Description"))
+            addRow(CitationRow())
+            addRow(EmptyRow())
+            addRow(FieldRow(listOf(HeaderField("Abbreviation"), HeaderField("Description"))))
             addRow(DocumentationRow("Summary", "Key measurements per image"))
             Metric.values().forEach { metric ->
                 if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
