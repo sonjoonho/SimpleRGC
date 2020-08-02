@@ -54,17 +54,17 @@ abstract class RGCController(private val statusService: StatusService) {
             }
 
             saveParameters(p)
-
-            try {
-                thread(start = true) {
+            thread(start = true) {
+                try {
                     process(p)
                     view.dialog("Saved", "The batch processing results have successfully been saved to ${p.outputFile}")
+                } catch (e: FileNotFoundException) {
+                    view.dialog("Error", e.message ?: "File not found.")
+                } catch (ioe: IOException) {
+                    view.dialog("Error", ioe.message ?: "File could not be opened/saved.")
                 }
-            } catch (e: FileNotFoundException) {
-                view.dialog("Error", e.message ?: "File not found.")
-            } catch (ioe: IOException) {
-                view.dialog("Error", ioe.message ?: "File could not be opened/saved.")
             }
+
             view.close()
         }
     }
