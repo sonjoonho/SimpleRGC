@@ -9,6 +9,7 @@ import ij.plugin.ChannelSplitter
 import ij.plugin.frame.RoiManager
 import java.io.File
 import java.io.IOException
+import java.text.DecimalFormat
 import kotlin.math.max
 import kotlin.math.min
 import net.imagej.ImageJ
@@ -231,7 +232,8 @@ class RGCTransduction : Command, Previewable {
         val overlappingOverlaidCells: List<PositionedCell>
     ) {
         val transducedCellCount = overlappingTwoChannelCells.size
-        val transductionEfficiency = ((overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100)
+        val transductionEfficiency = DecimalFormat("#.##").format(
+            (overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100).toDouble()
     }
 
     override fun run() {
