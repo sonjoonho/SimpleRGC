@@ -1,11 +1,8 @@
 package simplergc.commands.batch
 
-import ij.IJ
 import ij.ImagePlus
-import ij.gui.MessageDialog
 import java.io.File
 import org.scijava.Context
-import simplergc.commands.ChannelDoesNotExistException
 import simplergc.commands.RGCTransduction
 import simplergc.commands.batch.RGCBatch.OutputFormat
 import simplergc.services.CellDiameterRange
@@ -54,13 +51,8 @@ class BatchableColocalizer(
         }
 
         for (image in inputImages) {
-            try {
                 val analysis = rgcTransduction.process(image, cellDiameterRange)
                 output.addTransductionResultForFile(analysis, image.title)
-            } catch (e: ChannelDoesNotExistException) {
-                MessageDialog(IJ.getInstance(), "Error", e.message)
-                return
-            }
         }
 
         output.output()
