@@ -70,11 +70,52 @@ class RGCTransduction : Command, Previewable {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Target (morphology) cells",
+        label = "Select channels",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var targetCellHeader: String
+    private lateinit var selectChannelHeader: String
+
+    /**
+     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
+     * the channels available at the parameter initiation stage.
+     * By default this is 1 (red) channel.
+     */
+    @Parameter(
+        label = "Morphology channel",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = true
+    )
+    var targetChannel = 1
+
+    /**
+     * Specify the channel for the transduced cells.
+     * By default this is the 2 (green) channel.
+     */
+    @Parameter(
+        label = "Transduction channel",
+        min = "1",
+        stepSize = "1",
+        required = true,
+        persist = true
+    )
+    var transducedChannel = 2
+
+    @Parameter(
+        label = "",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var emptyLineUnused1: String
+
+    @Parameter(
+        label = "Image processing parameters",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var preprocessingParamsHeader: String
 
     /**
      * Used during the cell identification stage to filter out cells that are too small
@@ -87,61 +128,6 @@ class RGCTransduction : Command, Previewable {
         persist = true
     )
     var cellDiameterText = "0.0-30.0"
-
-    /**
-     * Specify the channel for the target cell. ImageJ does not have a way to retrieve
-     * the channels available at the parameter initiation stage.
-     * By default this is 1 (red) channel.
-     */
-    @Parameter(
-        label = "Channel",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = true
-    )
-    var targetChannel = 1
-
-    @Parameter(
-        label = "Exclude axons",
-        required = true,
-        persist = true
-    )
-    var shouldRemoveAxonsFromTargetChannel: Boolean = false
-
-    @Parameter(
-        label = "Transduced cells",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var transducedCellHeader: String
-
-    /**
-     * Specify the channel for the transduced cells.
-     * By default this is the 2 (green) channel.
-     */
-    @Parameter(
-        label = "Channel",
-        min = "1",
-        stepSize = "1",
-        required = true,
-        persist = true
-    )
-    var transducedChannel = 2
-
-    @Parameter(
-        label = "Exclude axons",
-        required = true,
-        persist = true
-    )
-    var shouldRemoveAxonsFromTransductionChannel: Boolean = false
-
-    @Parameter(
-        label = "Preprocessing parameters",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var preprocessingParamsHeader: String
 
     /**
      * Used as the size of the window over which the threshold will be locally computed.
@@ -171,6 +157,27 @@ class RGCTransduction : Command, Previewable {
     var gaussianBlurSigma = 3.0
 
     @Parameter(
+        label = "Exclude axons in morphology channel",
+        required = true,
+        persist = true
+    )
+    var shouldRemoveAxonsFromTargetChannel: Boolean = false
+
+    @Parameter(
+        label = "Exclude axons in transduction channel",
+        required = true,
+        persist = true
+    )
+    var shouldRemoveAxonsFromTransductionChannel: Boolean = false
+
+    @Parameter(
+        label = "",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var emptyLineUnused2: String
+
+    @Parameter(
         label = "Output parameters",
         visibility = ItemVisibility.MESSAGE,
         required = false
@@ -182,12 +189,12 @@ class RGCTransduction : Command, Previewable {
      */
     object OutputFormat {
         const val DISPLAY = "Display in ImageJ"
-        const val XLSX = "Save as Excel file (Recommended)"
+        const val XLSX = "Save as XLSX file (Recommended)"
         const val CSV = "Save as CSV files"
     }
 
     @Parameter(
-        label = "Results Output:",
+        label = "Results output:",
         choices = [OutputFormat.DISPLAY, OutputFormat.XLSX, OutputFormat.CSV],
         required = true,
         persist = true,
@@ -325,8 +332,10 @@ class RGCTransduction : Command, Previewable {
     ): TransductionResult {
         val numChannels = image.nChannels
         if (targetChannel < 1 || targetChannel > numChannels) {
-            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. " +
-                "There are $numChannels channels available")
+            throw ChannelDoesNotExistException(
+                "Target channel selected ($targetChannel) does not exist. " +
+                    "There are $numChannels channels available"
+            )
         }
         if (transducedChannel < 1 || transducedChannel > image.nChannels) {
             throw ChannelDoesNotExistException(
@@ -385,19 +394,22 @@ class RGCTransduction : Command, Previewable {
         val rois = targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }
 
         val channelResults = mutableListOf<ChannelResult>()
-        val transductionChannelResult = ChannelResult("Transduction",
+        val transductionChannelResult = ChannelResult(
+            "Transduction",
             cellColocalizationService.analyseCellIntensity(
                 channelImages[transducedChannel - 1],
                 rois
             )
         )
         channelResults.add(transductionChannelResult)
-        channelResults.add(ChannelResult("Morphology",
-            cellColocalizationService.analyseCellIntensity(
-                channelImages[targetChannel - 1],
-                rois
+        channelResults.add(
+            ChannelResult(
+                "Morphology", cellColocalizationService.analyseCellIntensity(
+                    channelImages[targetChannel - 1],
+                    rois
+                )
             )
-        ))
+        )
         for (channel in (1..channelImages.size).toSet() - setOf(targetChannel, transducedChannel)) {
             val result = ChannelResult("Channel $channel",
                 cellColocalizationService.analyseCellIntensity(

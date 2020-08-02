@@ -21,16 +21,16 @@ class RGCTransductionView(frame: JFrame, model: RGCTransductionModel) : RGCView(
         RGCCheckbox("Batch process in nested sub-folders?", model.shouldProcessFilesInNestedFolders)
 
     private val targetChannelModel = SpinnerNumberModel(model.targetChannel, 1, 100, 1)
-    val targetChannelSpinner = RGCSpinner("Channel", targetChannelModel)
+    val targetChannelSpinner = RGCSpinner("Morphology channel", targetChannelModel)
 
     val shouldRemoveAxonsFromTargetChannelCheckbox =
-        RGCCheckbox("Exclude axons", model.shouldRemoveAxonsFromTargetChannel)
+        RGCCheckbox("Exclude axons in morphology channel", model.shouldRemoveAxonsFromTargetChannel)
 
     private val transductionChannelModel = SpinnerNumberModel(model.transductionChannel, 1, 100, 1)
     val transductionChannelSpinner = RGCSpinner("Transduction channel", transductionChannelModel)
 
     val shouldRemoveAxonsFromTransductionChannelCheckbox =
-        RGCCheckbox("Exclude axons", model.shouldRemoveAxonsFromTransductionChannel)
+        RGCCheckbox("Exclude axons in transduction channel", model.shouldRemoveAxonsFromTransductionChannel)
 
     val cellDiameterField = CellDiameterField(model.cellDiameter)
 
@@ -51,24 +51,22 @@ class RGCTransductionView(frame: JFrame, model: RGCTransductionModel) : RGCView(
 
         addMessage(
             this,
-            "<html><div align=\\\"left\\\">When performing batch colocalization, ensure that all input images have the same </br> channel ordering as specified below.</div></html>"
+            "<html><div align=\\\"left\\\">Please ensure that all input images have the same </br> channel ordering as specified below.</div></html>"
         )
 
-        addLabel(this, "Target (morphology) cells")
+        addLabel(this, "")
 
-        this.add(cellDiameterField)
+        addLabel(this, "Select channels")
 
         this.add(targetChannelSpinner)
 
-        this.add(shouldRemoveAxonsFromTargetChannelCheckbox)
-
-        addLabel(this, "Transduced cells")
-
         this.add(transductionChannelSpinner)
 
-        this.add(shouldRemoveAxonsFromTransductionChannelCheckbox)
+        addLabel(this, "")
 
-        addLabel(this, "Preprocessing parameters")
+        addLabel(this, "Image processing parameters")
+
+        this.add(cellDiameterField)
 
         this.add(thresholdRadiusSpinner)
         thresholdRadiusSpinner.toolTipText = "The radius of the local domain over which the threshold will be computed."
@@ -76,6 +74,12 @@ class RGCTransductionView(frame: JFrame, model: RGCTransductionModel) : RGCView(
         this.add(gaussianBlurSpinner)
         gaussianBlurSpinner.toolTipText =
             "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
+
+        this.add(shouldRemoveAxonsFromTargetChannelCheckbox)
+
+        this.add(shouldRemoveAxonsFromTransductionChannelCheckbox)
+
+        addLabel(this, "")
 
         addLabel(this, "Output parameters")
 
