@@ -1,15 +1,15 @@
 package simplergc.commands.batch.controllers
 
+import java.awt.event.ActionListener
+import java.io.FileNotFoundException
+import java.io.IOException
+import kotlin.concurrent.thread
 import org.scijava.app.StatusService
 import simplergc.commands.batch.Batchable
 import simplergc.commands.batch.models.RGCParameters
 import simplergc.commands.batch.views.RGCView
 import simplergc.comparators.AlphanumFileComparator
 import simplergc.services.DiameterParseException
-import java.awt.event.ActionListener
-import java.io.FileNotFoundException
-import java.io.IOException
-import kotlin.concurrent.thread
 
 abstract class RGCController(private val statusService: StatusService) {
 
