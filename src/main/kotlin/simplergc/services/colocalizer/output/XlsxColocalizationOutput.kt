@@ -6,8 +6,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.Field
-import simplergc.services.HeaderField
 import simplergc.services.FieldRow
+import simplergc.services.HeaderField
 import simplergc.services.HorizontallyMergedHeaderField
 import simplergc.services.IntField
 import simplergc.services.Parameters
@@ -17,6 +17,7 @@ import simplergc.services.VerticallyMergedHeaderField
 import simplergc.services.XlsxAggregateGenerator
 import simplergc.services.XlsxTableWriter
 import simplergc.services.batch.output.Metric
+import simplergc.services.batch.output.Metric.ChannelSelection.TRANSDUCTION_ONLY
 
 /**
  * Outputs the analysis with the result of overlapping, transduced cells in XLSX format.
@@ -73,28 +74,28 @@ class XlsxColocalizationOutput(
         val headers = mutableListOf("File Name",
             "Number of Cells",
             "Number of Transduced Cells",
-            "Transduction Efficiency (%)",
-            "Average Morphology Area (pixel^2)"
+            "Transduction Efficiency (%)"
         ).map { VerticallyMergedHeaderField(HeaderField(it), 2) }
 
-        val metricColumns = listOf("Mean Fluorescence Intensity (a.u.)",
-            "Median Fluorescence Intensity (a.u.)",
-            "Min Fluorescence Intensity (a.u.)",
-            "Max Fluorescence Intensity (a.u.)",
-            "RawIntDen").map { HorizontallyMergedHeaderField(HeaderField(it), channelNames.size) }
-
-        val t = Table()
-
-        t.addRow(FieldRow(headers + metricColumns))
-
         val subHeaders: MutableList<Field<*>> = MutableList(headers.size) { StringField("") }
+        val metricHeaders = mutableListOf<Field<*>>()
 
-        for (metricColumn in metricColumns) {
-            for (channelName in channelNames) {
-                subHeaders.add(HeaderField(channelName))
+        for (metric in Metric.values()) {
+            val headerName = metric.summaryName ?: metric.full
+            if (metric.channels == TRANSDUCTION_ONLY) {
+                metricHeaders.add(VerticallyMergedHeaderField(HeaderField(headerName), 2))
+                subHeaders.add(StringField(""))
+            } else {
+                metricHeaders.add(HorizontallyMergedHeaderField(HeaderField(headerName), channelNames.size))
+                for (channelName in channelNames) {
+                    subHeaders.add(HeaderField(channelName))
+                }
             }
         }
 
+        val t = Table()
+
+        t.addRow(FieldRow(headers + metricHeaders))
         t.addRow(FieldRow(subHeaders))
 
         // Add summary data.
@@ -109,36 +110,34 @@ class XlsxColocalizationOutput(
         val channelNames = channelNames()
         val headers = listOf(
             "File Name",
-            "Transduced Cell",
-            "Morphology Area (pixel^2)").map { VerticallyMergedHeaderField(HeaderField(it), 2) }
-
-        val metricColumns = listOf(
-            "Mean Fluorescence Intensity (a.u.)",
-            "Median Fluorescence Intensity (a.u.)",
-            "Min Fluorescence Intensity (a.u.)",
-            "Max Fluorescence Intensity (a.u.)",
-            "RawIntDen"
-        ).map { HorizontallyMergedHeaderField(HeaderField(it), channelNames.size) }
-
-        t.addRow(FieldRow(headers + metricColumns))
+            "Transduced Cell").map { VerticallyMergedHeaderField(HeaderField(it), 2) }
 
         val subHeaders: MutableList<Field<*>> = MutableList(headers.size) { StringField("") }
+        val metricHeaders = mutableListOf<Field<*>>()
 
-        for (metricColumn in metricColumns) {
-            for (channelName in channelNames) {
-                subHeaders.add(HeaderField(channelName))
+        for (metric in Metric.values()) {
+            if (metric.channels == TRANSDUCTION_ONLY) {
+                metricHeaders.add(VerticallyMergedHeaderField(HeaderField(metric.full), 2))
+                subHeaders.add(StringField(""))
+            } else {
+                metricHeaders.add(HorizontallyMergedHeaderField(HeaderField(metric.full), channelNames.size))
+                for (channelName in channelNames) {
+                    subHeaders.add(HeaderField(channelName))
+                }
             }
         }
 
+        t.addRow(FieldRow(headers + metricHeaders))
         t.addRow(FieldRow(subHeaders))
 
         for ((fileName, result) in fileNameAndResultsList) {
             result.channelResults[transducedChannel].cellAnalyses.forEachIndexed { i, cellAnalysis ->
-                val row: MutableList<Field<*>> = mutableListOf(StringField(fileName),
+                val row: MutableList<Field<*>> = mutableListOf(
+                    StringField(fileName),
                     IntField(i + 1)
                 )
                 for (metric in Metric.values()) {
-                    if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
+                    if (metric.channels == TRANSDUCTION_ONLY) {
                         row.add(IntField(metric.compute(cellAnalysis)))
                     } else {
                         for (channel in channelNames.withIndex()) {
@@ -149,22 +148,22 @@ class XlsxColocalizationOutput(
                 t.addRow(FieldRow(row))
             }
 
-            Aggregate.values().forEach {
+            for (aggregate in Aggregate.values()) {
                 val rawValues = mutableListOf<List<Int>>()
-                Metric.values().forEach { metric ->
-                    if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
+                for (metric in Metric.values()) {
+                    if (metric.channels == TRANSDUCTION_ONLY) {
                         rawValues.add(result.channelResults[transducedChannel].cellAnalyses.map { cell ->
                             metric.compute(cell)
                         })
                     } else {
-                        channelNames.indices.forEach { idx ->
+                        for (idx in channelNames.indices) {
                             rawValues.add(result.channelResults[idx].cellAnalyses.map { cell ->
                                 metric.compute(cell)
                             })
                         }
                     }
                 }
-                t.addRow(generateAggregateRow(it, rawValues, spaces = 1))
+                t.addRow(generateAggregateRow(aggregate, rawValues, spaces = 1))
             }
         }
         tableWriter.produce(t, "Transduced cell analysis")

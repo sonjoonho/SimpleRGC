@@ -6,8 +6,8 @@ import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
-import simplergc.services.HeaderField
 import simplergc.services.FieldRow
+import simplergc.services.HeaderField
 import simplergc.services.Parameters
 import simplergc.services.Table
 import simplergc.services.batch.output.Metric
@@ -54,21 +54,20 @@ class CsvColocalizationOutput(
         val headers = mutableListOf("File Name",
             "Number of Cells",
             "Number of Transduced Cells",
-            "Transduction Efficiency (%)",
-            "Average Morphology Area (pixel^2)"
+            "Transduction Efficiency (%)"
         )
 
-        val metricColumns = listOf("Mean Fluorescence Intensity (a.u.)",
-            "Median Fluorescence Intensity (a.u.)",
-            "Min Fluominrescence Intensity (a.u.)",
-            "Max Fluorescence Intensity (a.u.)",
-            "RawIntDen")
-
-        for (metricColumn in metricColumns) {
-            for (channelName in channelNames) {
-                headers.add("$metricColumn - $channelName")
+        for (metric in Metric.values()) {
+            val headerName = metric.summaryName ?: metric.full
+            if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
+                headers.add(headerName)
+            } else {
+                for (channelName in channelNames) {
+                    headers.add("$headerName - $channelName")
+                }
             }
         }
+
         val t = Table()
 
         t.addRow(FieldRow(headers.map { HeaderField(it) }))
@@ -83,20 +82,19 @@ class CsvColocalizationOutput(
     override fun writeAnalysis() {
         channelNames().forEachIndexed { idx, name ->
             val t = Table()
-            t.addRow(FieldRow(listOf(
-                "File Name",
-                "Transduced Cell",
-                "Morphology Area (pixel^2)",
-                "Mean Fluorescence Intensity (a.u.)",
-                "Median Fluorescence Intensity (a.u.)",
-                "Min Fluorescence Intensity (a.u.)",
-                "Max Fluorescence Intensity (a.u.)",
-                "RawIntDen"
-            ).map { HeaderField(it) }))
+            val headers = mutableListOf("File Name",
+                "Transduced Cell")
+
+            for (metric in Metric.values()) {
+                headers.add(metric.full)
+            }
+
+            t.addRow(FieldRow(headers.map { HeaderField(it) }))
+
             for ((fileName, result) in fileNameAndResultsList) {
                 result.channelResults[idx].cellAnalyses.forEachIndexed { i, cellAnalysis ->
                     t.addRow(
-                        TransductionAnalysisRow(
+                        SingleChannelTransductionAnalysisRow(
                             fileName = fileName,
                             transducedCell = i + 1,
                             cellAnalysis = cellAnalysis

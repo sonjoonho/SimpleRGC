@@ -8,8 +8,8 @@ import simplergc.services.BooleanField
 import simplergc.services.CellColocalizationService
 import simplergc.services.DoubleField
 import simplergc.services.Field
-import simplergc.services.HeaderField
 import simplergc.services.FieldRow
+import simplergc.services.HeaderField
 import simplergc.services.IntField
 import simplergc.services.Output
 import simplergc.services.Parameters
@@ -78,7 +78,7 @@ data class SummaryRow(
     }
 }
 
-data class TransductionAnalysisRow(
+data class SingleChannelTransductionAnalysisRow(
     val fileName: String,
     val transducedCell: Int,
     val cellAnalysis: CellColocalizationService.CellAnalysis

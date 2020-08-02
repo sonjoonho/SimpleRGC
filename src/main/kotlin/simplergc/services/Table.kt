@@ -145,6 +145,11 @@ interface BaseRow {
     fun toList(): List<Field<*>>
 }
 
+// A basic row of fields
+data class FieldRow(val headers: List<Field<*>>) : BaseRow {
+    override fun toList(): List<Field<*>> = headers
+}
+
 // A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
 // of equal length so fields can be null.
 data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
@@ -160,10 +165,6 @@ data class AggregateRow(val name: String, val values: List<Field<*>>, val spaces
         // Spaces allows for the row to start at a later column
         return MutableList(spaces) { StringField("") } + listOf(StringField(name)) + values
     }
-}
-
-data class FieldRow(val headers: List<Field<*>>) : BaseRow {
-    override fun toList(): List<Field<*>> = headers
 }
 
 sealed class Field<V>(val value: V)

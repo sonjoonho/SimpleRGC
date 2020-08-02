@@ -2,8 +2,8 @@ package simplergc.services.counter.output
 
 import simplergc.services.BaseRow
 import simplergc.services.DoubleField
-import simplergc.services.HeaderField
 import simplergc.services.FieldRow
+import simplergc.services.HeaderField
 import simplergc.services.IntField
 import simplergc.services.Output
 import simplergc.services.StringField
