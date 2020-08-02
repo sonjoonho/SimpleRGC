@@ -1,7 +1,5 @@
 package simplergc.commands.batch.controllers
 
-import ij.IJ
-import ij.gui.MessageDialog
 import java.awt.event.ActionListener
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -66,10 +64,9 @@ abstract class RGCController(private val statusService: StatusService) {
                 } catch (e: IOException) {
                     view.dialog("Error", e.message ?: "File could not be opened/saved.")
                 } catch (e: Exception) {
-                    view.dialog( "Error", e.message ?: "An error occurred")
+                    view.dialog("Error", e.message ?: "An error occurred")
                 }
             }
-
         }
     }
 }
