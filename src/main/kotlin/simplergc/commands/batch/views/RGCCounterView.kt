@@ -32,7 +32,7 @@ class RGCCounterView(model: RGCCounterModel) : RGCView() {
     private val gaussianBlurModel = SpinnerNumberModel(model.gaussianBlur.toInt(), 1, 50, 1)
     val gaussianBlurSpinner = RGCSpinner("Gaussian blur sigma", gaussianBlurModel)
 
-    val shouldRemoveAxonsCheckbox = RGCCheckbox("Remove Axons", model.shouldRemoveAxons)
+    val shouldRemoveAxonsCheckbox = RGCCheckbox("Exclude Axons", model.shouldRemoveAxons)
 
     val outputFileChooserPanel = OutputFileChooserPanel(model.outputFile, model.outputFormat)
 
@@ -43,9 +43,16 @@ class RGCCounterView(model: RGCCounterModel) : RGCView() {
 
         this.add(shouldProcessFilesInNestedFoldersCheckbox)
 
+        addLabel(this, "")
+
+        addLabel(this, "Select channel")
+
         this.add(channelSpinner)
 
+        addLabel(this, "")
+
         addLabel(this, "Image processing parameters")
+
         this.add(cellDiameterChannelField)
 
         this.add(thresholdRadiusSpinner)
@@ -57,7 +64,10 @@ class RGCCounterView(model: RGCCounterModel) : RGCView() {
 
         this.add(shouldRemoveAxonsCheckbox)
 
+        addLabel(this, "")
+
         addLabel(this, "Output parameters")
+
         this.add(outputFileChooserPanel)
 
         this.add(okButton)

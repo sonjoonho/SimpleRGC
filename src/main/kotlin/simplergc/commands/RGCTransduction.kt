@@ -69,11 +69,11 @@ class RGCTransduction : Command, Previewable {
     private lateinit var uiService: UIService
 
     @Parameter(
-        label = "Morphology channel",
+        label = "Select channels",
         visibility = ItemVisibility.MESSAGE,
         required = false
     )
-    private lateinit var targetCellHeader: String
+    private lateinit var selectChannelHeader: String
 
     /**
      * Specify the channel for the target cell. ImageJ does not have a way to retrieve
@@ -89,20 +89,6 @@ class RGCTransduction : Command, Previewable {
     )
     var targetChannel = 1
 
-    @Parameter(
-        label = "Exclude axons",
-        required = true,
-        persist = true
-    )
-    var shouldRemoveAxonsFromTargetChannel: Boolean = false
-
-    @Parameter(
-        label = "Transduction channel",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var transducedCellHeader: String
-
     /**
      * Specify the channel for the transduced cells.
      * By default this is the 2 (green) channel.
@@ -117,11 +103,18 @@ class RGCTransduction : Command, Previewable {
     var transducedChannel = 2
 
     @Parameter(
-        label = "Exclude axons",
-        required = true,
-        persist = true
+        label = "",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
     )
-    var shouldRemoveAxonsFromTransductionChannel: Boolean = false
+    private lateinit var emptyLineUnused1: String
+
+    @Parameter(
+        label = "Image processing parameters",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var preprocessingParamsHeader: String
 
     /**
      * Used during the cell identification stage to filter out cells that are too small
@@ -134,13 +127,6 @@ class RGCTransduction : Command, Previewable {
         persist = true
     )
     var cellDiameterText = "0.0-30.0"
-
-    @Parameter(
-        label = "Image processing parameters",
-        visibility = ItemVisibility.MESSAGE,
-        required = false
-    )
-    private lateinit var preprocessingParamsHeader: String
 
     /**
      * Used as the size of the window over which the threshold will be locally computed.
@@ -168,6 +154,27 @@ class RGCTransduction : Command, Previewable {
         persist = true
     )
     var gaussianBlurSigma = 3.0
+
+    @Parameter(
+        label = "Exclude axons in morphology channel",
+        required = true,
+        persist = true
+    )
+    var shouldRemoveAxonsFromTargetChannel: Boolean = false
+
+    @Parameter(
+        label = "Exclude axons in transduction channel",
+        required = true,
+        persist = true
+    )
+    var shouldRemoveAxonsFromTransductionChannel: Boolean = false
+
+    @Parameter(
+        label = "",
+        visibility = ItemVisibility.MESSAGE,
+        required = false
+    )
+    private lateinit var emptyLineUnused2: String
 
     @Parameter(
         label = "Output parameters",

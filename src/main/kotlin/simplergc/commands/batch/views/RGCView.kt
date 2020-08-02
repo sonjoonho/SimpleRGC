@@ -7,7 +7,7 @@ import javax.swing.JPanel
 import simplergc.commands.batch.controllers.RGCController
 
 abstract class RGCView : JPanel() {
-    val okButton = JButton("Ok")
+    val okButton = JButton("OK")
 
     abstract fun addListeners(controller: RGCController)
 
