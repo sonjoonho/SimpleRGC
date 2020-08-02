@@ -381,17 +381,21 @@ class RGCTransduction : Command, Previewable {
         val rois = targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }
 
         val channelResults = mutableListOf<ChannelResult>()
-        val transductionChannelResult = ChannelResult("C-Transduction", cellColocalizationService.analyseCellIntensity(
-            channelImages[transducedChannel - 1],
-            rois
-        ))
+        val transductionChannelResult = ChannelResult("Transduction",
+            cellColocalizationService.analyseCellIntensity(
+                channelImages[transducedChannel - 1],
+                rois
+            )
+        )
         channelResults.add(transductionChannelResult)
-        channelResults.add(ChannelResult("C-Target", cellColocalizationService.analyseCellIntensity(
-            channelImages[targetChannel - 1],
-            rois
-        )))
+        channelResults.add(ChannelResult("Morphology",
+            cellColocalizationService.analyseCellIntensity(
+                channelImages[targetChannel - 1],
+                rois
+            )
+        ))
         for (channel in (1..channelImages.size).toSet() - setOf(targetChannel, transducedChannel)) {
-            val result = ChannelResult("C-$channel",
+            val result = ChannelResult("Channel $channel",
                 cellColocalizationService.analyseCellIntensity(
                     channelImages[channel - 1],
                     targetTransducedAnalysis.overlappingOverlaid.map { it.toRoi() }

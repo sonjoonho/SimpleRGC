@@ -11,13 +11,48 @@ import simplergc.services.Table
 import simplergc.services.colocalizer.output.ColocalizationOutput
 import simplergc.services.colocalizer.output.DocumentationRow
 
-enum class Metric(val value: String, val compute: (CellAnalysis) -> Int, val channels: ChannelSelection) {
-    Area("Morphology Area", CellAnalysis::area, ChannelSelection.TRANSDUCTION_ONLY),
-    Mean("Mean Int", CellAnalysis::mean, ChannelSelection.ALL_CHANNELS),
-    Median("Median Int", CellAnalysis::median, ChannelSelection.ALL_CHANNELS),
-    Min("Min Int", CellAnalysis::min, ChannelSelection.ALL_CHANNELS),
-    Max("Max Int", CellAnalysis::max, ChannelSelection.ALL_CHANNELS),
-    IntDen("Raw IntDen", CellAnalysis::rawIntDen, ChannelSelection.ALL_CHANNELS);
+enum class Metric(
+    val value: String,
+    val description: String,
+    val compute: (CellAnalysis) -> Int,
+    val channels: ChannelSelection
+) {
+    Area(
+        "Morphology Area",
+        "Average morphology area (pixel²) for each transduced cell",
+        CellAnalysis::area,
+        ChannelSelection.TRANSDUCTION_ONLY
+    ),
+    Mean(
+        "Mean Int",
+        "Mean fluorescence intensity for each transduced cell",
+        CellAnalysis::mean,
+        ChannelSelection.ALL_CHANNELS
+    ),
+    Median(
+        "Median Int",
+        "Median fluorescence intensity for each transduced cell",
+        CellAnalysis::median,
+        ChannelSelection.ALL_CHANNELS
+    ),
+    Min(
+        "Min Int",
+        "Min fluorescence intensity for each transduced cell",
+        CellAnalysis::min,
+        ChannelSelection.ALL_CHANNELS
+    ),
+    Max(
+        "Max Int",
+        "Max fluorescence intensity for each transduced cell",
+        CellAnalysis::max,
+        ChannelSelection.ALL_CHANNELS
+    ),
+    IntDen(
+        "Raw IntDen",
+        "Raw Integrated Density for each transduced cell",
+        CellAnalysis::rawIntDen,
+        ChannelSelection.ALL_CHANNELS
+    );
 
     enum class ChannelSelection {
         TRANSDUCTION_ONLY,
@@ -50,17 +85,24 @@ abstract class BatchColocalizationOutput : Output {
         colocalizationOutput.writeParameters()
     }
 
-    fun documentationData(): Table = Table(listOf()).apply {
-        addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
-        addRow(DocumentationRow("", ""))
-        addRow(DocumentationRow("Abbreviation", "Description"))
-        addRow(DocumentationRow("Summary", "Key measurements per image"))
-        addRow(DocumentationRow("Mean Int: ", "Mean fluorescence intensity for each transduced cell"))
-        addRow(DocumentationRow("Median Int:", "Median fluorescence intensity for each transduced cell"))
-        addRow(DocumentationRow("Min Int: ", "Min fluorescence intensity for each transduced cell"))
-        addRow(DocumentationRow("Max Int: ", "Max fluorescence intensity for each transduced cell"))
-        addRow(DocumentationRow("Raw IntDen:", "Raw Integrated Density for each transduced cell"))
-        addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
+    fun documentationData(): Table {
+        val channelNames = colocalizationOutput.channelNames()
+        return Table(listOf()).apply {
+            addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
+            addRow(DocumentationRow("", ""))
+            addRow(DocumentationRow("Abbreviation", "Description"))
+            addRow(DocumentationRow("Summary", "Key measurements per image"))
+            Metric.values().forEach { metric ->
+                if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
+                    addRow(DocumentationRow(metric.value, metric.description))
+                } else {
+                    for (name in channelNames) {
+                        addRow(DocumentationRow("${metric.value}_$name", "${metric.description} for $name"))
+                    }
+                }
+            }
+            addRow(DocumentationRow("Parameters", "Parameters used to run the SimpleRGC plugin"))
+        }
     }
 
     private fun computeMetricTables(): List<Pair<String, Table>> {
@@ -80,7 +122,7 @@ abstract class BatchColocalizationOutput : Output {
             } else {
                 // Compute the metric values for all channels
                 channelNames.mapIndexed { idx, name ->
-                    Pair("${metric.value} - $name", computeMetricTableForChannel(metric, idx))
+                    Pair("${metric.value}_$name", computeMetricTableForChannel(metric, idx))
                 }
             }
         }.flatten()
