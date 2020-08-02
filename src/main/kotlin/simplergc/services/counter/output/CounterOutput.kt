@@ -24,7 +24,8 @@ abstract class CounterOutput : Output {
         fileNameAndCountList.add(Pair(file, count))
     }
 
-    protected val resultsData = Table().apply { addRow(FieldRow(listOf("File Name", "Cell Count").map { HeaderField(it) })) }
+    protected val resultsData = Table()
+
     data class ResultsRow(val fileName: String, val count: Int) : BaseRow {
         override fun toList() = listOf(StringField(fileName), IntField(count))
     }
@@ -63,20 +64,6 @@ abstract class CounterOutput : Output {
             DoubleField(gaussianBlurSigma)
         )
     }
-
-    protected val parametersAndResultsData = Table().apply { addRow(FieldRow(
-        listOf(
-            "File Name",
-            "Cell Count",
-            "Simple RGC Plugin",
-            "Version",
-            "Morphology Channel",
-            "Smallest Cell Diameter (px)",
-            "Largest Cell Diameter (px)",
-            "Local Threshold Radius",
-            "Gaussian Blur Sigma"
-        ).map { HeaderField(it) }
-    )) }
 
     data class ParametersResultsRow(
         val fileName: String,

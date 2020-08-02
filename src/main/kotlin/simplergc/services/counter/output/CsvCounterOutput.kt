@@ -2,6 +2,9 @@ package simplergc.services.counter.output
 
 import java.io.File
 import simplergc.services.CsvTableWriter
+import simplergc.services.EmptyRow
+import simplergc.services.FieldRow
+import simplergc.services.HeaderField
 import simplergc.services.Parameters
 
 class CsvCounterOutput(private val outputFile: File, private val counterParameters: Parameters.Counter) : CounterOutput() {
@@ -12,8 +15,25 @@ class CsvCounterOutput(private val outputFile: File, private val counterParamete
      * Saves count results into csv file at specified output path.
      */
     override fun output() {
+        resultsData.addRow(CitationRow())
+        resultsData.addRow(EmptyRow())
+        resultsData.addRow(
+            FieldRow(
+                listOf(
+                    "File Name",
+                    "Cell Count",
+                    "Simple RGC Plugin",
+                    "Version",
+                    "Morphology Channel",
+                    "Smallest Cell Diameter (px)",
+                    "Largest Cell Diameter (px)",
+                    "Local Threshold Radius",
+                    "Gaussian Blur Sigma"
+                ).map { HeaderField(it) }
+            )
+        )
         for ((fileName, count) in fileNameAndCountList) {
-            parametersAndResultsData.addRow(
+            resultsData.addRow(
                 ParametersResultsRow(
                     fileName = fileName.replace(",", ""),
                     cellCount = count,
@@ -24,6 +44,6 @@ class CsvCounterOutput(private val outputFile: File, private val counterParamete
                 gaussianBlurSigma = counterParameters.gaussianBlurSigma
                 ))
         }
-        tableWriter.produce(parametersAndResultsData, outputFile.absolutePath)
+        tableWriter.produce(resultsData, outputFile.absolutePath)
     }
 }

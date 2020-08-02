@@ -127,9 +127,17 @@ class ImageJTableWriter(private val uiService: UIService) : TableWriter {
         val imageJTable = DefaultGenericTable()
         val data = table.data
 
-        val columns: List<DefaultColumn<String>> = listOf()
+        if (data.isEmpty()) {
+            return
+        }
 
-        for (row in data) {
+        val header = data[0]
+        val body = data.drop(1)
+
+        // Use first row as schema
+        val columns = header.map { DefaultColumn(String::class.java, it.value.toString()) }
+
+        for (row in body) {
             for (colIdx in row.indices) {
                 columns[colIdx].add(row[colIdx].value.toString())
             }
@@ -145,8 +153,12 @@ interface BaseRow {
 }
 
 // A basic row of fields
-data class FieldRow(val headers: List<Field<*>>) : BaseRow {
-    override fun toList(): List<Field<*>> = headers
+data class FieldRow(val fields: List<Field<*>>) : BaseRow {
+    override fun toList(): List<Field<*>> = fields
+}
+
+class EmptyRow : BaseRow {
+    override fun toList() = emptyList<Field<*>>()
 }
 
 // A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
