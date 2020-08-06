@@ -10,6 +10,7 @@ import simplergc.services.HeaderField
 import simplergc.services.Output.Companion.ARTICLE_CITATION
 import simplergc.services.Parameters
 import simplergc.services.StringField
+import simplergc.services.Table
 import simplergc.services.XlsxTableWriter
 
 data class CitationRow(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
@@ -43,6 +44,8 @@ class XlsxCounterOutput(private val outputFile: File, private val counterParamet
      * Generate the 'Parameters' sheet, containing the parameters used for each filename.
      */
     private fun writeParameters() {
+        val parametersData = Table()
+        parametersData.addRow(FieldRow(parameterHeadings))
         for ((fileName, _) in fileNameAndCountList) {
             parametersData.addRow(
                 ParametersRow(

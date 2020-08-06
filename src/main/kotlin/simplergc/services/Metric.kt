@@ -26,7 +26,7 @@ enum class Metric(
         "Average morphology area (pixel$UTF_8_SUP2) for each transduced cell",
         CellColocalizationService.CellAnalysis::area,
         ChannelSelection.TRANSDUCTION_ONLY,
-        "Average Morphology Area"
+        "Average Morphology Area (pixel$UTF_8_SUP2)"
     ),
     Mean(
         "Mean Int",

@@ -171,13 +171,13 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
             "File Name",
             "SimpleRGC Plugin",
             "Plugin Version",
-            "Morphology channel",
-            "Exclude Axons from morphology channel?",
-            "Transduction channel",
-            "Exclude Axons from transduction channel?",
-            "Cell diameter range (px)",
-            "Local threshold radius",
-            "Gaussian blur sigma"
+            "Morphology Channel",
+            "Exclude Axons from Morphology Channel?",
+            "Transduction Channel",
+            "Exclude Axons from Transduction Channel?",
+            "Cell Diameter Range (px)",
+            "Local Threshold Radius",
+            "Gaussian Blur Sigma"
         ).map { HeaderField(it) }))
         // Add parameter data.
         for ((fileName, _) in fileNameAndResultsList) {

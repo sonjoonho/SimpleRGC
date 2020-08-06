@@ -2,7 +2,6 @@ package simplergc.services.counter.output
 
 import simplergc.services.BaseRow
 import simplergc.services.DoubleField
-import simplergc.services.FieldRow
 import simplergc.services.HeaderField
 import simplergc.services.IntField
 import simplergc.services.Output
@@ -30,18 +29,16 @@ abstract class CounterOutput : Output {
         override fun toList() = listOf(StringField(fileName), IntField(count))
     }
 
-    protected val parametersData = Table().apply {
-        addRow(FieldRow(listOf(
-            "File Name",
-            "Simple RGC Plugin",
-            "Version",
-            "Morphology Channel",
-            "Smallest Cell Diameter (px)",
-            "Largest Cell Diameter (px)",
-            "Local Threshold Radius",
-            "Gaussian Blur Sigma"
-        ).map { HeaderField(it) }))
-    }
+    protected val parameterHeadings = listOf(
+        "File Name",
+        "Simple RGC Plugin",
+        "Plugin Version",
+        "Morphology Channel",
+        "Smallest Cell Diameter (px)",
+        "Largest Cell Diameter (px)",
+        "Local Threshold Radius",
+        "Gaussian Blur Sigma"
+    ).map { HeaderField(it) }
 
     data class ParametersRow(
         val fileName: String,
