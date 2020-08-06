@@ -38,7 +38,7 @@ class BatchableColocalizer(
             shouldRemoveAxonsFromTargetChannel,
             transducedChannel,
             shouldRemoveAxonsFromTransductionChannel,
-            cellDiameterRange.toString(),
+            cellDiameterRange,
             localThresholdRadius,
             gaussianBlurSigma,
             targetChannel
