@@ -29,7 +29,8 @@ data class ParametersRow(
     val excludeAxonsFromMorphologyChannel: Boolean,
     val transductionChannel: Int,
     val excludeAxonsFromTransductionChannel: Boolean,
-    val cellDiameterText: String,
+    val smallestCellDiameter: Double,
+    val largestCellDiameter: Double,
     val localThresholdRadius: Int,
     val gaussianBlurSigma: Double
 ) : BaseRow {
@@ -41,7 +42,8 @@ data class ParametersRow(
         BooleanField(excludeAxonsFromMorphologyChannel),
         IntField(transductionChannel),
         BooleanField(excludeAxonsFromTransductionChannel),
-        StringField(cellDiameterText),
+        DoubleField(smallestCellDiameter),
+        DoubleField(largestCellDiameter),
         IntField(localThresholdRadius),
         DoubleField(gaussianBlurSigma)
     )
@@ -171,13 +173,14 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
             "File Name",
             "SimpleRGC Plugin",
             "Plugin Version",
-            "Morphology channel",
-            "Exclude Axons from morphology channel?",
-            "Transduction channel",
-            "Exclude Axons from transduction channel?",
-            "Cell diameter range (px)",
-            "Local threshold radius",
-            "Gaussian blur sigma"
+            "Morphology Channel",
+            "Exclude Axons from Morphology Channel?",
+            "Transduction Channel",
+            "Exclude Axons from Transduction Channel?",
+            "Smallest Cell Diameter (px)",
+            "Largest Cell Diameter (px)",
+            "Local Threshold Radius",
+            "Gaussian Blur Sigma"
         ).map { HeaderField(it) }))
         // Add parameter data.
         for ((fileName, _) in fileNameAndResultsList) {
@@ -188,7 +191,8 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
                     excludeAxonsFromMorphologyChannel = transductionParameters.shouldRemoveAxonsFromTargetChannel,
                     transductionChannel = transductionParameters.transducedChannel,
                     excludeAxonsFromTransductionChannel = transductionParameters.shouldRemoveAxonsFromTransductionChannel,
-                    cellDiameterText = transductionParameters.cellDiameterText,
+                    smallestCellDiameter = transductionParameters.cellDiameterRange.smallest,
+                    largestCellDiameter = transductionParameters.cellDiameterRange.largest,
                     localThresholdRadius = transductionParameters.localThresholdRadius,
                     gaussianBlurSigma = transductionParameters.gaussianBlurSigma
                 )
