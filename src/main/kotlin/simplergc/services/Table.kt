@@ -113,7 +113,7 @@ class CsvTableWriter : TableWriter {
         CsvWriter().write(
             file,
             StandardCharsets.UTF_8,
-            table.data.map { row -> arrayOf(UTF_8_BOM) + row.map { it.value.toString() }.toTypedArray() })
+            table.data.map { row -> row.map { it.value.toString() }.toTypedArray() })
     }
 }
 
