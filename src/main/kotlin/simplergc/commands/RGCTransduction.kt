@@ -281,18 +281,18 @@ class RGCTransduction : Command, Previewable {
         }
 
         statusService.showStatus(100, 100, "Done!")
-        writeOutput(image.originalFileInfo.fileName, result)
+        writeOutput(image.originalFileInfo.fileName, result, cellDiameterRange)
 
         image.show()
         addToRoiManager(result.overlappingOverlaidCells)
     }
 
-    private fun writeOutput(inputFileName: String, result: TransductionResult) {
+    private fun writeOutput(inputFileName: String, result: TransductionResult, cellDiameterRange: CellDiameterRange) {
         val transductionParameters = Parameters.Transduction(
             shouldRemoveAxonsFromTargetChannel,
             transducedChannel,
             shouldRemoveAxonsFromTransductionChannel,
-            cellDiameterText,
+            cellDiameterRange,
             localThresholdRadius,
             gaussianBlurSigma,
             targetChannel

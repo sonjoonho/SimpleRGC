@@ -4,7 +4,6 @@ import java.io.File
 import simplergc.services.CsvTableWriter
 import simplergc.services.EmptyRow
 import simplergc.services.FieldRow
-import simplergc.services.HeaderField
 import simplergc.services.Parameters
 
 class CsvCounterOutput(private val outputFile: File, private val counterParameters: Parameters.Counter) : CounterOutput() {
@@ -17,21 +16,7 @@ class CsvCounterOutput(private val outputFile: File, private val counterParamete
     override fun output() {
         resultsData.addRow(CitationRow())
         resultsData.addRow(EmptyRow())
-        resultsData.addRow(
-            FieldRow(
-                listOf(
-                    "File Name",
-                    "Cell Count",
-                    "Simple RGC Plugin",
-                    "Version",
-                    "Morphology Channel",
-                    "Smallest Cell Diameter (px)",
-                    "Largest Cell Diameter (px)",
-                    "Local Threshold Radius",
-                    "Gaussian Blur Sigma"
-                ).map { HeaderField(it) }
-            )
-        )
+        resultsData.addRow(FieldRow(parameterHeadings))
         for ((fileName, count) in fileNameAndCountList) {
             resultsData.addRow(
                 ParametersResultsRow(

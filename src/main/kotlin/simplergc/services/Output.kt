@@ -30,7 +30,7 @@ sealed class Parameters {
         val shouldRemoveAxonsFromTargetChannel: Boolean,
         val transducedChannel: Int,
         val shouldRemoveAxonsFromTransductionChannel: Boolean,
-        val cellDiameterText: String,
+        val cellDiameterRange: CellDiameterRange,
         val localThresholdRadius: Int,
         val gaussianBlurSigma: Double,
         val targetChannel: Int
