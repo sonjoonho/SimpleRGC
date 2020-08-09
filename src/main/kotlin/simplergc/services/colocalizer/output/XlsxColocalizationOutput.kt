@@ -130,8 +130,8 @@ class XlsxColocalizationOutput(
         t.addRow(FieldRow(subHeaders))
 
         for ((fileName, result) in fileNameAndResultsList) {
-            val cellCount = result.channelResults[transducedChannel - 1].cellAnalyses.size
-            for (i in 0 until cellCount) {
+            val cellAnalyses = result.channelResults[transducedChannel - 1].cellAnalyses
+            for (i in cellAnalyses.indices) {
                 val channelAnalyses = mutableListOf<CellColocalizationService.CellAnalysis>()
                 for (idx in channelNames.indices) {
                     channelAnalyses.add(result.channelResults[idx].cellAnalyses[i])
