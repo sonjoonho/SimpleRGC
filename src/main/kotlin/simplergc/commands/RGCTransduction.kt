@@ -7,11 +7,6 @@ import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
 import ij.plugin.frame.RoiManager
-import java.io.File
-import java.io.IOException
-import java.text.DecimalFormat
-import kotlin.math.max
-import kotlin.math.min
 import net.imagej.ImageJ
 import net.imagej.ops.OpService
 import org.apache.commons.io.FilenameUtils
@@ -41,6 +36,11 @@ import simplergc.services.colocalizer.output.ImageJTableColocalizationOutput
 import simplergc.services.colocalizer.output.XlsxColocalizationOutput
 import simplergc.services.colocalizer.resetRoiManager
 import simplergc.widgets.AlignedTextWidget
+import java.io.File
+import java.io.IOException
+import java.text.DecimalFormat
+import kotlin.math.max
+import kotlin.math.min
 
 @Plugin(type = Command::class, menuPath = "Plugins > Simple RGC > RGC Transduction")
 class RGCTransduction : Command, Previewable {
@@ -359,6 +359,8 @@ class RGCTransduction : Command, Previewable {
         val targetChannelImage = channelImages[targetChannel - 1]
         val transducedChannelImage = channelImages[transducedChannel - 1]
 
+        statusService.showStatus(25, 100, "Extracting morphology cells...")
+
         val targetCells = cellSegmentationService.extractCells(
             targetChannelImage,
             cellDiameterRange,
@@ -366,6 +368,8 @@ class RGCTransduction : Command, Previewable {
             gaussianBlurSigma,
             shouldRemoveAxonsFromTargetChannel
         )
+
+        statusService.showStatus(25, 100, "Extracting transduced cells...")
 
         // Allow cells in the transduced channel to have unbounded area
         val transducedCells = filterCellsByIntensity(

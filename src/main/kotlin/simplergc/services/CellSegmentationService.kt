@@ -14,13 +14,6 @@ import ij.plugin.filter.ParticleAnalyzer
 import ij.process.AutoThresholder
 import ij.process.FloatPolygon
 import ij.process.ImageConverter
-import java.awt.Color
-import java.lang.Math.PI
-import kotlin.math.abs
-import kotlin.math.exp
-import kotlin.math.floor
-import kotlin.math.pow
-import kotlin.math.sqrt
 import net.imagej.ImageJService
 import org.scijava.app.StatusService
 import org.scijava.plugin.Parameter
@@ -29,6 +22,13 @@ import org.scijava.service.AbstractService
 import org.scijava.service.Service
 import simplergc.DummyRoiManager
 import simplergc.services.colocalizer.PositionedCell
+import java.awt.Color
+import java.lang.Math.PI
+import kotlin.math.abs
+import kotlin.math.exp
+import kotlin.math.floor
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 // Constants used in estimating parameters for axon removal
 // Taken from https://github.com/thorstenwagner/ij-ridgedetection
@@ -96,11 +96,8 @@ class CellSegmentationService : AbstractService(), ImageJService {
             image.duplicate()
         }
 
-        statusService.showStatus(25, 100, "Preprocessing...")
         preprocessImage(mutableImage, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
-        statusService.showStatus(50, 100, "Segmenting image...")
         segmentImage(mutableImage)
-        statusService.showStatus(75, 100, "Identifying cells...")
 
         return identifyCells(
             mutableImage,
