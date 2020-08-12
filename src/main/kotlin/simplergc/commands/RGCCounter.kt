@@ -267,7 +267,7 @@ class RGCCounter : Command, Previewable {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
-                "The cell counting results have successfully been saved to the specified file."
+                "The RGC Counter results have successfully been saved to ${outputFile.name}."
             )
         }
     }

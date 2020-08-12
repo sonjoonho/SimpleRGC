@@ -319,7 +319,7 @@ class RGCTransduction : Command, Previewable {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
-                "The colocalization results have successfully been saved to the specified file"
+                "The RGC Transduction results have successfully been saved to ${outputFile.name}."
             )
         }
     }
