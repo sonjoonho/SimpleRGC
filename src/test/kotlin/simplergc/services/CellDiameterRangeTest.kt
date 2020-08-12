@@ -45,27 +45,27 @@ class CellDiameterRangeTest : FreeSpec({
             row(
                 "missing largest",
                 "0.0 - ",
-                "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
+                "An invalid format for the cell diameter range has been entered. The cell diameter range should be entered in the format '# - #' in which # is a number (up to two decimal places)."
             ),
             row(
                 "missing smallest",
                 "-30.0",
-                "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
+                "An invalid format for the cell diameter range has been entered. The cell diameter range should be entered in the format '# - #' in which # is a number (up to two decimal places)."
             ),
             row(
                 "missing - ",
                 "0.0 30.0 ",
-                "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
+                "An invalid format for the cell diameter range has been entered. The cell diameter range should be entered in the format '# - #' in which # is a number (up to two decimal places)."
             ),
             row(
                 "invalid decimal",
                 "0f0 - 30.0",
-                "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
+                "An invalid format for the cell diameter range has been entered. The cell diameter range should be entered in the format '# - #' in which # is a number (up to two decimal places)."
             ),
             row(
                 "contains alpha characters",
                 "0.0-30.b ",
-                "Cell diameter should be of the form '# - #' where # is a number (up to 2.d.p)"
+                "An invalid format for the cell diameter range has been entered. The cell diameter range should be entered in the format '# - #' in which # is a number (up to two decimal places)."
             ),
             row(
                 "smallest equals largest",
