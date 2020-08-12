@@ -67,12 +67,12 @@ abstract class BatchColocalizationOutput : Output {
         }
 
         val channelNames = colocalizationOutput.channelNames()
-        val transductionChannel = colocalizationOutput.transductionParameters.transducedChannel
+        val transducedChannel = colocalizationOutput.transductionParameters.transducedChannel
 
         return Metric.values().map { metric: Metric ->
             if (metric.channels == Metric.ChannelSelection.TRANSDUCTION_ONLY) {
                 listOf(
-                    Pair(metric.value, computeMetricTableForChannel(metric, transductionChannel))
+                    Pair(metric.value, computeMetricTableForChannel(metric, transducedChannel - 1))
                 )
             } else {
                 // Compute the metric values for all channels

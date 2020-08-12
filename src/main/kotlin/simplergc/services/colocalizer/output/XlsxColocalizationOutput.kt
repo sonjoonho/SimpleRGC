@@ -130,8 +130,8 @@ class XlsxColocalizationOutput(
         t.addRow(FieldRow(subHeaders))
 
         for ((fileName, result) in fileNameAndResultsList) {
-            val cellCount = result.channelResults[transducedChannel].cellAnalyses.size
-            for (i in 0 until cellCount) {
+            val cellAnalyses = result.channelResults[transducedChannel - 1].cellAnalyses
+            for (i in cellAnalyses.indices) {
                 val channelAnalyses = mutableListOf<CellColocalizationService.CellAnalysis>()
                 for (idx in channelNames.indices) {
                     channelAnalyses.add(result.channelResults[idx].cellAnalyses[i])
@@ -141,7 +141,7 @@ class XlsxColocalizationOutput(
                         fileName,
                         i + 1,
                         channelAnalyses,
-                        transducedChannel
+                        transducedChannel - 1
                     )
                 )
             }
@@ -150,7 +150,7 @@ class XlsxColocalizationOutput(
                 val rawValues = mutableListOf<List<Int>>()
                 for (metric in Metric.values()) {
                     if (metric.channels == TRANSDUCTION_ONLY) {
-                        rawValues.add(result.channelResults[transducedChannel].cellAnalyses.map { cell ->
+                        rawValues.add(result.channelResults[transducedChannel - 1].cellAnalyses.map { cell ->
                             metric.compute(cell)
                         })
                     } else {
