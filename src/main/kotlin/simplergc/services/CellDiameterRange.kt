@@ -19,7 +19,7 @@ data class CellDiameterRange(val smallest: Double, val largest: Double) {
             val largest = groups["largest"]!!.value.toDouble()
 
             if (smallest >= largest) {
-                throw DiameterParseException("Smallest cell diameter must be smaller than the largest cell diameter")
+                throw DiameterParseException("The smallest cell diameter must be smaller than the largest cell diameter.")
             }
 
             return CellDiameterRange(smallest, largest)

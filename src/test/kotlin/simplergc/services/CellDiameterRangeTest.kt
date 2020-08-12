@@ -70,12 +70,12 @@ class CellDiameterRangeTest : FreeSpec({
             row(
                 "smallest equals largest",
                 "30.0-30.0",
-                "Smallest cell diameter must be smaller than the largest cell diameter"
+                "The smallest cell diameter must be smaller than the largest cell diameter."
             ),
             row(
                 "smallest larger than largest",
                 "30.0-20.0",
-                "Smallest cell diameter must be smaller than the largest cell diameter"
+                "The smallest cell diameter must be smaller than the largest cell diameter."
             )
         ).map { (description: String, text: String, message: String) ->
             description {
