@@ -265,7 +265,7 @@ class RGCTransduction : Command, Previewable {
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
-                dialog.addMessage("Overwriting file \"$name\"")
+                dialog.addMessage("The specified output file already exists. Overwriting file \"$name\".")
                 dialog.showDialog()
                 if (dialog.wasCanceled()) return
             }
