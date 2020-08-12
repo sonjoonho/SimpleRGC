@@ -333,8 +333,7 @@ class RGCTransduction : Command, Previewable {
         val numChannels = image.nChannels
         if (targetChannel < 1 || targetChannel > numChannels) {
             throw ChannelDoesNotExistException(
-                "Target channel selected ($targetChannel) does not exist. " +
-                    "There are $numChannels channels available"
+                "The selected channel ($targetChannel) does not exist. There are numChannels channels in the open image."
             )
         }
         if (transducedChannel < 1 || transducedChannel > image.nChannels) {

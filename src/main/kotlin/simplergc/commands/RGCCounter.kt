@@ -276,7 +276,7 @@ class RGCCounter : Command, Previewable {
     fun process(image: ImagePlus, diameterRange: CellDiameterRange): CounterResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
-            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
+            throw ChannelDoesNotExistException("The selected channel ($targetChannel) does not exist. There are ${imageChannels.size} channels in the open image.")
         }
 
         val cells = cellSegmentationService.extractCells(
