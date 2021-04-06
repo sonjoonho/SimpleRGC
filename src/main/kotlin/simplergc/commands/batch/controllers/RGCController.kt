@@ -4,7 +4,6 @@ import java.awt.event.ActionListener
 import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.concurrent.thread
-import kotlin.coroutines.*
 import org.scijava.app.StatusService
 import simplergc.commands.batch.Batchable
 import simplergc.commands.batch.models.RGCParameters
