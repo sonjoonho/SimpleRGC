@@ -4,6 +4,7 @@ import java.awt.event.ActionListener
 import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.concurrent.thread
+import kotlin.coroutines.*
 import org.scijava.app.StatusService
 import simplergc.commands.batch.Batchable
 import simplergc.commands.batch.models.RGCParameters
@@ -56,6 +57,7 @@ abstract class RGCController(private val statusService: StatusService) {
             saveParameters(p)
             thread(start = true) {
                 try {
+                    view.dialog("Please Wait", "Click Ok to begin processing images. This may take some time.")
                     process(p)
                     view.close()
                     view.dialog("Saved", "The RGC Batch results have successfully been saved to ${p.outputFile}.")
