@@ -319,7 +319,7 @@ class RGCTransduction : Command, Previewable {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
-                "The RGC Transduction results have successfully been saved to ${outputFile.name}."
+                "The RGC Transduction results have successfully been saved to ${outputFile?.name}."
             )
         }
     }
