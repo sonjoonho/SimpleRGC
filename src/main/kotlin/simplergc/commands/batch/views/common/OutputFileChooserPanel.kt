@@ -46,7 +46,9 @@ class OutputFileChooserPanel(initial: String, var format: String) : JPanel() {
         setOutputLabelText()
         outputFilePanel.add(outputLabel)
 
-        val chooserPanel = FileChooserPanel(file)
+        val chooserPanel = FileChooserPanel(file, onEdit = {
+            file = File(it)
+        })
 
         outputFilePanel.add(chooserPanel)
         this.add(outputFilePanel)

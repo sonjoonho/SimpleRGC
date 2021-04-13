@@ -8,7 +8,7 @@ import javax.swing.JButton
 import javax.swing.JPanel
 import javax.swing.JTextField
 
-class FileChooserPanel(initial: File) : JPanel() {
+class FileChooserPanel(initial: File, onEdit: ((String) -> Unit)? = null) : JPanel() {
 
     val browseButton = JButton("Browse")
     val path = JTextField(initial.absolutePath, COLUMN_WIDTH)
@@ -23,5 +23,11 @@ class FileChooserPanel(initial: File) : JPanel() {
 
         this.add(path, c)
         this.add(browseButton)
+
+        if (onEdit != null) {
+            path.document.addUndoableEditListener {
+                onEdit(path.text)
+            }
+        }
     }
 }
