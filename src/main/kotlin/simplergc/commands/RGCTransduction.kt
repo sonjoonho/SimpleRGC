@@ -499,7 +499,7 @@ class RGCTransduction : Command, Previewable {
             }
 
             image.show()
-            drawCells(image, result.overlappingTwoChannelCells)
+            drawCells(image, result.overlappingOverlaidCells)
         }
     }
 
