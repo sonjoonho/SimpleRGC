@@ -238,9 +238,10 @@ class RGCTransduction : Command, Previewable {
         val overlappingTwoChannelCells: List<PositionedCell>,
         val overlappingOverlaidCells: List<PositionedCell>
     ) {
-        val transducedCellCount = overlappingTwoChannelCells.size
+        val transducedCellCount = overlappingOverlaidCells.size
         val transductionEfficiency = DecimalFormat("#.##").format(
-            (overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100).toDouble()
+            (overlappingOverlaidCells.size / targetCellCount.toDouble()) * 100
+        ).toDouble()
     }
 
     override fun run() {
@@ -265,7 +266,7 @@ class RGCTransduction : Command, Previewable {
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
-                dialog.addMessage("Overwriting file \"$name\"")
+                dialog.addMessage("The specified output file already exists. Overwriting file \"$name\".")
                 dialog.showDialog()
                 if (dialog.wasCanceled()) return
             }
@@ -319,7 +320,7 @@ class RGCTransduction : Command, Previewable {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
-                "The colocalization results have successfully been saved to the specified file"
+                "The RGC Transduction results have successfully been saved to ${outputFile?.name}."
             )
         }
     }
@@ -333,8 +334,7 @@ class RGCTransduction : Command, Previewable {
         val numChannels = image.nChannels
         if (targetChannel < 1 || targetChannel > numChannels) {
             throw ChannelDoesNotExistException(
-                "Target channel selected ($targetChannel) does not exist. " +
-                    "There are $numChannels channels available"
+                "The selected channel ($targetChannel) does not exist. There are numChannels channels in the open image."
             )
         }
         if (transducedChannel < 1 || transducedChannel > image.nChannels) {
@@ -499,7 +499,7 @@ class RGCTransduction : Command, Previewable {
             }
 
             image.show()
-            drawCells(image, result.overlappingTwoChannelCells)
+            drawCells(image, result.overlappingOverlaidCells)
         }
     }
 

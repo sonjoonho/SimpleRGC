@@ -215,7 +215,7 @@ class RGCCounter : Command, Previewable {
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
-                dialog.addMessage("Overwriting file \"$name\"")
+                dialog.addMessage("The specified output file already exists. Overwriting file \"$name\".")
                 dialog.showDialog()
                 if (dialog.wasCanceled()) return
             }
@@ -267,7 +267,7 @@ class RGCCounter : Command, Previewable {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
-                "The cell counting results have successfully been saved to the specified file."
+                "The RGC Counter results have successfully been saved to ${outputFile?.name}."
             )
         }
     }
@@ -276,7 +276,7 @@ class RGCCounter : Command, Previewable {
     fun process(image: ImagePlus, diameterRange: CellDiameterRange): CounterResult {
         val imageChannels = ChannelSplitter.split(image)
         if (targetChannel < 1 || targetChannel > imageChannels.size) {
-            throw ChannelDoesNotExistException("Target channel selected ($targetChannel) does not exist. There are ${imageChannels.size} channels available")
+            throw ChannelDoesNotExistException("The selected channel ($targetChannel) does not exist. There are ${imageChannels.size} channels in the open image.")
         }
 
         val cells = cellSegmentationService.extractCells(
