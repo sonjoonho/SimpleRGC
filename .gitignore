@@ -64,3 +64,4 @@ local.properties
 target/
 
 .ipynb_checkpoints/
+/.vs
