@@ -134,6 +134,7 @@ class RGCCounter : Command, Previewable {
 
     @Parameter(
         label = "Exclude axons",
+        description = "Note: this parameter increases the image processing time.",
         required = true,
         persist = true
     )
