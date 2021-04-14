@@ -60,5 +60,15 @@ fun openFiles(inputFiles: List<File>): List<ImagePlus> {
             )
         }
     }
+    checkImagesHaveSameNumChannels(inputImages)
     return inputImages
+}
+
+class ImagesHaveDifferentNumberOfChannelsException(message: String) : Exception(message)
+
+fun checkImagesHaveSameNumChannels(inputImages: List<ImagePlus>) {
+    // Check if number of channels in all images is the same as the first.
+    if (!inputImages.all { it.nChannels == inputImages.first().nChannels }) {
+        throw ImagesHaveDifferentNumberOfChannelsException("The images selected for processing have differing numbers of channels. Please ensure all images have the same number of channels and try again.")
+    }
 }
