@@ -238,9 +238,10 @@ class RGCTransduction : Command, Previewable {
         val overlappingTwoChannelCells: List<PositionedCell>,
         val overlappingOverlaidCells: List<PositionedCell>
     ) {
-        val transducedCellCount = overlappingTwoChannelCells.size
+        val transducedCellCount = overlappingOverlaidCells.size
         val transductionEfficiency = DecimalFormat("#.##").format(
-            (overlappingTwoChannelCells.size / targetCellCount.toDouble()) * 100).toDouble()
+            (overlappingOverlaidCells.size / targetCellCount.toDouble()) * 100
+        ).toDouble()
     }
 
     override fun run() {
