@@ -15,6 +15,7 @@ import simplergc.services.IntField
 import simplergc.services.Metric
 import simplergc.services.Metric.ChannelSelection.TRANSDUCTION_ONLY
 import simplergc.services.Output
+import simplergc.services.Output.Companion.ARTICLE_CITATION
 import simplergc.services.Parameters
 import simplergc.services.StringField
 import simplergc.services.Table
@@ -159,7 +160,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     }
 
     fun documentationData(): Table = Table().apply {
-        addRow(DocumentationRow("The article: ", "TODO: Insert citation"))
+        addRow(DocumentationRow("The article: ", ARTICLE_CITATION))
         addRow(EmptyRow())
         addRow(FieldRow(listOf(HeaderField("Abbreviation"), HeaderField("Description"))))
         addRow(DocumentationRow("Summary", "Key measurements per image"))
