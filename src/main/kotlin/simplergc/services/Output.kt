@@ -8,8 +8,8 @@ interface Output {
     val tableWriter: TableWriter
 
     companion object {
-        const val ARTICLE_CITATION = "[insert full citation]"
-        const val PLUGIN_VERSION = "1.0.0"
+        const val ARTICLE_CITATION = "https://arxiv.org/abs/2008.06276"
+        const val PLUGIN_VERSION = "1.1.0"
     }
 
     fun output()
