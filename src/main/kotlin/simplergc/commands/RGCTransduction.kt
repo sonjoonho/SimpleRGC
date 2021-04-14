@@ -266,7 +266,7 @@ class RGCTransduction : Command, Previewable {
             outputFile = File(path + name)
             if (!outputFile!!.createNewFile()) {
                 val dialog = GenericDialog("Warning")
-                dialog.addMessage("Overwriting file \"$name\"")
+                dialog.addMessage("The specified output file already exists. Overwriting file \"$name\".")
                 dialog.showDialog()
                 if (dialog.wasCanceled()) return
             }
@@ -320,7 +320,7 @@ class RGCTransduction : Command, Previewable {
             MessageDialog(
                 IJ.getInstance(),
                 "Saved",
-                "The colocalization results have successfully been saved to the specified file"
+                "The RGC Transduction results have successfully been saved to ${outputFile?.name}."
             )
         }
     }
@@ -334,8 +334,7 @@ class RGCTransduction : Command, Previewable {
         val numChannels = image.nChannels
         if (targetChannel < 1 || targetChannel > numChannels) {
             throw ChannelDoesNotExistException(
-                "Target channel selected ($targetChannel) does not exist. " +
-                    "There are $numChannels channels available"
+                "The selected channel ($targetChannel) does not exist. There are numChannels channels in the open image."
             )
         }
         if (transducedChannel < 1 || transducedChannel > image.nChannels) {

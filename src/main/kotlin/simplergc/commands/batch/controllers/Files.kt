@@ -56,10 +56,7 @@ fun openFiles(inputFiles: List<File>): List<ImagePlus> {
         } catch (e: NoClassDefFoundError) {
             MessageDialog(
                 IJ.getInstance(), "Error",
-                """
-                    It appears that the Bio-Formats plugin is not installed.
-                    Please enable the Fiji update site in order to enable this functionality.
-                    """.trimIndent()
+                """The Bio-Formats plugin is not installed and is required to read LIF files. Please upgrade to the latest software version of Fiji.""".trimIndent()
             )
         }
     }
