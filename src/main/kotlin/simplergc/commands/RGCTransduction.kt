@@ -217,12 +217,22 @@ class RGCTransduction : Command, Previewable {
     private var preview: Boolean = false
 
     data class ChannelResult(val name: String, val cellAnalyses: List<CellAnalysis>) {
-        val avgMorphologyArea = (cellAnalyses.sumBy { it.area } / cellAnalyses.size)
-        val meanFluorescenceIntensity = (cellAnalyses.sumBy { it.mean } / cellAnalyses.size)
-        val medianFluorescenceIntensity = (cellAnalyses.sumBy { it.median } / cellAnalyses.size)
-        val minFluorescenceIntensity = (cellAnalyses.sumBy { it.min } / cellAnalyses.size)
-        val maxFluorescenceIntensity = (cellAnalyses.sumBy { it.max } / cellAnalyses.size)
-        val rawIntDen = (cellAnalyses.sumBy { it.rawIntDen } / cellAnalyses.size)
+        var avgMorphologyArea = 0
+        var meanFluorescenceIntensity = 0
+        var medianFluorescenceIntensity = 0
+        var minFluorescenceIntensity = 0
+        var maxFluorescenceIntensity = 0
+        var rawIntDen = 0
+        init {
+            if (cellAnalyses.isNotEmpty()) {
+                avgMorphologyArea = (cellAnalyses.sumBy { it.area } / cellAnalyses.size)
+                meanFluorescenceIntensity = (cellAnalyses.sumBy { it.mean } / cellAnalyses.size)
+                medianFluorescenceIntensity = (cellAnalyses.sumBy { it.median } / cellAnalyses.size)
+                minFluorescenceIntensity = (cellAnalyses.sumBy { it.min } / cellAnalyses.size)
+                maxFluorescenceIntensity = (cellAnalyses.sumBy { it.max } / cellAnalyses.size)
+                rawIntDen = (cellAnalyses.sumBy { it.rawIntDen } / cellAnalyses.size)
+            }
+        }
     }
 
     /**
