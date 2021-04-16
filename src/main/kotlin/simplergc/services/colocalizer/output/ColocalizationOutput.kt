@@ -140,6 +140,8 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         fileNameAndResultsList.add(Pair(file, transductionResult))
     }
 
+    abstract fun getSummaryTable(): Table
+    abstract fun writeSummaryWithAggregates()
     abstract fun writeSummary()
     abstract fun writeAnalysis()
     abstract fun writeParameters()

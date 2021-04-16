@@ -64,12 +64,24 @@ class XlsxColocalizationOutput(
         rawValues.forEach { values ->
             rowValues.add(aggregate.generateValue(
                 XlsxAggregateGenerator(cellStartRow, column++, values.size)
-            ))
+            )
+            )
         }
         return AggregateRow(aggregate.abbreviation, rowValues, spaces)
     }
 
     override fun writeSummary() {
+        val t: Table = getSummaryTable()
+        tableWriter.produce(t, "Summary")
+    }
+
+    override fun writeSummaryWithAggregates() {
+        val t: Table = getSummaryTable()
+        // TODO: Get raw values and add aggregates here.
+        tableWriter.produce(t, "Summary")
+    }
+
+    override fun getSummaryTable(): Table {
         val channelNames = channelNames()
         val headers = mutableListOf(
             "File Name",
@@ -100,9 +112,10 @@ class XlsxColocalizationOutput(
 
         // Add summary data.
         for ((fileName, result) in fileNameAndResultsList) {
+            // TODO: figure out what raw values are and return as pair with table.
             t.addRow(SummaryRow(fileName = fileName, summary = result))
         }
-        tableWriter.produce(t, "Summary")
+        return t
     }
 
     override fun writeAnalysis() {
@@ -110,7 +123,8 @@ class XlsxColocalizationOutput(
         val channelNames = channelNames()
         val headers = listOf(
             "File Name",
-            "Transduced Cell").map { VerticallyMergedHeaderField(HeaderField(it), 2) }
+            "Transduced Cell"
+        ).map { VerticallyMergedHeaderField(HeaderField(it), 2) }
 
         val subHeaders: MutableList<Field<*>> = MutableList(headers.size) { StringField("") }
         val metricHeaders = mutableListOf<Field<*>>()

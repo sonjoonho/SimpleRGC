@@ -32,7 +32,8 @@ abstract class BatchColocalizationOutput : Output {
 
     fun writeSheets() {
         writeDocumentation()
-        colocalizationOutput.writeSummary()
+
+        colocalizationOutput.writeSummaryWithAggregates()
 
         for (metricTable in computeMetricTables()) {
             writeMetric(metricTable.first, metricTable.second)
