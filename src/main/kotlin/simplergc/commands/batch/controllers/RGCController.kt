@@ -67,7 +67,7 @@ abstract class RGCController(private val statusService: StatusService) {
             saveParameters(p)
             thread(start = true) {
                 try {
-                    view.dialog("Please Wait", "Click Ok to begin processing images. This may take some time.")
+                    view.dialog("Please Wait", "Click OK to begin processing images. This may take some time.")
                     process(p)
                     view.close()
                     view.dialog("Saved", "The RGC Batch results have successfully been saved to ${p.outputFile}.")
