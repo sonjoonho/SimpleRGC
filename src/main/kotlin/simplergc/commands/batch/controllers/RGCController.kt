@@ -37,8 +37,7 @@ abstract class RGCController(private val statusService: StatusService) {
         } catch (ice: InconsistentChannelsException) {
             view.dialog(
                 "Error",
-                ice.message
-                    ?: "The images selected for processing have differing numbers of channels. Please ensure all images have the same number of channels and try again."
+                "The images selected for processing have differing numbers of channels. Please ensure all images have the same number of channels and try again."
             )
             emptyList()
         }

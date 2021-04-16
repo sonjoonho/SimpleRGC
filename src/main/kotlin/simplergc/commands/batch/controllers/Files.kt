@@ -64,11 +64,11 @@ fun openFiles(inputFiles: List<File>): List<ImagePlus> {
     return inputImages
 }
 
-class InconsistentChannelsException(message: String) : Exception(message)
+class InconsistentChannelsException() : Exception()
 
 fun checkImagesHaveSameNumChannels(inputImages: List<ImagePlus>) {
     // Check if number of channels in all images is the same as the first.
     if (!inputImages.all { it.nChannels == inputImages.first().nChannels }) {
-        throw InconsistentChannelsException("The images selected for processing have differing numbers of channels. Please ensure all images have the same number of channels and try again.")
+        throw InconsistentChannelsException()
     }
 }
