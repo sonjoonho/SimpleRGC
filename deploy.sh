@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 set -e
+set -x
 
 # Define some variables.
 export USER="Sonjoonho"
@@ -16,6 +17,9 @@ mkdir -p "$IJ_PATH"/
 cd "$HOME"/
 wget -q https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
 unzip -q fiji-linux64.zip
+# Add the update site to ImageJ.
+$IJ_LAUNCHER --update edit-update-site $UPDATE_SITE $URL "webdav:$USER:$WIKI_UPLOAD_PASS" .
+$IJ_LAUNCHER --update update-force
 
 # Install the package.
 printf "Installing the package\n"
@@ -26,8 +30,5 @@ mvn -q clean install -Dscijava.app.directory="$IJ_PATH" -Dscijava.deleteOtherVer
 
 # Deploy the package
 printf "Deploying the plugin\n"
-# Add the update site to ImageJ.
-$IJ_LAUNCHER --update edit-update-site $UPDATE_SITE $URL "webdav:$USER:$WIKI_UPLOAD_PASS" .
-$IJ_LAUNCHER --update update
 # Upload to the update site.
 yes 1 | $IJ_LAUNCHER --update upload --update-site $UPDATE_SITE --force-shadow --forget-missing-dependencies jars/SimpleRGC.jar

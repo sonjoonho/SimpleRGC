@@ -71,7 +71,8 @@ class XlsxColocalizationOutput(
 
     override fun writeSummary() {
         val channelNames = channelNames()
-        val headers = mutableListOf("File Name",
+        val headers = mutableListOf(
+            "File Name",
             "Number of Cells",
             "Number of Transduced Cells",
             "Transduction Efficiency (%)"
