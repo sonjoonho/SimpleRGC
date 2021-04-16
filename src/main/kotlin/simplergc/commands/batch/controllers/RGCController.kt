@@ -1,5 +1,6 @@
 package simplergc.commands.batch.controllers
 
+import ij.ImagePlus
 import java.awt.event.ActionListener
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -31,8 +32,18 @@ abstract class RGCController(private val statusService: StatusService) {
         val files = getAllFiles(p.inputDirectory!!, p.shouldProcessFilesInNestedFolders)
         val orderedFiles = files.sortedWith(AlphanumFileComparator)
 
+        val inputImages: List<ImagePlus> = try {
+            openFiles(orderedFiles)
+        } catch (ice: InconsistentChannelsException) {
+            view.dialog(
+                "Error",
+                "The images selected for processing have differing numbers of channels. Please ensure all images have the same number of channels and try again."
+            )
+            emptyList()
+        }
+
         processor.process(
-            openFiles(orderedFiles),
+            inputImages,
             p.cellDiameterRange,
             p.thresholdRadius,
             p.gaussianBlurSigma,
