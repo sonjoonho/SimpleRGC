@@ -158,6 +158,7 @@ class RGCTransduction : Command, Previewable {
 
     @Parameter(
         label = "Exclude axons in morphology channel",
+        description = "Note: this parameter increases the image processing time.",
         required = true,
         persist = true
     )
@@ -165,6 +166,7 @@ class RGCTransduction : Command, Previewable {
 
     @Parameter(
         label = "Exclude axons in transduction channel",
+        description = "Note: this parameter increases the image processing time.",
         required = true,
         persist = true
     )

@@ -64,6 +64,7 @@ class RGCCounterView(frame: JFrame, model: RGCCounterModel) : RGCView(frame) {
             "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
 
         this.add(shouldRemoveAxonsCheckbox)
+        shouldRemoveAxonsCheckbox.toolTipText = "Note: this parameter increases the image processing time."
 
         addLabel(this, "")
 
