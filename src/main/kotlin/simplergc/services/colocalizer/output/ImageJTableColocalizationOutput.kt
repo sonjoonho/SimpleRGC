@@ -59,7 +59,7 @@ class ImageJTableColocalizationOutput(
         table.addRow(Row(label = "--- Summary ---", count = result.targetCellCount))
         table.addRow(Row(label = "Total number of cells in cell morphology channel", count = result.targetCellCount))
 
-        table.addRow(Row(label = "Transduced cells", count = result.overlappingTwoChannelCells.size))
+        table.addRow(Row(label = "Transduced cells", count = result.overlappingOverlaidCells.size))
 
         table.addRow(
             Row(
