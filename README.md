@@ -30,9 +30,19 @@ After installing, the plugin can be found in the ImageJ menu under `Plugins > Si
   to your JVM arguments - the exact path will be given in the error message.
 - If you get a error to do with the `CellSegmentationService` not being in the `Context`, this can often be solved by running `mvn clean` before re-building.
 
-## Details
+## Citation
 
-We're still working on this bit.
+If you use this plugin or source code in your research paper, please use this BibTeX citation:
+```
+@misc{SimpleRGC,
+      title={Simple RGC: ImageJ plugins for counting retinal ganglion cells and determining the transduction efficiency of viral vectors in retinal wholemounts}, 
+      author={Tiger Cross and Rasika Navarange and Joon-Ho Son and William Burr and Arjun Singh and Kelvin Zhang and Miruna Rusu and Konstantinos Gkoutzis and Andrew Osborne and Bart Nieuwenhuis},
+      year={2020},
+      eprint={2008.06276},
+      archivePrefix={arXiv},
+      primaryClass={q-bio.NC}
+}
+```
 
 ## Status
 
