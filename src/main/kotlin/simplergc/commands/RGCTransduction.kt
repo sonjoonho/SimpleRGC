@@ -6,6 +6,7 @@ import ij.WindowManager
 import ij.gui.GenericDialog
 import ij.gui.MessageDialog
 import ij.plugin.ChannelSplitter
+import ij.plugin.ZProjector
 import ij.plugin.frame.RoiManager
 import java.io.File
 import java.io.IOException
@@ -158,6 +159,7 @@ class RGCTransduction : Command, Previewable {
 
     @Parameter(
         label = "Exclude axons in morphology channel",
+        description = "Note: this parameter increases the image processing time.",
         required = true,
         persist = true
     )
@@ -165,6 +167,7 @@ class RGCTransduction : Command, Previewable {
 
     @Parameter(
         label = "Exclude axons in transduction channel",
+        description = "Note: this parameter increases the image processing time.",
         required = true,
         persist = true
     )
@@ -364,8 +367,16 @@ class RGCTransduction : Command, Previewable {
     ): TransductionResult {
         logService.info("Starting extraction")
 
+        // Z-projection must be done before splitting the image into channels. We need to check the number of slices
+        // before calling the ZProjector because otherwise it will also project on the channel dimension instead.
+        val mutableImage = if (image.nSlices > 1) {
+            ZProjector.run(image, "max")
+        } else {
+            image.duplicate()
+        }
+
         // Extract relevant channels
-        val channelImages = ChannelSplitter.split(image)
+        val channelImages = ChannelSplitter.split(mutableImage)
         val targetChannelImage = channelImages[targetChannel - 1]
         val transducedChannelImage = channelImages[transducedChannel - 1]
 
