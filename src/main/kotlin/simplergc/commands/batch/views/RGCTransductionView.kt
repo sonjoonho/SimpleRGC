@@ -76,8 +76,10 @@ class RGCTransductionView(frame: JFrame, model: RGCTransductionModel) : RGCView(
             "Sigma value used for blurring the image during the processing, a lower value is recommended if there are lots of cells densely packed together"
 
         this.add(shouldRemoveAxonsFromTargetChannelCheckbox)
+        shouldRemoveAxonsFromTargetChannelCheckbox.toolTipText = "Note: this parameter increases the image processing time."
 
         this.add(shouldRemoveAxonsFromTransductionChannelCheckbox)
+        shouldRemoveAxonsFromTransductionChannelCheckbox.toolTipText = "Note: this parameter increases the image processing time."
 
         addLabel(this, "")
 

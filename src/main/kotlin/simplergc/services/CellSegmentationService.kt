@@ -7,7 +7,6 @@ import ij.gui.PolygonRoi
 import ij.gui.Roi
 import ij.measure.Measurements
 import ij.measure.ResultsTable
-import ij.plugin.ZProjector
 import ij.plugin.filter.EDM
 import ij.plugin.filter.MaximumFinder
 import ij.plugin.filter.ParticleAnalyzer
@@ -88,13 +87,7 @@ class CellSegmentationService : AbstractService(), ImageJService {
         shouldRemoveAxons: Boolean = false
     ): List<PositionedCell> {
 
-        val mutableImage = if (image.nSlices > 1) {
-            // Flatten slices of the image. This step should probably be done during inside the pre-processing step -
-            // however this operation is not done in-place but creates a new image, which makes this hard.
-            ZProjector.run(image, "max")
-        } else {
-            image.duplicate()
-        }
+        val mutableImage = image.duplicate()
 
         statusService.showStatus(25, 100, "Preprocessing...")
         preprocessImage(mutableImage, localThresholdRadius, gaussianBlurSigma, shouldRemoveAxons)
