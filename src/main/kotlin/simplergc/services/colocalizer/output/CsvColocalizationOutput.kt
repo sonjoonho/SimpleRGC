@@ -169,10 +169,12 @@ class CsvColocalizationOutput(
         }
     }
 
+    // startRow is unused
     override fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int
+        spaces: Int,
+        startRow: Int
     ): AggregateRow {
         return AggregateRow(aggregate.abbreviation, rawValues.map { values ->
             aggregate.generateValue(CsvAggregateGenerator(values))
