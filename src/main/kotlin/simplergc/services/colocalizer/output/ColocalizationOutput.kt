@@ -160,6 +160,40 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         startRow: Int = 2
     ): AggregateRow
 
+    fun getSummaryRawValues(): MutableList<List<Number>> {
+        val rawValues = mutableListOf<List<Number>>()
+        val rawCellCounts = mutableListOf<Int>()
+        val rawTransducedCellCounts = mutableListOf<Int>()
+        val rawTransductionEfficiencies = mutableListOf<Number>()
+        val rawMorphAreas = mutableListOf<Number>()
+        val numChannels = channelNames().size
+        val rawChannelMeans = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelMedians = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelMins = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelMaxs = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelIntDens = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        for ((_, result) in fileNameAndResultsList) {
+            rawCellCounts.add(result.targetCellCount)
+            rawTransducedCellCounts.add(result.transducedCellCount)
+            rawTransductionEfficiencies.add(result.transductionEfficiency)
+            rawMorphAreas.add(result.channelResults[0].avgMorphologyArea)
+            for (i in 0 until numChannels) {
+                rawChannelMeans[i].add(result.channelResults[i].meanFluorescenceIntensity)
+                rawChannelMedians[i].add(result.channelResults[i].medianFluorescenceIntensity)
+                rawChannelMins[i].add(result.channelResults[i].minFluorescenceIntensity)
+                rawChannelMaxs[i].add(result.channelResults[i].maxFluorescenceIntensity)
+                rawChannelIntDens[i].add(result.channelResults[i].rawIntDen)
+            }
+        }
+        rawValues.addAll(listOf(rawCellCounts, rawTransducedCellCounts, rawTransductionEfficiencies, rawMorphAreas))
+        rawValues.addAll(rawChannelMeans)
+        rawValues.addAll(rawChannelMedians)
+        rawValues.addAll(rawChannelMins)
+        rawValues.addAll(rawChannelMaxs)
+        rawValues.addAll(rawChannelIntDens)
+        return rawValues
+    }
+
     fun channelNames(): List<String> {
         if (fileNameAndResultsList.size == 0) {
             return emptyList()
