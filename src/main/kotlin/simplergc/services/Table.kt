@@ -212,7 +212,6 @@ class VerticallyMergedHeaderField(field: HeaderField, val rowSpan: Int) : Field<
 }
 
 enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGenerator) -> Field<*>) {
-    Total("Total", AggregateGenerator::generateTotal),
     Mean("Mean", AggregateGenerator::generateMean),
     StandardDeviation("Std Dev", AggregateGenerator::generateStandardDeviation),
     StandardErrorOfMean("SEM", AggregateGenerator::generateStandardErrorOfMean),
@@ -220,7 +219,6 @@ enum class Aggregate(val abbreviation: String, val generateValue: (AggregateGene
 }
 
 abstract class AggregateGenerator {
-    abstract fun generateTotal(): Field<*>
     abstract fun generateMean(): Field<*>
     abstract fun generateStandardDeviation(): Field<*>
     abstract fun generateStandardErrorOfMean(): Field<*>
@@ -231,10 +229,6 @@ class XlsxAggregateGenerator(startRow: Int, column: Char, numCells: Int) : Aggre
 
     private val endCellRow = numCells + startRow - 1
     private val cellRange = "$column$startRow:$column$endCellRow"
-
-    override fun generateTotal(): Field<*> {
-        return DoubleFormulaField("SUM($cellRange)")
-    }
 
     override fun generateMean(): Field<*> {
         return DoubleFormulaField("AVERAGE($cellRange)")
@@ -259,10 +253,6 @@ class CsvAggregateGenerator(val values: List<Number>) : AggregateGenerator() {
         val squareOfMean = values.map { it.toDouble() }.average().pow(2)
         val meanOfSquares = values.map { it.toDouble().pow(2) }.average()
         return sqrt(meanOfSquares - squareOfMean)
-    }
-
-    override fun generateTotal(): Field<*> {
-        return DoubleField(values.sumByDouble { it.toDouble() })
     }
 
     override fun generateMean(): Field<*> {
