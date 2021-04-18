@@ -35,7 +35,7 @@ abstract class CounterOutput : Output {
         aggregate: Aggregate,
         cellCounts: List<Number>,
         spaces: Int = 0,
-        startRow: Int = 5
+        startRow: Int = 4
     ): AggregateRow
 
     fun addTotalRow(t: Table, cellCounts: List<Int>) {
