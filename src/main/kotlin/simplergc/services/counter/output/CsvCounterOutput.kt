@@ -1,9 +1,9 @@
 package simplergc.services.counter.output
 
+import java.io.File
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.CsvAggregateGenerator
-import java.io.File
 import simplergc.services.CsvTableWriter
 import simplergc.services.EmptyRow
 import simplergc.services.FieldRow

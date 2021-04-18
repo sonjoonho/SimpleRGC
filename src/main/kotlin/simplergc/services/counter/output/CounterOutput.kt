@@ -4,13 +4,11 @@ import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.BaseRow
 import simplergc.services.DoubleField
-import simplergc.services.Field
 import simplergc.services.HeaderField
 import simplergc.services.IntField
 import simplergc.services.Output
 import simplergc.services.StringField
 import simplergc.services.Table
-import simplergc.services.XlsxAggregateGenerator
 
 /**
  * Outputs the result of cell counting.
