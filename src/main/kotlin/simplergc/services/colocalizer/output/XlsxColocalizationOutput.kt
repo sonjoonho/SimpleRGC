@@ -116,7 +116,6 @@ class XlsxColocalizationOutput(
 
         // Add summary data.
         for ((fileName, result) in fileNameAndResultsList) {
-            // TODO: figure out what raw values are and return as pair with table.
             t.addRow(SummaryRow(fileName = fileName, summary = result))
         }
         return t
