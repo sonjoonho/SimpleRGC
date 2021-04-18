@@ -1,6 +1,5 @@
 package simplergc.services.colocalizer.output
 
-import kotlin.math.roundToInt
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.Aggregate
@@ -75,11 +74,11 @@ class ImageJTableColocalizationOutput(
     }
 
     override fun getSummaryTable(): Table {
-        TODO("Not yet implemented")
+        TODO("No-op.")
     }
 
     override fun writeSummaryWithAggregates() {
-        TODO("Not yet implemented")
+        TODO("No-op.")
     }
 
     override fun writeAnalysis() {
@@ -104,20 +103,20 @@ class ImageJTableColocalizationOutput(
     }
 
     override fun writeParameters() {
-        // no-op
+        TODO("No-op.")
     }
 
     override fun writeDocumentation() {
-        // no-op
+        TODO("No-op.")
     }
 
     override fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int
+        spaces: Int,
+        startRow: Int
     ): AggregateRow {
-        // no-op
-        return AggregateRow("", emptyList())
+        TODO("No-op.")
     }
 
     override fun output() {
