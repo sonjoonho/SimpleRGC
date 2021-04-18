@@ -42,9 +42,11 @@ class XlsxCounterOutput(private val outputFile: File, private val counterParamet
             cellCounts.add(count)
             resultsData.addRow(ResultsRow(fileName.replace(",", ""), count))
         }
-        addTotalRow(resultsData, cellCounts)
-        Aggregate.values().forEach {
-            resultsData.addRow(generateAggregateRow(it, cellCounts))
+        if (fileNameAndCountList.size > 1) {
+            addTotalRow(resultsData, cellCounts)
+            Aggregate.values().forEach {
+                resultsData.addRow(generateAggregateRow(it, cellCounts))
+            }
         }
         tableWriter.produce(resultsData, "Results")
     }

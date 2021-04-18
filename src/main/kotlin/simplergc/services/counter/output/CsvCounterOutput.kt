@@ -35,9 +35,11 @@ class CsvCounterOutput(private val outputFile: File, private val counterParamete
                 )
             )
         }
-        addTotalRow(resultsData, cellCounts)
-        Aggregate.values().forEach {
-            resultsData.addRow(generateAggregateRow(it, cellCounts))
+        if (fileNameAndCountList.size > 1) {
+            addTotalRow(resultsData, cellCounts)
+            Aggregate.values().forEach {
+                resultsData.addRow(generateAggregateRow(it, cellCounts))
+            }
         }
         tableWriter.produce(resultsData, outputFile.absolutePath)
     }
