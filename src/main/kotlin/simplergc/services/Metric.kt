@@ -16,8 +16,9 @@ enum class Metric(
     val value: String,
     val full: String,
     val description: String,
-    val compute: (CellColocalizationService.CellAnalysis) -> Int,
+    val compute: (CellColocalizationService.CellAnalysis) -> Number,
     val channels: ChannelSelection,
+    val toField: (Number) -> Field<*>,
     summaryName: String? = null
 ) {
     Area(
@@ -26,6 +27,7 @@ enum class Metric(
         "Average morphology area (pixel$UTF_8_SUP2) for each transduced cell",
         CellColocalizationService.CellAnalysis::area,
         ChannelSelection.TRANSDUCTION_ONLY,
+        { IntField(it.toInt()) },
         "Average Morphology Area (pixel$UTF_8_SUP2)"
     ),
     Mean(
@@ -33,35 +35,40 @@ enum class Metric(
         "Mean Fluorescence Intensity (a.u.)",
         "Mean fluorescence intensity for each transduced cell",
         CellColocalizationService.CellAnalysis::mean,
-        ChannelSelection.ALL_CHANNELS
+        ChannelSelection.ALL_CHANNELS,
+        { DoubleField(it.toDouble()) }
     ),
     Median(
         "Median Int",
         "Median Fluorescence Intensity (a.u.)",
         "Median fluorescence intensity for each transduced cell",
         CellColocalizationService.CellAnalysis::median,
-        ChannelSelection.ALL_CHANNELS
+        ChannelSelection.ALL_CHANNELS,
+        { IntField(it.toInt()) }
     ),
     Min(
         "Min Int",
         "Min Fluorescence Intensity (a.u.)",
         "Min fluorescence intensity for each transduced cell",
         CellColocalizationService.CellAnalysis::min,
-        ChannelSelection.ALL_CHANNELS
+        ChannelSelection.ALL_CHANNELS,
+        { IntField(it.toInt()) }
     ),
     Max(
         "Max Int",
         "Max Fluorescence Intensity (a.u.)",
         "Max fluorescence intensity for each transduced cell",
         CellColocalizationService.CellAnalysis::max,
-        ChannelSelection.ALL_CHANNELS
+        ChannelSelection.ALL_CHANNELS,
+        { IntField(it.toInt()) }
     ),
     IntDen(
         "Raw IntDen",
         "Raw Integrated Density",
         "Raw Integrated Density for each transduced cell",
         CellColocalizationService.CellAnalysis::rawIntDen,
-        ChannelSelection.ALL_CHANNELS
+        ChannelSelection.ALL_CHANNELS,
+        { IntField(it.toInt()) }
     );
 
     val summaryHeader = summaryName ?: full

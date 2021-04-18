@@ -28,7 +28,7 @@ class BatchCsvColocalizationOutput(outputFile: File, transductionParameters: Par
 
     override fun generateAggregateRow(
         aggregate: Aggregate,
-        rawValues: List<List<Int>>,
+        rawValues: List<List<Number>>,
         spaces: Int
     ): AggregateRow {
         return colocalizationOutput.generateAggregateRow(aggregate, rawValues, spaces)

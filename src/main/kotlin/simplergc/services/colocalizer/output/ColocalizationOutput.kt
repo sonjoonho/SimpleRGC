@@ -64,7 +64,7 @@ data class SummaryRow(
         )
         // Add each channel's metric values grouped by metric
         summary.channelResults.forEach { channelResult ->
-            fields.add(IntField(channelResult.meanFluorescenceIntensity))
+            fields.add(DoubleField(channelResult.meanFluorescenceIntensity))
         }
         summary.channelResults.forEach { channelResult ->
             fields.add(IntField(channelResult.medianFluorescenceIntensity))
@@ -93,7 +93,7 @@ data class SingleChannelTransductionAnalysisRow(
             IntField(transducedCell)
         )
         for (metric in Metric.values()) {
-            fields.add(IntField(metric.compute(cellAnalysis)))
+            fields.add(IntField(metric.compute(cellAnalysis).toInt()))
         }
         return fields
     }
@@ -112,10 +112,10 @@ data class MultiChannelTransductionAnalysisRow(
         )
         for (metric in Metric.values()) {
             if (metric.channels == TRANSDUCTION_ONLY) {
-                fields.add(IntField(metric.compute(cellAnalyses[transductionChannel])))
+                fields.add(IntField(metric.compute(cellAnalyses[transductionChannel]).toInt()))
             } else {
                 for (cellAnalysis in cellAnalyses) {
-                    fields.add(IntField(metric.compute(cellAnalysis)))
+                    fields.add(IntField(metric.compute(cellAnalysis).toInt()))
                 }
             }
         }
@@ -146,7 +146,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     abstract fun writeDocumentation()
     abstract fun generateAggregateRow(
         aggregate: Aggregate,
-        rawValues: List<List<Int>>,
+        rawValues: List<List<Number>>,
         spaces: Int
     ): AggregateRow
 

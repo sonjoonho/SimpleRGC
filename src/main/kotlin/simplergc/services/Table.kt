@@ -59,6 +59,9 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
         centeredHeaderStyle.setFont(headerFont)
         centeredHeaderStyle.setAlignment(HorizontalAlignment.CENTER)
 
+        val decimalCellStyle = workbook.createCellStyle()
+        decimalCellStyle.dataFormat = workbook.createDataFormat().getFormat("0.000")
+
         var maxCols = 0
 
         for (row in data) {
@@ -70,9 +73,17 @@ class XlsxTableWriter(private val workbook: XSSFWorkbook) : TableWriter {
                 when (field) {
                     is StringField -> currCell.setCellValue(field.value)
                     is IntField -> currCell.setCellValue(field.value.toDouble()) // Does not support Ints.
-                    is DoubleField -> currCell.setCellValue(field.value)
+                    is DoubleField -> {
+                        currCell.cellStyle = decimalCellStyle
+                        currCell.setCellValue(field.value)
+                    }
                     is BooleanField -> currCell.setCellValue(field.value)
-                    is FormulaField -> {
+                    is DoubleFormulaField -> {
+                        currCell.cellStyle = decimalCellStyle
+                        currCell.setCellType(CellType.FORMULA)
+                        currCell.cellFormula = field.value
+                    }
+                    is IntFormulaField -> {
                         currCell.setCellType(CellType.FORMULA)
                         currCell.cellFormula = field.value
                     }
@@ -163,11 +174,9 @@ class EmptyRow : BaseRow {
 
 // A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
 // of equal length so fields can be null.
-data class MetricRow(val rowIdx: Int, val metrics: List<Int?>) : BaseRow {
+data class MetricRow(val rowIdx: Int, val metrics: List<Field<*>>) : BaseRow {
     override fun toList(): List<Field<*>> {
-        return listOf(IntField(rowIdx)) +
-            metrics.map { if (it != null) IntField(it) else StringField("")
-        }
+        return listOf(IntField(rowIdx)) + metrics
     }
 }
 
@@ -183,7 +192,8 @@ class StringField(value: String) : Field<String>(value)
 class IntField(value: Int) : Field<Int>(value)
 class DoubleField(value: Double) : Field<Double>(value)
 class BooleanField(value: Boolean) : Field<Boolean>(value)
-class FormulaField(value: String) : Field<String>(value)
+class IntFormulaField(value: String) : Field<String>(value)
+class DoubleFormulaField(value: String) : Field<String>(value)
 class HeaderField(value: String) : Field<String>(value)
 class HorizontallyMergedHeaderField(field: HeaderField, val columnSpan: Int) : Field<String>(field.value) {
     init {
@@ -221,32 +231,32 @@ class XlsxAggregateGenerator(startRow: Int, column: Char, numCells: Int) : Aggre
     private val cellRange = "$column$startRow:$column$endCellRow"
 
     override fun generateMean(): Field<*> {
-        return FormulaField("AVERAGE($cellRange)")
+        return DoubleFormulaField("AVERAGE($cellRange)")
     }
 
     override fun generateStandardDeviation(): Field<*> {
-        return FormulaField("STDEV($cellRange)")
+        return DoubleFormulaField("STDEV($cellRange)")
     }
 
     override fun generateStandardErrorOfMean(): Field<*> {
-        return FormulaField("STDEV($cellRange)/SQRT(COUNT($cellRange))")
+        return DoubleFormulaField("STDEV($cellRange)/SQRT(COUNT($cellRange))")
     }
 
     override fun generateCount(): Field<*> {
-        return FormulaField("COUNT($cellRange)")
+        return IntFormulaField("COUNT($cellRange)")
     }
 }
 
-class CsvAggregateGenerator(val values: List<Int>) : AggregateGenerator() {
+class CsvAggregateGenerator(val values: List<Number>) : AggregateGenerator() {
 
     private fun computeStandardDeviation(): Double {
-        val squareOfMean = values.average().pow(2)
+        val squareOfMean = values.map { it.toDouble() }.average().pow(2)
         val meanOfSquares = values.map { it.toDouble().pow(2) }.average()
         return sqrt(meanOfSquares - squareOfMean)
     }
 
     override fun generateMean(): Field<*> {
-        return DoubleField(values.average())
+        return DoubleField(values.map { it.toDouble() }.average())
     }
 
     override fun generateStandardDeviation(): Field<*> {

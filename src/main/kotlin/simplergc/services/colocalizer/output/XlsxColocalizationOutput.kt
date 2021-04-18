@@ -56,7 +56,7 @@ class XlsxColocalizationOutput(
 
     override fun generateAggregateRow(
         aggregate: Aggregate,
-        rawValues: List<List<Int>>,
+        rawValues: List<List<Number>>,
         spaces: Int
     ): AggregateRow {
         var column = 'B' + spaces
@@ -148,7 +148,7 @@ class XlsxColocalizationOutput(
             }
 
             for (aggregate in Aggregate.values()) {
-                val rawValues = mutableListOf<List<Int>>()
+                val rawValues = mutableListOf<List<Number>>()
                 for (metric in Metric.values()) {
                     if (metric.channels == TRANSDUCTION_ONLY) {
                         rawValues.add(result.channelResults[transducedChannel - 1].cellAnalyses.map { cell ->
