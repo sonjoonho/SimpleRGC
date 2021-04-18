@@ -1,5 +1,6 @@
 package simplergc.services.colocalizer.output
 
+import kotlin.math.roundToInt
 import org.scijava.ui.UIService
 import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.Aggregate
