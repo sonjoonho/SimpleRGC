@@ -55,7 +55,7 @@ class XlsxCounterOutput(private val outputFile: File, private val counterParamet
         spaces: Int,
         startRow: Int
     ): AggregateRow {
-        var column = 'B' + spaces
+        val column = 'B' + spaces
         val rowValues = mutableListOf(
             aggregate.generateValue(
                 XlsxAggregateGenerator(startRow, column, cellCounts.size)
