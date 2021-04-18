@@ -53,14 +53,8 @@ class CsvColocalizationOutput(
     override fun writeSummaryWithAggregates() {
         val t = getSummaryTable()
         val rawValues = getSummaryRawValues()
-        // TODO: Create aggregate for total.
-        // val totalRow = AggregateRow(
-        //     "Total",
-        //     listOf(IntField(rawCellCounts.sum()), IntField(rawTransducedCellCounts.sum())),
-        //     spaces = 0
-        // )
-        // t.addRow(totalRow)
-        SUMMARY_AGGREGATES.forEach {
+        addTotalRow(t, rawCellCounts = rawValues[0] as List<Int>, rawTransducedCellCounts = rawValues[1] as List<Int>)
+        Aggregate.values().forEach {
             t.addRow(generateAggregateRow(it, rawValues, spaces = 0))
         }
         tableWriter.produce(t, "${outputPath}Summary.csv")
@@ -125,7 +119,7 @@ class CsvColocalizationOutput(
                     )
                 }
 
-                METRIC_AGGREGATES.forEach {
+                Aggregate.values().forEach {
                     val rawValues = mutableListOf<List<Number>>()
                     // TODO: Do we need to check  here if the channel index is transduction index.
                     Metric.values().forEach { metric ->

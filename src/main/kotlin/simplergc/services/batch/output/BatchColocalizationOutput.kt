@@ -111,7 +111,7 @@ abstract class BatchColocalizationOutput : Output {
             val rowFields = rowData.map { if (it != null) metric.toField(it) else StringField("") }
             t.addRow(MetricRow(rowIdx + 1, rowFields))
         }
-        colocalizationOutput.METRIC_AGGREGATES.forEach { t.addRow(generateAggregateRow(it, rawValues, 0)) }
+        Aggregate.values().forEach { t.addRow(generateAggregateRow(it, rawValues, 0)) }
         return t
     }
 }

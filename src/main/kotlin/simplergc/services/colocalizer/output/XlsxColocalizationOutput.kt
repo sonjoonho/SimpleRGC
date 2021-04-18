@@ -10,7 +10,6 @@ import simplergc.services.Field
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
 import simplergc.services.HorizontallyMergedHeaderField
-import simplergc.services.IntField
 import simplergc.services.Metric
 import simplergc.services.Metric.ChannelSelection.TRANSDUCTION_ONLY
 import simplergc.services.Parameters
@@ -79,15 +78,8 @@ class XlsxColocalizationOutput(
     override fun writeSummaryWithAggregates() {
         val t: Table = getSummaryTable()
         val rawValues = getSummaryRawValues()
-        // TODO: only use indices 0 and 1 of raw values for total
-        // val totalRow = AggregateRow(
-        //     "Total",
-        //     listOf(IntField(rawCellCounts.sum()), IntField(rawTransducedCellCounts.sum())),
-        //     spaces = 0
-        // )
-        // t.addRow(totalRow)
-        // TODO: Think about total
-        SUMMARY_AGGREGATES.forEach {
+        addTotalRow(t, rawCellCounts = rawValues[0] as List<Int>, rawTransducedCellCounts = rawValues[1] as List<Int>)
+        Aggregate.values().forEach {
             t.addRow(generateAggregateRow(it, rawValues, spaces = 0, startRow = 3))
         }
         tableWriter.produce(t, "Summary")
@@ -173,7 +165,7 @@ class XlsxColocalizationOutput(
                 )
             }
 
-            for (aggregate in METRIC_AGGREGATES) {
+            for (aggregate in Aggregate.values()) {
                 val rawValues = mutableListOf<List<Number>>()
                 for (metric in Metric.values()) {
                     if (metric.channels == TRANSDUCTION_ONLY) {

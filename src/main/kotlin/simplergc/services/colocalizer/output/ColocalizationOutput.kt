@@ -132,10 +132,6 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
 
     val transducedChannel = transductionParameters.transducedChannel
 
-    val SUMMARY_AGGREGATES = Aggregate.values()
-    val METRIC_AGGREGATES =
-        listOf(Aggregate.Mean, Aggregate.StandardDeviation, Aggregate.StandardErrorOfMean, Aggregate.Count)
-
     companion object {
         const val PLUGIN_NAME = "RGC Transduction"
     }
@@ -160,6 +156,17 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         startRow: Int = 2
     ): AggregateRow
 
+    fun addTotalRow(t: Table, rawCellCounts: List<Int>, rawTransducedCellCounts: List<Int>): Table {
+        val totalRow = AggregateRow(
+            "Total",
+            listOf(IntField(rawCellCounts.sum()), IntField(rawTransducedCellCounts.sum())),
+            spaces = 0
+        )
+        t.addRow(totalRow)
+        return t
+    }
+
+    // NOTE: This may be a very inefficient function, but there is no easier way to loop over columns of data.
     fun getSummaryRawValues(): MutableList<List<Number>> {
         val rawValues = mutableListOf<List<Number>>()
         val rawCellCounts = mutableListOf<Int>()
