@@ -21,7 +21,13 @@ abstract class BatchColocalizationOutput : Output {
     private val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
     abstract val colocalizationOutput: ColocalizationOutput
-    abstract fun generateAggregateRow(aggregate: Aggregate, rawValues: List<List<Number>>, spaces: Int = 0): AggregateRow
+    abstract fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Number>>,
+        spaces: Int = 0,
+        startRow: Int = 2
+    ): AggregateRow
+
     abstract fun writeDocumentation()
     abstract fun writeMetric(name: String, table: Table)
 

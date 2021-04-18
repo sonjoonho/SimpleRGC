@@ -8,7 +8,6 @@ import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
-import simplergc.services.IntField
 import simplergc.services.Metric
 import simplergc.services.Parameters
 import simplergc.services.Table

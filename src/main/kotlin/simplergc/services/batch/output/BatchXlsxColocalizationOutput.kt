@@ -33,9 +33,10 @@ class BatchXlsxColocalizationOutput(outputFile: File, transductionParameters: Pa
     override fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int
+        spaces: Int,
+        startRow: Int
     ): AggregateRow {
-        return colocalizationOutput.generateAggregateRow(aggregate, rawValues, spaces)
+        return colocalizationOutput.generateAggregateRow(aggregate, rawValues, spaces, startRow)
     }
 
     override fun output() {
