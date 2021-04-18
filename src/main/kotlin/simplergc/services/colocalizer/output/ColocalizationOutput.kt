@@ -154,7 +154,7 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     abstract fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int,
+        spaces: Int = 0,
         startRow: Int = 2
     ): AggregateRow
 

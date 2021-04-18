@@ -62,7 +62,7 @@ class CsvColocalizationOutput(
         addTotalRow(t, rawCellCounts = rawCellCounts, rawTransducedCellCounts = rawTransducedCellCounts)
 
         Aggregate.values().forEach {
-            t.addRow(generateAggregateRow(it, rawValues, spaces = 0))
+            t.addRow(generateAggregateRow(it, rawValues))
         }
 
         tableWriter.produce(t, "${outputPath}Summary.csv")
