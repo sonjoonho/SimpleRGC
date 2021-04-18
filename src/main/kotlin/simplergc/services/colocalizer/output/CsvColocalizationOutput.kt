@@ -54,7 +54,7 @@ class CsvColocalizationOutput(
         val rawValues = getSummaryRawValues()
         addTotalRow(t, rawCellCounts = rawValues[0] as List<Int>, rawTransducedCellCounts = rawValues[1] as List<Int>)
         Aggregate.values().forEach {
-            t.addRow(generateAggregateRow(it, rawValues, spaces = 0))
+            t.addRow(generateAggregateRow(it, rawValues))
         }
         tableWriter.produce(t, "${outputPath}Summary.csv")
     }
