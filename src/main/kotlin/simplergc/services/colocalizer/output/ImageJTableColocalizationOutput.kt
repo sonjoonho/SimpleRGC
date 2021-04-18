@@ -74,6 +74,14 @@ class ImageJTableColocalizationOutput(
                 count = (result.channelResults[transducedChannel - 1].cellAnalyses.sumByDouble { it.mean } / result.channelResults[transducedChannel - 1].cellAnalyses.size).toInt()))
     }
 
+    override fun getSummaryTable(): Table {
+        TODO("Not yet implemented")
+    }
+
+    override fun writeSummaryWithAggregates() {
+        TODO("Not yet implemented")
+    }
+
     override fun writeAnalysis() {
         channelNames().forEachIndexed { idx, name ->
             table.addRow(Row(label = "--- Cell Analysis, $name ---"))

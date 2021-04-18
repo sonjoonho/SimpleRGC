@@ -8,6 +8,7 @@ import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
+import simplergc.services.IntField
 import simplergc.services.Metric
 import simplergc.services.Parameters
 import simplergc.services.Table
@@ -49,9 +50,55 @@ class CsvColocalizationOutput(
         tableWriter.produce(documentationData(), "${outputPath}Documentation.csv")
     }
 
-    override fun writeSummary() {
+    override fun writeSummaryWithAggregates() {
+        val t = getSummaryTable()
+        val rawCellCounts = mutableListOf<Int>()
+        val rawTransducedCellCounts = mutableListOf<Int>()
+        val rawTransductionEfficiencies = mutableListOf<Number>()
+        val rawMorphAreas = mutableListOf<Number>()
+        val numChannels = channelNames().size
+        val rawChannelMeans = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelMedians = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelMins = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelMaxs = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelIntDens = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        for ((_, result) in fileNameAndResultsList) {
+            rawCellCounts.add(result.targetCellCount)
+            rawTransducedCellCounts.add(result.transducedCellCount)
+            rawTransductionEfficiencies.add(result.transductionEfficiency)
+            rawMorphAreas.add(result.channelResults[0].avgMorphologyArea)
+            for (i in 0 until numChannels) {
+                rawChannelMeans[i].add(result.channelResults[i].meanFluorescenceIntensity)
+                rawChannelMedians[i].add(result.channelResults[i].medianFluorescenceIntensity)
+                rawChannelMins[i].add(result.channelResults[i].minFluorescenceIntensity)
+                rawChannelMaxs[i].add(result.channelResults[i].maxFluorescenceIntensity)
+                rawChannelIntDens[i].add(result.channelResults[i].rawIntDen)
+            }
+        }
+        val rawValues = mutableListOf<List<Number>>(rawCellCounts, rawTransducedCellCounts)
+        // TODO: Create aggregate for total.
+        val totalRow = AggregateRow(
+            "Total",
+            listOf(IntField(rawCellCounts.sum()), IntField(rawTransducedCellCounts.sum())),
+            spaces = 0
+        )
+        t.addRow(totalRow)
+        rawValues.addAll(listOf(rawTransductionEfficiencies, rawMorphAreas))
+        rawValues.addAll(rawChannelMeans)
+        rawValues.addAll(rawChannelMedians)
+        rawValues.addAll(rawChannelMins)
+        rawValues.addAll(rawChannelMaxs)
+        rawValues.addAll(rawChannelIntDens)
+        Aggregate.values().forEach {
+            t.addRow(generateAggregateRow(it, rawValues, spaces = 0))
+        }
+        tableWriter.produce(t, "${outputPath}Summary.csv")
+    }
+
+    override fun getSummaryTable(): Table {
         val channelNames = channelNames()
-        val headers = mutableListOf("File Name",
+        val headers = mutableListOf(
+            "File Name",
             "Number of Cells",
             "Number of Transduced Cells",
             "Transduction Efficiency (%)"
@@ -75,13 +122,19 @@ class CsvColocalizationOutput(
         for ((fileName, result) in fileNameAndResultsList) {
             t.addRow(SummaryRow(fileName = fileName, summary = result))
         }
+        return t
+    }
+
+    override fun writeSummary() {
+        val t = getSummaryTable()
         tableWriter.produce(t, "${outputPath}Summary.csv")
     }
 
     override fun writeAnalysis() {
         channelNames().forEachIndexed { idx, name ->
             val t = Table()
-            val headers = mutableListOf("File Name",
+            val headers = mutableListOf(
+                "File Name",
                 "Transduced Cell")
 
             for (metric in Metric.values()) {
@@ -102,6 +155,7 @@ class CsvColocalizationOutput(
                 }
                 Aggregate.values().forEach {
                     val rawValues = mutableListOf<List<Number>>()
+                    // TODO: Do we need to check  here if the channel index is transduction index.
                     Metric.values().forEach { metric ->
                         rawValues.add(result.channelResults[idx].cellAnalyses.map { cell ->
                             metric.compute(cell)
