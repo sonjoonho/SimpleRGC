@@ -10,6 +10,7 @@ import simplergc.services.HeaderField
 import simplergc.services.Metric
 import simplergc.services.MetricRow
 import simplergc.services.Output
+import simplergc.services.StringField
 import simplergc.services.Table
 import simplergc.services.colocalizer.output.ColocalizationOutput
 import simplergc.services.colocalizer.output.DocumentationRow
@@ -20,7 +21,7 @@ abstract class BatchColocalizationOutput : Output {
     private val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
     abstract val colocalizationOutput: ColocalizationOutput
-    abstract fun generateAggregateRow(aggregate: Aggregate, rawValues: List<List<Int>>, spaces: Int = 0): AggregateRow
+    abstract fun generateAggregateRow(aggregate: Aggregate, rawValues: List<List<Number>>, spaces: Int = 0): AggregateRow
     abstract fun writeDocumentation()
     abstract fun writeMetric(name: String, table: Table)
 
@@ -88,8 +89,8 @@ abstract class BatchColocalizationOutput : Output {
         var maxRows = 0
 
         // Generate all of the values for each file
-        val rawValues = mutableListOf<List<Int>>()
-        val fileValues = mutableListOf<Pair<String, List<Int>>>()
+        val rawValues = mutableListOf<List<Number>>()
+        val fileValues = mutableListOf<Pair<String, List<Number>>>()
 
         for ((fileName, result) in fileNameAndResultsList) {
             val cellValues = result.channelResults[channelIdx].cellAnalyses.map { cell ->
@@ -106,7 +107,8 @@ abstract class BatchColocalizationOutput : Output {
         // Populate each row since we have the values for each file
         for (rowIdx in 0 until maxRows) {
             val rowData = fileValues.map { it.second.getOrNull(rowIdx) }
-            t.addRow(MetricRow(rowIdx + 1, rowData))
+            val rowFields = rowData.map { if (it != null) metric.toField(it) else StringField("") }
+            t.addRow(MetricRow(rowIdx + 1, rowFields))
         }
 
         Aggregate.values().forEach { t.addRow(generateAggregateRow(it, rawValues, 0)) }

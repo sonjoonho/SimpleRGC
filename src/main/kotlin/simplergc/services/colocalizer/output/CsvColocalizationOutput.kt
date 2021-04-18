@@ -101,7 +101,7 @@ class CsvColocalizationOutput(
                     )
                 }
                 Aggregate.values().forEach {
-                    val rawValues = mutableListOf<List<Int>>()
+                    val rawValues = mutableListOf<List<Number>>()
                     Metric.values().forEach { metric ->
                         rawValues.add(result.channelResults[idx].cellAnalyses.map { cell ->
                             metric.compute(cell)
@@ -116,7 +116,7 @@ class CsvColocalizationOutput(
 
     override fun generateAggregateRow(
         aggregate: Aggregate,
-        rawValues: List<List<Int>>,
+        rawValues: List<List<Number>>,
         spaces: Int
     ): AggregateRow {
         return AggregateRow(aggregate.abbreviation, rawValues.map { values ->

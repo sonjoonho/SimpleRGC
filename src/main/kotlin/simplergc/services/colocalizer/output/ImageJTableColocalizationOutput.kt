@@ -6,6 +6,7 @@ import simplergc.commands.RGCTransduction.TransductionResult
 import simplergc.services.Aggregate
 import simplergc.services.AggregateRow
 import simplergc.services.BaseRow
+import simplergc.services.DoubleField
 import simplergc.services.FieldRow
 import simplergc.services.ImageJTableWriter
 import simplergc.services.IntField
@@ -40,8 +41,8 @@ class ImageJTableColocalizationOutput(
         val count: Int = 0,
         val area: Int = 0,
         val median: Int = 0,
-        val mean: Int = 0,
-        val integratedDensity: Int = 0,
+        val mean: Double = 0.0,
+        val integratedDensity: Double = 0.0,
         val rawIntegratedDensity: Int = 0
     ) : BaseRow {
         override fun toList() = listOf(
@@ -49,8 +50,8 @@ class ImageJTableColocalizationOutput(
             IntField(count),
             IntField(area),
             IntField(median),
-            IntField(mean),
-            IntField(integratedDensity),
+            DoubleField(mean),
+            DoubleField(integratedDensity),
             IntField(rawIntegratedDensity)
         )
     }
@@ -70,7 +71,7 @@ class ImageJTableColocalizationOutput(
         table.addRow(
             Row(
                 label = "Mean intensity of colocalized cells",
-                count = result.channelResults[transducedChannel - 1].cellAnalyses.sumBy { it.mean } / result.channelResults[transducedChannel - 1].cellAnalyses.size))
+                count = (result.channelResults[transducedChannel - 1].cellAnalyses.sumByDouble { it.mean } / result.channelResults[transducedChannel - 1].cellAnalyses.size).toInt()))
     }
 
     override fun writeAnalysis() {
@@ -104,7 +105,7 @@ class ImageJTableColocalizationOutput(
 
     override fun generateAggregateRow(
         aggregate: Aggregate,
-        rawValues: List<List<Int>>,
+        rawValues: List<List<Number>>,
         spaces: Int
     ): AggregateRow {
         // no-op

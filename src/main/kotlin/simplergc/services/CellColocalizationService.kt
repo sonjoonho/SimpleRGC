@@ -12,7 +12,7 @@ class CellColocalizationService : AbstractService(), ImageJService {
 
     data class CellAnalysis(
         val area: Int,
-        val mean: Int,
+        val mean: Double,
         val median: Int,
         val min: Int,
         val max: Int,
@@ -38,7 +38,7 @@ class CellColocalizationService : AbstractService(), ImageJService {
             val median = sortedPixelintensities.let { (it[it.size / 2] + it[(it.size - 1) / 2]) / 2 }
             val min = sortedPixelintensities.first()
             val max = sortedPixelintensities.last()
-            CellAnalysis(area, sum / area, median, min, max, rawIntDen = sum)
+            CellAnalysis(area, sum.toDouble() / area, median, min, max, rawIntDen = sum)
         }
     }
 

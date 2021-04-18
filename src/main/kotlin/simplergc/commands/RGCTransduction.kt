@@ -221,7 +221,7 @@ class RGCTransduction : Command, Previewable {
 
     data class ChannelResult(val name: String, val cellAnalyses: List<CellAnalysis>) {
         var avgMorphologyArea = 0
-        var meanFluorescenceIntensity = 0
+        var meanFluorescenceIntensity = 0.0
         var medianFluorescenceIntensity = 0
         var minFluorescenceIntensity = 0
         var maxFluorescenceIntensity = 0
@@ -229,7 +229,7 @@ class RGCTransduction : Command, Previewable {
         init {
             if (cellAnalyses.isNotEmpty()) {
                 avgMorphologyArea = (cellAnalyses.sumBy { it.area } / cellAnalyses.size)
-                meanFluorescenceIntensity = (cellAnalyses.sumBy { it.mean } / cellAnalyses.size)
+                meanFluorescenceIntensity = (cellAnalyses.sumByDouble { it.mean } / cellAnalyses.size)
                 medianFluorescenceIntensity = (cellAnalyses.sumBy { it.median } / cellAnalyses.size)
                 minFluorescenceIntensity = (cellAnalyses.sumBy { it.min } / cellAnalyses.size)
                 maxFluorescenceIntensity = (cellAnalyses.sumBy { it.max } / cellAnalyses.size)
