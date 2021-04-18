@@ -89,7 +89,7 @@ class CsvColocalizationOutput(
         rawValues.addAll(rawChannelMins)
         rawValues.addAll(rawChannelMaxs)
         rawValues.addAll(rawChannelIntDens)
-        Aggregate.values().forEach {
+        SUMMARY_AGGREGATES.forEach {
             t.addRow(generateAggregateRow(it, rawValues, spaces = 0))
         }
         tableWriter.produce(t, "${outputPath}Summary.csv")
@@ -153,7 +153,8 @@ class CsvColocalizationOutput(
                         )
                     )
                 }
-                Aggregate.values().forEach {
+
+                METRIC_AGGREGATES.forEach {
                     val rawValues = mutableListOf<List<Number>>()
                     // TODO: Do we need to check  here if the channel index is transduction index.
                     Metric.values().forEach { metric ->

@@ -132,6 +132,10 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
 
     val transducedChannel = transductionParameters.transducedChannel
 
+    val SUMMARY_AGGREGATES = Aggregate.values()
+    val METRIC_AGGREGATES =
+        listOf(Aggregate.Mean, Aggregate.StandardDeviation, Aggregate.StandardErrorOfMean, Aggregate.Count)
+
     companion object {
         const val PLUGIN_NAME = "RGC Transduction"
     }
@@ -146,10 +150,14 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     abstract fun writeAnalysis()
     abstract fun writeParameters()
     abstract fun writeDocumentation()
+
+    // spaces is used for csv aggregate generator (to avoid formatting issues.)
+    // startRow is only used by xlsx aggregate generator
     abstract fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int
+        spaces: Int,
+        startRow: Int = 2
     ): AggregateRow
 
     fun channelNames(): List<String> {

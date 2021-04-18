@@ -26,7 +26,7 @@ class BatchXlsxColocalizationOutput(outputFile: File, transductionParameters: Pa
     private val workbook = XSSFWorkbook()
 
     override val colocalizationOutput =
-        XlsxColocalizationOutput(outputFile, transductionParameters, workbook, cellStartRow = 2)
+        XlsxColocalizationOutput(outputFile, transductionParameters, workbook)
 
     override val tableWriter: TableWriter = XlsxTableWriter(workbook)
 

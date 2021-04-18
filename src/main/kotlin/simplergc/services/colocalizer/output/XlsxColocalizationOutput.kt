@@ -10,6 +10,7 @@ import simplergc.services.Field
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
 import simplergc.services.HorizontallyMergedHeaderField
+import simplergc.services.IntField
 import simplergc.services.Metric
 import simplergc.services.Metric.ChannelSelection.TRANSDUCTION_ONLY
 import simplergc.services.Parameters
@@ -25,8 +26,7 @@ import simplergc.services.XlsxTableWriter
 class XlsxColocalizationOutput(
     private val outputFile: File,
     transductionParameters: Parameters.Transduction,
-    private val workbook: XSSFWorkbook = XSSFWorkbook(),
-    val cellStartRow: Int = 3
+    private val workbook: XSSFWorkbook = XSSFWorkbook()
 ) :
     ColocalizationOutput(transductionParameters) {
 
@@ -57,13 +57,14 @@ class XlsxColocalizationOutput(
     override fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int
+        spaces: Int,
+        startRow: Int
     ): AggregateRow {
         var column = 'B' + spaces
         val rowValues = mutableListOf<Field<*>>()
         rawValues.forEach { values ->
             rowValues.add(aggregate.generateValue(
-                XlsxAggregateGenerator(cellStartRow, column++, values.size)
+                XlsxAggregateGenerator(startRow, column++, values.size)
             )
             )
         }
@@ -77,7 +78,46 @@ class XlsxColocalizationOutput(
 
     override fun writeSummaryWithAggregates() {
         val t: Table = getSummaryTable()
-        // TODO: Get raw values and add aggregates here.
+        val rawCellCounts = mutableListOf<Int>()
+        val rawTransducedCellCounts = mutableListOf<Int>()
+        val rawTransductionEfficiencies = mutableListOf<Number>()
+        val rawMorphAreas = mutableListOf<Number>()
+        val numChannels = channelNames().size
+        val rawChannelMeans = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelMedians = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelMins = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelMaxs = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        val rawChannelIntDens = Array<MutableList<Number>>(numChannels) { mutableListOf() }
+        for ((_, result) in fileNameAndResultsList) {
+            rawCellCounts.add(result.targetCellCount)
+            rawTransducedCellCounts.add(result.transducedCellCount)
+            rawTransductionEfficiencies.add(result.transductionEfficiency)
+            rawMorphAreas.add(result.channelResults[0].avgMorphologyArea)
+            for (i in 0 until numChannels) {
+                rawChannelMeans[i].add(result.channelResults[i].meanFluorescenceIntensity)
+                rawChannelMedians[i].add(result.channelResults[i].medianFluorescenceIntensity)
+                rawChannelMins[i].add(result.channelResults[i].minFluorescenceIntensity)
+                rawChannelMaxs[i].add(result.channelResults[i].maxFluorescenceIntensity)
+                rawChannelIntDens[i].add(result.channelResults[i].rawIntDen)
+            }
+        }
+        val rawValues = mutableListOf<List<Number>>(rawCellCounts, rawTransducedCellCounts)
+        // TODO: Create aggregate for total.
+        val totalRow = AggregateRow(
+            "Total",
+            listOf(IntField(rawCellCounts.sum()), IntField(rawTransducedCellCounts.sum())),
+            spaces = 0
+        )
+        t.addRow(totalRow)
+        rawValues.addAll(listOf(rawTransductionEfficiencies, rawMorphAreas))
+        rawValues.addAll(rawChannelMeans)
+        rawValues.addAll(rawChannelMedians)
+        rawValues.addAll(rawChannelMins)
+        rawValues.addAll(rawChannelMaxs)
+        rawValues.addAll(rawChannelIntDens)
+        SUMMARY_AGGREGATES.forEach {
+            t.addRow(generateAggregateRow(it, rawValues, spaces = 0, startRow = 3))
+        }
         tableWriter.produce(t, "Summary")
     }
 
@@ -161,7 +201,7 @@ class XlsxColocalizationOutput(
                 )
             }
 
-            for (aggregate in Aggregate.values()) {
+            for (aggregate in METRIC_AGGREGATES) {
                 val rawValues = mutableListOf<List<Number>>()
                 for (metric in Metric.values()) {
                     if (metric.channels == TRANSDUCTION_ONLY) {
