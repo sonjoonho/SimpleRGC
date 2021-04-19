@@ -27,8 +27,10 @@ abstract class CounterOutput : Output {
 
     protected val resultsData = Table()
 
-    // spaces is used for csv aggregate generator (to avoid formatting issues.)
-    // startRow is only used by xlsx aggregate generator
+    /**
+     * [spaces] is used by the CSV aggregate generator to avoid formatting issues.
+     * [startRow] is only used by the XLSX aggregate generator.
+     */
     abstract fun generateAggregateRow(
         aggregate: Aggregate,
         cellCounts: List<Number>,

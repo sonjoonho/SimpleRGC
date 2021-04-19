@@ -28,6 +28,6 @@ class ImageJTableCounterOutput(uiService: UIService) : CounterOutput() {
         spaces: Int,
         startRow: Int
     ): AggregateRow {
-        TODO("No-op. This function should only be called in RGC-Batch.")
+        throw NotImplementedError("This function should only be called from RGC Batch")
     }
 }
