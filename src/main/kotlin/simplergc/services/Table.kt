@@ -249,10 +249,13 @@ class XlsxAggregateGenerator(startRow: Int, column: Char, numCells: Int) : Aggre
 
 class CsvAggregateGenerator(val values: List<Number>) : AggregateGenerator() {
 
+    /**
+     * Computes the _sample_ standard deviation of the data.
+     */
     private fun computeStandardDeviation(): Double {
-        val squareOfMean = values.map { it.toDouble() }.average().pow(2)
-        val meanOfSquares = values.map { it.toDouble().pow(2) }.average()
-        return sqrt(meanOfSquares - squareOfMean)
+        val mean = values.map { it.toDouble() }.average()
+        val sample_var = values.map { (it.toDouble() - mean).pow(2) }.sum() / (values.size - 1).toDouble()
+        return sqrt(sample_var)
     }
 
     override fun generateMean(): Field<*> {
