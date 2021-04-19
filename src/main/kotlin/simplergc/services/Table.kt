@@ -235,11 +235,11 @@ class XlsxAggregateGenerator(startRow: Int, column: Char, numCells: Int) : Aggre
     }
 
     override fun generateStandardDeviation(): Field<*> {
-        return DoubleFormulaField("STDEV.P($cellRange)")
+        return DoubleFormulaField("STDEV($cellRange)")
     }
 
     override fun generateStandardErrorOfMean(): Field<*> {
-        return DoubleFormulaField("STDEV.P($cellRange)/SQRT(COUNT($cellRange))")
+        return DoubleFormulaField("STDEV($cellRange)/SQRT(COUNT($cellRange))")
     }
 
     override fun generateCount(): Field<*> {
