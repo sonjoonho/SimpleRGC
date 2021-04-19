@@ -52,10 +52,19 @@ class CsvColocalizationOutput(
     override fun writeSummaryWithAggregates() {
         val t = getSummaryTable()
         val rawValues = getSummaryRawValues()
-        addTotalRow(t, rawCellCounts = rawValues[0] as List<Int>, rawTransducedCellCounts = rawValues[1] as List<Int>)
+
+        // rawValues[0] and rawValues[1] contain cell counts, and are guaranteed to contain integers.
+        @Suppress("UNCHECKED_CAST")
+        val rawCellCounts = rawValues[0] as List<Int>
+        @Suppress("UNCHECKED_CAST")
+        val rawTransducedCellCounts = rawValues[1] as List<Int>
+
+        addTotalRow(t, rawCellCounts = rawCellCounts, rawTransducedCellCounts = rawTransducedCellCounts)
+
         Aggregate.values().forEach {
             t.addRow(generateAggregateRow(it, rawValues, spaces = 0))
         }
+
         tableWriter.produce(t, "${outputPath}Summary.csv")
     }
 
@@ -120,7 +129,6 @@ class CsvColocalizationOutput(
 
                 Aggregate.values().forEach {
                     val rawValues = mutableListOf<List<Number>>()
-                    // TODO: Do we need to check  here if the channel index is transduction index.
                     Metric.values().forEach { metric ->
                         rawValues.add(result.channelResults[idx].cellAnalyses.map { cell ->
                             metric.compute(cell)
@@ -133,16 +141,20 @@ class CsvColocalizationOutput(
         }
     }
 
-    // startRow is unused
+    /**
+     * [startRow] is unused for the CSV output.
+     */
     override fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
         spaces: Int,
         startRow: Int
     ): AggregateRow {
-        return AggregateRow(aggregate.abbreviation, rawValues.map { values ->
+        val aggregates = rawValues.map { values ->
             aggregate.generateValue(CsvAggregateGenerator(values))
-        }, spaces)
+        }
+
+        return AggregateRow(aggregate.abbreviation, aggregates, spaces)
     }
 
     override fun writeParameters() {

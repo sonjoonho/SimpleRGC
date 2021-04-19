@@ -75,11 +75,11 @@ class ImageJTableColocalizationOutput(
     }
 
     override fun getSummaryTable(): Table {
-        TODO("No-op.")
+        throw NotImplementedError("Summary table not available for ImageJ output")
     }
 
     override fun writeSummaryWithAggregates() {
-        TODO("No-op.")
+        throw NotImplementedError("Summary table not available for ImageJ output")
     }
 
     override fun writeAnalysis() {
@@ -104,11 +104,11 @@ class ImageJTableColocalizationOutput(
     }
 
     override fun writeParameters() {
-        TODO("No-op.")
+        throw NotImplementedError("Parameters not available for ImageJ output")
     }
 
     override fun writeDocumentation() {
-        TODO("No-op.")
+        throw NotImplementedError("Documentation not available for ImageJ output")
     }
 
     override fun generateAggregateRow(
@@ -117,7 +117,7 @@ class ImageJTableColocalizationOutput(
         spaces: Int,
         startRow: Int
     ): AggregateRow {
-        TODO("No-op.")
+        throw NotImplementedError("Aggregate not available for ImageJ output")
     }
 
     override fun output() {
