@@ -38,14 +38,7 @@ abstract class CounterOutput : Output {
         startRow: Int = 4
     ): AggregateRow
 
-    fun addTotalRow(t: Table, cellCounts: List<Int>) {
-        val totalRow = AggregateRow(
-            "Total",
-            listOf(IntField(cellCounts.sum())),
-            spaces = 0
-        )
-        t.addRow(totalRow)
-    }
+    abstract fun addTotalRow(t: Table, cellCounts: List<Int>)
 
     data class ResultsRow(val fileName: String, val count: Int) : BaseRow {
         override fun toList() = listOf(StringField(fileName), IntField(count))

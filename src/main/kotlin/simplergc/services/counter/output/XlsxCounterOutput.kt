@@ -9,6 +9,7 @@ import simplergc.services.BaseRow
 import simplergc.services.EmptyRow
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
+import simplergc.services.IntFormulaField
 import simplergc.services.Output.Companion.ARTICLE_CITATION
 import simplergc.services.Parameters
 import simplergc.services.StringField
@@ -64,6 +65,19 @@ class XlsxCounterOutput(private val outputFile: File, private val counterParamet
             )
         )
         return AggregateRow(aggregate.abbreviation, rowValues, spaces)
+    }
+
+    override fun addTotalRow(t: Table, cellCounts: List<Int>) {
+        val column = 'B'
+        val startRow = 4
+        val endRow = startRow + cellCounts.size - 1
+        val cellRange = "$column$startRow:$column$endRow"
+        val totalRow = AggregateRow(
+            "Total",
+            listOf(IntFormulaField("SUM($cellRange)")),
+            spaces = 0
+        )
+        t.addRow(totalRow)
     }
 
     /**
