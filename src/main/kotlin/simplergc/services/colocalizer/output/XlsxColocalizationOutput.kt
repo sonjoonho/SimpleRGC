@@ -25,8 +25,7 @@ import simplergc.services.XlsxTableWriter
 class XlsxColocalizationOutput(
     private val outputFile: File,
     transductionParameters: Parameters.Transduction,
-    private val workbook: XSSFWorkbook = XSSFWorkbook(),
-    val cellStartRow: Int = 3
+    private val workbook: XSSFWorkbook = XSSFWorkbook()
 ) :
     ColocalizationOutput(transductionParameters) {
 
@@ -57,19 +56,46 @@ class XlsxColocalizationOutput(
     override fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int
+        spaces: Int,
+        startRow: Int
     ): AggregateRow {
         var column = 'B' + spaces
         val rowValues = mutableListOf<Field<*>>()
         rawValues.forEach { values ->
-            rowValues.add(aggregate.generateValue(
-                XlsxAggregateGenerator(cellStartRow, column++, values.size)
-            ))
+            rowValues.add(
+                aggregate.generateValue(
+                    XlsxAggregateGenerator(startRow, column++, values.size)
+                )
+            )
         }
         return AggregateRow(aggregate.abbreviation, rowValues, spaces)
     }
 
     override fun writeSummary() {
+        val t: Table = getSummaryTable()
+        tableWriter.produce(t, "Summary")
+    }
+
+    override fun writeSummaryWithAggregates() {
+        val t = getSummaryTable()
+        val rawValues = getSummaryRawValues()
+
+        // rawValues[0] and rawValues[1] contain cell counts, and are guaranteed to contain integers.
+        @Suppress("UNCHECKED_CAST")
+        val rawCellCounts = rawValues[0] as List<Int>
+        @Suppress("UNCHECKED_CAST")
+        val rawTransducedCellCounts = rawValues[1] as List<Int>
+
+        addTotalRow(t, rawCellCounts = rawCellCounts, rawTransducedCellCounts = rawTransducedCellCounts)
+
+        Aggregate.values().forEach {
+            t.addRow(generateAggregateRow(it, rawValues, spaces = 0, startRow = 3))
+        }
+
+        tableWriter.produce(t, "Summary")
+    }
+
+    override fun getSummaryTable(): Table {
         val channelNames = channelNames()
         val headers = mutableListOf(
             "File Name",
@@ -102,7 +128,8 @@ class XlsxColocalizationOutput(
         for ((fileName, result) in fileNameAndResultsList) {
             t.addRow(SummaryRow(fileName = fileName, summary = result))
         }
-        tableWriter.produce(t, "Summary")
+
+        return t
     }
 
     override fun writeAnalysis() {
@@ -110,7 +137,8 @@ class XlsxColocalizationOutput(
         val channelNames = channelNames()
         val headers = listOf(
             "File Name",
-            "Transduced Cell").map { VerticallyMergedHeaderField(HeaderField(it), 2) }
+            "Transduced Cell"
+        ).map { VerticallyMergedHeaderField(HeaderField(it), 2) }
 
         val subHeaders: MutableList<Field<*>> = MutableList(headers.size) { StringField("") }
         val metricHeaders = mutableListOf<Field<*>>()
@@ -132,15 +160,15 @@ class XlsxColocalizationOutput(
 
         for ((fileName, result) in fileNameAndResultsList) {
             val cellAnalyses = result.channelResults[transducedChannel - 1].cellAnalyses
-            for (i in cellAnalyses.indices) {
+            for (cell in cellAnalyses.indices) {
                 val channelAnalyses = mutableListOf<CellColocalizationService.CellAnalysis>()
-                for (idx in channelNames.indices) {
-                    channelAnalyses.add(result.channelResults[idx].cellAnalyses[i])
+                for (channel in channelNames.indices) {
+                    channelAnalyses.add(result.channelResults[channel].cellAnalyses[cell])
                 }
                 t.addRow(
                     MultiChannelTransductionAnalysisRow(
                         fileName,
-                        i + 1,
+                        cell + 1,
                         channelAnalyses,
                         transducedChannel - 1
                     )
@@ -155,8 +183,8 @@ class XlsxColocalizationOutput(
                             metric.compute(cell)
                         })
                     } else {
-                        for (idx in channelNames.indices) {
-                            rawValues.add(result.channelResults[idx].cellAnalyses.map { cell ->
+                        for (channel in channelNames.indices) {
+                            rawValues.add(result.channelResults[channel].cellAnalyses.map { cell ->
                                 metric.compute(cell)
                             })
                         }

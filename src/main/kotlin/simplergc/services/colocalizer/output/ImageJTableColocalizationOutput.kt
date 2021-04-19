@@ -74,6 +74,14 @@ class ImageJTableColocalizationOutput(
                 count = (result.channelResults[transducedChannel - 1].cellAnalyses.sumByDouble { it.mean } / result.channelResults[transducedChannel - 1].cellAnalyses.size).toInt()))
     }
 
+    override fun getSummaryTable(): Table {
+        throw NotImplementedError("Summary table not available for ImageJ output")
+    }
+
+    override fun writeSummaryWithAggregates() {
+        throw NotImplementedError("Summary table not available for ImageJ output")
+    }
+
     override fun writeAnalysis() {
         channelNames().forEachIndexed { idx, name ->
             table.addRow(Row(label = "--- Cell Analysis, $name ---"))
@@ -96,20 +104,20 @@ class ImageJTableColocalizationOutput(
     }
 
     override fun writeParameters() {
-        // no-op
+        throw NotImplementedError("Parameters not available for ImageJ output")
     }
 
     override fun writeDocumentation() {
-        // no-op
+        throw NotImplementedError("Documentation not available for ImageJ output")
     }
 
     override fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int
+        spaces: Int,
+        startRow: Int
     ): AggregateRow {
-        // no-op
-        return AggregateRow("", emptyList())
+        throw NotImplementedError("Aggregate not available for ImageJ output")
     }
 
     override fun output() {

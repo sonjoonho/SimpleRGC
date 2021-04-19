@@ -49,9 +49,29 @@ class CsvColocalizationOutput(
         tableWriter.produce(documentationData(), "${outputPath}Documentation.csv")
     }
 
-    override fun writeSummary() {
+    override fun writeSummaryWithAggregates() {
+        val t = getSummaryTable()
+        val rawValues = getSummaryRawValues()
+
+        // rawValues[0] and rawValues[1] contain cell counts, and are guaranteed to contain integers.
+        @Suppress("UNCHECKED_CAST")
+        val rawCellCounts = rawValues[0] as List<Int>
+        @Suppress("UNCHECKED_CAST")
+        val rawTransducedCellCounts = rawValues[1] as List<Int>
+
+        addTotalRow(t, rawCellCounts = rawCellCounts, rawTransducedCellCounts = rawTransducedCellCounts)
+
+        Aggregate.values().forEach {
+            t.addRow(generateAggregateRow(it, rawValues, spaces = 0))
+        }
+
+        tableWriter.produce(t, "${outputPath}Summary.csv")
+    }
+
+    override fun getSummaryTable(): Table {
         val channelNames = channelNames()
-        val headers = mutableListOf("File Name",
+        val headers = mutableListOf(
+            "File Name",
             "Number of Cells",
             "Number of Transduced Cells",
             "Transduction Efficiency (%)"
@@ -75,13 +95,19 @@ class CsvColocalizationOutput(
         for ((fileName, result) in fileNameAndResultsList) {
             t.addRow(SummaryRow(fileName = fileName, summary = result))
         }
+        return t
+    }
+
+    override fun writeSummary() {
+        val t = getSummaryTable()
         tableWriter.produce(t, "${outputPath}Summary.csv")
     }
 
     override fun writeAnalysis() {
         channelNames().forEachIndexed { idx, name ->
             val t = Table()
-            val headers = mutableListOf("File Name",
+            val headers = mutableListOf(
+                "File Name",
                 "Transduced Cell")
 
             for (metric in Metric.values()) {
@@ -100,6 +126,7 @@ class CsvColocalizationOutput(
                         )
                     )
                 }
+
                 Aggregate.values().forEach {
                     val rawValues = mutableListOf<List<Number>>()
                     Metric.values().forEach { metric ->
@@ -114,14 +141,20 @@ class CsvColocalizationOutput(
         }
     }
 
+    /**
+     * [startRow] is unused for the CSV output.
+     */
     override fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int
+        spaces: Int,
+        startRow: Int
     ): AggregateRow {
-        return AggregateRow(aggregate.abbreviation, rawValues.map { values ->
+        val aggregates = rawValues.map { values ->
             aggregate.generateValue(CsvAggregateGenerator(values))
-        }, spaces)
+        }
+
+        return AggregateRow(aggregate.abbreviation, aggregates, spaces)
     }
 
     override fun writeParameters() {

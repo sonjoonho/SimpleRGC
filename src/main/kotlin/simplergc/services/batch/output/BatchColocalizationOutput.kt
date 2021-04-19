@@ -21,7 +21,13 @@ abstract class BatchColocalizationOutput : Output {
     private val fileNameAndResultsList = mutableListOf<Pair<String, TransductionResult>>()
 
     abstract val colocalizationOutput: ColocalizationOutput
-    abstract fun generateAggregateRow(aggregate: Aggregate, rawValues: List<List<Number>>, spaces: Int = 0): AggregateRow
+    abstract fun generateAggregateRow(
+        aggregate: Aggregate,
+        rawValues: List<List<Number>>,
+        spaces: Int = 0,
+        startRow: Int = 2
+    ): AggregateRow
+
     abstract fun writeDocumentation()
     abstract fun writeMetric(name: String, table: Table)
 
@@ -32,7 +38,8 @@ abstract class BatchColocalizationOutput : Output {
 
     fun writeSheets() {
         writeDocumentation()
-        colocalizationOutput.writeSummary()
+
+        colocalizationOutput.writeSummaryWithAggregates()
 
         for (metricTable in computeMetricTables()) {
             writeMetric(metricTable.first, metricTable.second)
@@ -110,7 +117,6 @@ abstract class BatchColocalizationOutput : Output {
             val rowFields = rowData.map { if (it != null) metric.toField(it) else StringField("") }
             t.addRow(MetricRow(rowIdx + 1, rowFields))
         }
-
         Aggregate.values().forEach { t.addRow(generateAggregateRow(it, rawValues, 0)) }
         return t
     }

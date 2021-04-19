@@ -17,8 +17,6 @@ import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.ui.UIService
 
-private const val UTF_8_BOM = "\ufeff"
-
 /**
  * Table represents data in terms of rows and columns.
  */
@@ -172,8 +170,10 @@ class EmptyRow : BaseRow {
     override fun toList() = emptyList<Field<*>>()
 }
 
-// A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
-// of equal length so fields can be null.
+/**
+ * A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
+ * of equal length so fields can be null.
+ */
 data class MetricRow(val rowIdx: Int, val metrics: List<Field<*>>) : BaseRow {
     override fun toList(): List<Field<*>> {
         return listOf(IntField(rowIdx)) + metrics

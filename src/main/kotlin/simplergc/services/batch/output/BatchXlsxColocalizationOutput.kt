@@ -26,16 +26,17 @@ class BatchXlsxColocalizationOutput(outputFile: File, transductionParameters: Pa
     private val workbook = XSSFWorkbook()
 
     override val colocalizationOutput =
-        XlsxColocalizationOutput(outputFile, transductionParameters, workbook, cellStartRow = 2)
+        XlsxColocalizationOutput(outputFile, transductionParameters, workbook)
 
     override val tableWriter: TableWriter = XlsxTableWriter(workbook)
 
     override fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int
+        spaces: Int,
+        startRow: Int
     ): AggregateRow {
-        return colocalizationOutput.generateAggregateRow(aggregate, rawValues, spaces)
+        return colocalizationOutput.generateAggregateRow(aggregate, rawValues, spaces, startRow)
     }
 
     override fun output() {

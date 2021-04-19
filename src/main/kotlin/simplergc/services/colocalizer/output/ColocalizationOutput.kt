@@ -140,15 +140,73 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
         fileNameAndResultsList.add(Pair(file, transductionResult))
     }
 
+    abstract fun getSummaryTable(): Table
+    abstract fun writeSummaryWithAggregates()
     abstract fun writeSummary()
     abstract fun writeAnalysis()
     abstract fun writeParameters()
     abstract fun writeDocumentation()
+
+    /**
+     * [spaces] is used by the CSV aggregate generator to avoid formatting issues.
+     * [startRow] is only used by the XLSX aggregate generator.
+     */
     abstract fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int
+        spaces: Int,
+        startRow: Int = 2
     ): AggregateRow
+
+    fun addTotalRow(t: Table, rawCellCounts: List<Int>, rawTransducedCellCounts: List<Int>): Table {
+        val totalRow = AggregateRow(
+            "Total",
+            listOf(IntField(rawCellCounts.sum()), IntField(rawTransducedCellCounts.sum())),
+            spaces = 0
+        )
+        t.addRow(totalRow)
+        return t
+    }
+
+    fun getSummaryRawValues(): MutableList<List<Number>> {
+        val rawValues = mutableListOf<List<Number>>()
+
+        val rawCellCounts = mutableListOf<Int>()
+        val rawTransducedCellCounts = mutableListOf<Int>()
+        val rawTransductionEfficiencies = mutableListOf<Number>()
+        val rawMorphAreas = mutableListOf<Number>()
+
+        val numChannels = channelNames().size
+        val rawChannelMeans = Array(numChannels) { mutableListOf<Number>() }
+        val rawChannelMedians = Array(numChannels) { mutableListOf<Number>() }
+        val rawChannelMins = Array(numChannels) { mutableListOf<Number>() }
+        val rawChannelMaxs = Array(numChannels) { mutableListOf<Number>() }
+        val rawChannelIntDens = Array(numChannels) { mutableListOf<Number>() }
+
+        for ((_, result) in fileNameAndResultsList) {
+            rawCellCounts.add(result.targetCellCount)
+            rawTransducedCellCounts.add(result.transducedCellCount)
+            rawTransductionEfficiencies.add(result.transductionEfficiency)
+            rawMorphAreas.add(result.channelResults[0].avgMorphologyArea)
+            for (i in 0 until numChannels) {
+                val channelResult = result.channelResults[i]
+                rawChannelMeans[i].add(channelResult.meanFluorescenceIntensity)
+                rawChannelMedians[i].add(channelResult.medianFluorescenceIntensity)
+                rawChannelMins[i].add(channelResult.minFluorescenceIntensity)
+                rawChannelMaxs[i].add(channelResult.maxFluorescenceIntensity)
+                rawChannelIntDens[i].add(channelResult.rawIntDen)
+            }
+        }
+
+        rawValues.addAll(listOf(rawCellCounts, rawTransducedCellCounts, rawTransductionEfficiencies, rawMorphAreas))
+        rawValues.addAll(rawChannelMeans)
+        rawValues.addAll(rawChannelMedians)
+        rawValues.addAll(rawChannelMins)
+        rawValues.addAll(rawChannelMaxs)
+        rawValues.addAll(rawChannelIntDens)
+
+        return rawValues
+    }
 
     fun channelNames(): List<String> {
         if (fileNameAndResultsList.size == 0) {
