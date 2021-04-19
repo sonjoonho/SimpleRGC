@@ -51,6 +51,7 @@ abstract class CounterOutput : Output {
 
     protected val parameterHeadings = listOf(
         "File Name",
+        "Cell Count",
         "Simple RGC Plugin",
         "Plugin Version",
         "Morphology Channel",
