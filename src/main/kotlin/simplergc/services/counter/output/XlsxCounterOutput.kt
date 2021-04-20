@@ -3,14 +3,18 @@ package simplergc.services.counter.output
 import java.io.File
 import org.apache.commons.io.FilenameUtils
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
+import simplergc.services.Aggregate
+import simplergc.services.AggregateRow
 import simplergc.services.BaseRow
 import simplergc.services.EmptyRow
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
+import simplergc.services.IntFormulaField
 import simplergc.services.Output.Companion.ARTICLE_CITATION
 import simplergc.services.Parameters
 import simplergc.services.StringField
 import simplergc.services.Table
+import simplergc.services.XlsxAggregateGenerator
 import simplergc.services.XlsxTableWriter
 
 data class CitationRow(val article: String = "The article:", val citation: String = ARTICLE_CITATION) : BaseRow {
@@ -27,6 +31,7 @@ class XlsxCounterOutput(private val outputFile: File, private val counterParamet
      * Generate the 'Results' sheet, containing the cell counts for each filename.
      */
     private fun writeResults() {
+        val cellCounts = mutableListOf<Int>()
         val createHelper = workbook.creationHelper
         val numberCellStyle = workbook.createCellStyle()
         numberCellStyle.dataFormat = createHelper.createDataFormat().getFormat("#")
@@ -35,9 +40,44 @@ class XlsxCounterOutput(private val outputFile: File, private val counterParamet
         resultsData.addRow(FieldRow(listOf("File Name", "Cell Count").map { HeaderField(it) }))
 
         for ((fileName, count) in fileNameAndCountList) {
+            cellCounts.add(count)
             resultsData.addRow(ResultsRow(fileName.replace(",", ""), count))
         }
+        if (fileNameAndCountList.size > 1) {
+            addTotalRow(resultsData, cellCounts)
+            Aggregate.values().forEach {
+                resultsData.addRow(generateAggregateRow(it, cellCounts))
+            }
+        }
         tableWriter.produce(resultsData, "Results")
+    }
+
+    override fun generateAggregateRow(
+        aggregate: Aggregate,
+        cellCounts: List<Number>,
+        spaces: Int,
+        startRow: Int
+    ): AggregateRow {
+        val column = 'B' + spaces
+        val rowValues = mutableListOf(
+            aggregate.generateValue(
+                XlsxAggregateGenerator(startRow, column, cellCounts.size)
+            )
+        )
+        return AggregateRow(aggregate.abbreviation, rowValues, spaces)
+    }
+
+    override fun addTotalRow(t: Table, cellCounts: List<Int>) {
+        val column = 'B'
+        val startRow = 4
+        val endRow = startRow + cellCounts.size - 1
+        val cellRange = "$column$startRow:$column$endRow"
+        val totalRow = AggregateRow(
+            "Total",
+            listOf(IntFormulaField("SUM($cellRange)")),
+            spaces = 0
+        )
+        t.addRow(totalRow)
     }
 
     /**

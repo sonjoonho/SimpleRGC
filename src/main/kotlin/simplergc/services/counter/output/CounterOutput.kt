@@ -1,5 +1,7 @@
 package simplergc.services.counter.output
 
+import simplergc.services.Aggregate
+import simplergc.services.AggregateRow
 import simplergc.services.BaseRow
 import simplergc.services.DoubleField
 import simplergc.services.HeaderField
@@ -25,12 +27,26 @@ abstract class CounterOutput : Output {
 
     protected val resultsData = Table()
 
+    /**
+     * [spaces] is used by the CSV aggregate generator to avoid formatting issues.
+     * [startRow] is only used by the XLSX aggregate generator.
+     */
+    abstract fun generateAggregateRow(
+        aggregate: Aggregate,
+        cellCounts: List<Number>,
+        spaces: Int = 0,
+        startRow: Int = 4
+    ): AggregateRow
+
+    abstract fun addTotalRow(t: Table, cellCounts: List<Int>)
+
     data class ResultsRow(val fileName: String, val count: Int) : BaseRow {
         override fun toList() = listOf(StringField(fileName), IntField(count))
     }
 
     protected val parameterHeadings = listOf(
         "File Name",
+        "Cell Count",
         "Simple RGC Plugin",
         "Plugin Version",
         "Morphology Channel",

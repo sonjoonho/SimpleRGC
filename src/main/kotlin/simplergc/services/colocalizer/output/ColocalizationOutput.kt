@@ -154,19 +154,11 @@ abstract class ColocalizationOutput(val transductionParameters: Parameters.Trans
     abstract fun generateAggregateRow(
         aggregate: Aggregate,
         rawValues: List<List<Number>>,
-        spaces: Int,
+        spaces: Int = 0,
         startRow: Int = 2
     ): AggregateRow
 
-    fun addTotalRow(t: Table, rawCellCounts: List<Int>, rawTransducedCellCounts: List<Int>): Table {
-        val totalRow = AggregateRow(
-            "Total",
-            listOf(IntField(rawCellCounts.sum()), IntField(rawTransducedCellCounts.sum())),
-            spaces = 0
-        )
-        t.addRow(totalRow)
-        return t
-    }
+    abstract fun addTotalRow(t: Table, rawCellCounts: List<Int>, rawTransducedCellCounts: List<Int>): Table
 
     fun getSummaryRawValues(): MutableList<List<Number>> {
         val rawValues = mutableListOf<List<Number>>()

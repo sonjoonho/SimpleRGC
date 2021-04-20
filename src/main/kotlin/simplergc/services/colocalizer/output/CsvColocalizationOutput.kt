@@ -8,6 +8,7 @@ import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
+import simplergc.services.IntField
 import simplergc.services.Metric
 import simplergc.services.Parameters
 import simplergc.services.Table
@@ -62,7 +63,7 @@ class CsvColocalizationOutput(
         addTotalRow(t, rawCellCounts = rawCellCounts, rawTransducedCellCounts = rawTransducedCellCounts)
 
         Aggregate.values().forEach {
-            t.addRow(generateAggregateRow(it, rawValues, spaces = 0))
+            t.addRow(generateAggregateRow(it, rawValues))
         }
 
         tableWriter.produce(t, "${outputPath}Summary.csv")
@@ -155,6 +156,16 @@ class CsvColocalizationOutput(
         }
 
         return AggregateRow(aggregate.abbreviation, aggregates, spaces)
+    }
+
+    override fun addTotalRow(t: Table, rawCellCounts: List<Int>, rawTransducedCellCounts: List<Int>): Table {
+        val totalRow = AggregateRow(
+            "Total",
+            listOf(IntField(rawCellCounts.sum()), IntField(rawTransducedCellCounts.sum())),
+            spaces = 0
+        )
+        t.addRow(totalRow)
+        return t
     }
 
     override fun writeParameters() {
