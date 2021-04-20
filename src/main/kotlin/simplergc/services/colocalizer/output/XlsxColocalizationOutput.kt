@@ -10,6 +10,7 @@ import simplergc.services.Field
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
 import simplergc.services.HorizontallyMergedHeaderField
+import simplergc.services.IntFormulaField
 import simplergc.services.Metric
 import simplergc.services.Metric.ChannelSelection.TRANSDUCTION_ONLY
 import simplergc.services.Parameters
@@ -69,6 +70,20 @@ class XlsxColocalizationOutput(
             )
         }
         return AggregateRow(aggregate.abbreviation, rowValues, spaces)
+    }
+
+    override fun addTotalRow(t: Table, rawCellCounts: List<Int>, rawTransducedCellCounts: List<Int>): Table {
+        val columns = listOf('B', 'C')
+        val startRow = 3
+        val endRow = startRow + rawCellCounts.size - 1
+        val values = columns.map { IntFormulaField("SUM($it$startRow:$it$endRow)") }
+        val totalRow = AggregateRow(
+            "Total",
+            values,
+            spaces = 0
+        )
+        t.addRow(totalRow)
+        return t
     }
 
     override fun writeSummary() {

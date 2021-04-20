@@ -120,6 +120,10 @@ class ImageJTableColocalizationOutput(
         throw NotImplementedError("Aggregate not available for ImageJ output")
     }
 
+    override fun addTotalRow(t: Table, rawCellCounts: List<Int>, rawTransducedCellCounts: List<Int>): Table {
+        throw NotImplementedError("Total not available for ImageJ output")
+    }
+
     override fun output() {
         writeSummary()
         table.addRow(Row(label = "----------------------------------------------"))
