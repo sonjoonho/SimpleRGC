@@ -17,8 +17,6 @@ import org.scijava.table.DefaultColumn
 import org.scijava.table.DefaultGenericTable
 import org.scijava.ui.UIService
 
-private const val UTF_8_BOM = "\ufeff"
-
 /**
  * Table represents data in terms of rows and columns.
  */
@@ -172,8 +170,10 @@ class EmptyRow : BaseRow {
     override fun toList() = emptyList<Field<*>>()
 }
 
-// A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
-// of equal length so fields can be null.
+/**
+ * A MetricRow is a row for a given cell in a given file. The parameter metrics is nullable because not all columns are
+ * of equal length so fields can be null.
+ */
 data class MetricRow(val rowIdx: Int, val metrics: List<Field<*>>) : BaseRow {
     override fun toList(): List<Field<*>> {
         return listOf(IntField(rowIdx)) + metrics
@@ -249,10 +249,13 @@ class XlsxAggregateGenerator(startRow: Int, column: Char, numCells: Int) : Aggre
 
 class CsvAggregateGenerator(val values: List<Number>) : AggregateGenerator() {
 
+    /**
+     * Computes the _sample_ standard deviation of the data.
+     */
     private fun computeStandardDeviation(): Double {
-        val squareOfMean = values.map { it.toDouble() }.average().pow(2)
-        val meanOfSquares = values.map { it.toDouble().pow(2) }.average()
-        return sqrt(meanOfSquares - squareOfMean)
+        val mean = values.map { it.toDouble() }.average()
+        val sample_var = values.map { (it.toDouble() - mean).pow(2) }.sum() / (values.size - 1).toDouble()
+        return sqrt(sample_var)
     }
 
     override fun generateMean(): Field<*> {

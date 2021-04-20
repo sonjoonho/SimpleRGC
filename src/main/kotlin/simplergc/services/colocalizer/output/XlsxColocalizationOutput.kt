@@ -62,9 +62,10 @@ class XlsxColocalizationOutput(
         var column = 'B' + spaces
         val rowValues = mutableListOf<Field<*>>()
         rawValues.forEach { values ->
-            rowValues.add(aggregate.generateValue(
-                XlsxAggregateGenerator(startRow, column++, values.size)
-            )
+            rowValues.add(
+                aggregate.generateValue(
+                    XlsxAggregateGenerator(startRow, column++, values.size)
+                )
             )
         }
         return AggregateRow(aggregate.abbreviation, rowValues, spaces)
@@ -76,12 +77,21 @@ class XlsxColocalizationOutput(
     }
 
     override fun writeSummaryWithAggregates() {
-        val t: Table = getSummaryTable()
+        val t = getSummaryTable()
         val rawValues = getSummaryRawValues()
-        addTotalRow(t, rawCellCounts = rawValues[0] as List<Int>, rawTransducedCellCounts = rawValues[1] as List<Int>)
+
+        // rawValues[0] and rawValues[1] contain cell counts, and are guaranteed to contain integers.
+        @Suppress("UNCHECKED_CAST")
+        val rawCellCounts = rawValues[0] as List<Int>
+        @Suppress("UNCHECKED_CAST")
+        val rawTransducedCellCounts = rawValues[1] as List<Int>
+
+        addTotalRow(t, rawCellCounts = rawCellCounts, rawTransducedCellCounts = rawTransducedCellCounts)
+
         Aggregate.values().forEach {
             t.addRow(generateAggregateRow(it, rawValues, spaces = 0, startRow = 3))
         }
+
         tableWriter.produce(t, "Summary")
     }
 
@@ -118,6 +128,7 @@ class XlsxColocalizationOutput(
         for ((fileName, result) in fileNameAndResultsList) {
             t.addRow(SummaryRow(fileName = fileName, summary = result))
         }
+
         return t
     }
 
@@ -149,15 +160,15 @@ class XlsxColocalizationOutput(
 
         for ((fileName, result) in fileNameAndResultsList) {
             val cellAnalyses = result.channelResults[transducedChannel - 1].cellAnalyses
-            for (i in cellAnalyses.indices) {
+            for (cell in cellAnalyses.indices) {
                 val channelAnalyses = mutableListOf<CellColocalizationService.CellAnalysis>()
-                for (idx in channelNames.indices) {
-                    channelAnalyses.add(result.channelResults[idx].cellAnalyses[i])
+                for (channel in channelNames.indices) {
+                    channelAnalyses.add(result.channelResults[channel].cellAnalyses[cell])
                 }
                 t.addRow(
                     MultiChannelTransductionAnalysisRow(
                         fileName,
-                        i + 1,
+                        cell + 1,
                         channelAnalyses,
                         transducedChannel - 1
                     )
@@ -172,8 +183,8 @@ class XlsxColocalizationOutput(
                             metric.compute(cell)
                         })
                     } else {
-                        for (idx in channelNames.indices) {
-                            rawValues.add(result.channelResults[idx].cellAnalyses.map { cell ->
+                        for (channel in channelNames.indices) {
+                            rawValues.add(result.channelResults[channel].cellAnalyses.map { cell ->
                                 metric.compute(cell)
                             })
                         }

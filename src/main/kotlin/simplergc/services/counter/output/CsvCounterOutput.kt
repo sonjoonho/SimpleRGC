@@ -7,7 +7,9 @@ import simplergc.services.CsvAggregateGenerator
 import simplergc.services.CsvTableWriter
 import simplergc.services.EmptyRow
 import simplergc.services.FieldRow
+import simplergc.services.IntField
 import simplergc.services.Parameters
+import simplergc.services.Table
 
 class CsvCounterOutput(private val outputFile: File, private val counterParameters: Parameters.Counter) : CounterOutput() {
 
@@ -55,5 +57,14 @@ class CsvCounterOutput(private val outputFile: File, private val counterParamete
             listOf(aggregate.generateValue(CsvAggregateGenerator(cellCounts))),
             spaces
         )
+    }
+
+    override fun addTotalRow(t: Table, cellCounts: List<Int>) {
+        val totalRow = AggregateRow(
+            "Total",
+            listOf(IntField(cellCounts.sum())),
+            spaces = 0
+        )
+        t.addRow(totalRow)
     }
 }

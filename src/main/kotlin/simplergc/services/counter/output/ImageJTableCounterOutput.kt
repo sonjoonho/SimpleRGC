@@ -6,6 +6,7 @@ import simplergc.services.AggregateRow
 import simplergc.services.FieldRow
 import simplergc.services.HeaderField
 import simplergc.services.ImageJTableWriter
+import simplergc.services.Table
 
 class ImageJTableCounterOutput(uiService: UIService) : CounterOutput() {
 
@@ -28,6 +29,10 @@ class ImageJTableCounterOutput(uiService: UIService) : CounterOutput() {
         spaces: Int,
         startRow: Int
     ): AggregateRow {
-        TODO("No-op. This function should only be called in RGC-Batch.")
+        throw NotImplementedError("This function should only be called from RGC Batch")
+    }
+
+    override fun addTotalRow(t: Table, cellCounts: List<Int>) {
+        throw NotImplementedError("This function should only be called from RGC Batch")
     }
 }

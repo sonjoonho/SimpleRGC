@@ -27,8 +27,10 @@ abstract class CounterOutput : Output {
 
     protected val resultsData = Table()
 
-    // spaces is used for csv aggregate generator (to avoid formatting issues.)
-    // startRow is only used by xlsx aggregate generator
+    /**
+     * [spaces] is used by the CSV aggregate generator to avoid formatting issues.
+     * [startRow] is only used by the XLSX aggregate generator.
+     */
     abstract fun generateAggregateRow(
         aggregate: Aggregate,
         cellCounts: List<Number>,
@@ -36,14 +38,7 @@ abstract class CounterOutput : Output {
         startRow: Int = 4
     ): AggregateRow
 
-    fun addTotalRow(t: Table, cellCounts: List<Int>) {
-        val totalRow = AggregateRow(
-            "Total",
-            listOf(IntField(cellCounts.sum())),
-            spaces = 0
-        )
-        t.addRow(totalRow)
-    }
+    abstract fun addTotalRow(t: Table, cellCounts: List<Int>)
 
     data class ResultsRow(val fileName: String, val count: Int) : BaseRow {
         override fun toList() = listOf(StringField(fileName), IntField(count))
@@ -51,6 +46,7 @@ abstract class CounterOutput : Output {
 
     protected val parameterHeadings = listOf(
         "File Name",
+        "Cell Count",
         "Simple RGC Plugin",
         "Plugin Version",
         "Morphology Channel",
