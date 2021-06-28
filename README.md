@@ -53,14 +53,22 @@ mvn install -Dscijava.app.directory=/home/joon/.local/share/Fiji.app -Dscijava.d
 If you use this plugin or source code in your research paper, please use this BibTeX citation:
 
 ```
-@misc{SimpleRGC,
-      title={Simple RGC: ImageJ plugins for counting retinal ganglion cells and determining the transduction efficiency of viral vectors in retinal wholemounts}, 
-      author={Tiger Cross and Rasika Navarange and Joon-Ho Son and William Burr and Arjun Singh and Kelvin Zhang and Miruna Rusu and Konstantinos Gkoutzis and Andrew Osborne and Bart Nieuwenhuis},
-      year={2020},
-      eprint={2008.06276},
-      archivePrefix={arXiv},
-      primaryClass={q-bio.NC}
+@article{SimpleRGC,
+  doi = {10.5334/jors.342},
+  url = {https://doi.org/10.5334/jors.342},
+  year = {2021},
+  publisher = {Ubiquity Press,  Ltd.},
+  volume = {9},
+  author = {Tiger Cross and Rasika Navarange and Joon-Ho Son and William Burr and Arjun Singh and Kelvin Zhang and Miruna Rusu and Konstantinos Gkoutzis and Andrew Osborne and Bart Nieuwenhuis},
+  title = {Simple {RGC}: {ImageJ} Plugins for Counting Retinal Ganglion Cells and Determining the Transduction Efficiency of Viral Vectors in Retinal Wholemounts},
+  journal = {Journal of Open Research Software}
 }
+```
+
+or alternatively:
+
+```
+Cross T, Navarange R, Son J-H, Burr W, Singh A, Zhang K, Rusu M, Gkoutzis K, Osborne A, Nieuwenhuis B 2021 Simple RGC: ImageJ Plugins for Counting Retinal Ganglion Cells and Determining the Transduction Efficiency of Viral Vectors in Retinal Wholemounts. Journal of Open Research Software, 9: 15. DOI: https://doi.org/10.5334/jors.342
 ```
 
 ## Status
